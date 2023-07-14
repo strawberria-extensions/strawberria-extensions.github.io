@@ -102,6 +102,7 @@
             return;
         }
         const [rollResults, rollTimeDifference, nextActionDate]: WeightedDiceRollResponse = await rollDiceResponse.json();
+        localStorage.setItem("weighted-dice_roll", rollResults.join(""));
 
         // Stop scrambling, show dice result, and show time difference
         clearInterval(scrambleInterval);
@@ -141,7 +142,7 @@
                     <div class="dices w-full">
                         <div class="dice-col">
                             <div class="DiceFace">
-                                <div class="dice" data-side={diceValues[0]} id="diceface-user" style="background-color: #f7dcda">
+                                <div class="dice" data-side={diceValues[0]} style="background-color: #f7dcda">
                                     {#each { length: diceValues[0] } as _, __}
                                         <span class="dot"></span>
                                     {/each}
@@ -151,7 +152,7 @@
                         </div>
                         <div class="dice-col">
                             <div class="DiceFace">
-                                <div class="dice" data-side={diceValues[1]} id="diceface-bot" style="background-color: #f7dcda">
+                                <div class="dice" data-side={diceValues[1]} style="background-color: #f7dcda">
                                     {#each { length: diceValues[1] } as _, __}
                                         <span class="dot"></span>
                                     {/each}
@@ -168,7 +169,7 @@
                                 <span aria-hidden="true">×</span>
                                 <span class="sr-only">Close alert</span>
                             </button>
-                            <span id="dice-alert-text">{constructedAlertString}</span>
+                            <span>{constructedAlertString}</span>
                         </div>
                     </div>
                     <div class="text-center">

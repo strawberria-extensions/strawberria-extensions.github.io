@@ -12,6 +12,13 @@ export interface ChasterTrimmedExtensionSession<ExtensionConfig> {
     session:   any; // User session data
     sessionID: string;
 }
+export interface ChasterExtensionConfiguration<Config> {
+    config:        Config;
+    user:          string; // Assuming ID
+    sessionId:     string;
+    extensionSlug: string;
+    createdAt:     string; // "2023-07-12T20:27:19.007Z"
+}
 export interface ChasterCustomConfig_WeightedDice {
     // - represents bot winning
     // -1, -2, -3, -4, -5, 0, 1, 2, 3, 4, 5

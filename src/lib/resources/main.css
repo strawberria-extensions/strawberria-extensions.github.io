@@ -18,7 +18,7 @@ input[type=number] {
 .dice-config {
     display: flex;
     flex-direction: column;
-    width: 32em;
+    width: min(40em, 100%);
     padding-left: 1em;
 }
 
