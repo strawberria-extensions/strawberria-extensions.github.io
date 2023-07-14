@@ -29,19 +29,9 @@
             configurationToken = params.partnerConfigurationToken;
         }
 
-        // Communicate to Chaster that save capability is supported
-        if(window.parent) {
-            window.parent.postMessage(
-                JSON.stringify({
-                    type: "partner_configuration",
-                    event: "capabilities",
-                    payload: { features: { save: true } },
-                })
-            );
-        }
-
         // Add an event listener to receive events from Chaster
         addEventListener("message", async (event) => {
+            alert("woo!")
             if (typeof event.data !== "string") { return; }
             const eventData = JSON.parse(event.data);
             if (eventData.type === "chaster" && eventData.event === "partner_configuration_save") {
@@ -64,6 +54,17 @@
                 window.parent.postMessage(JSON.stringify({ type: "partner_configuration", event: "save_success" }), "*");
             }
         });
+
+        // Communicate to Chaster that save capability is supported
+        if(window.parent) {
+            window.parent.postMessage(
+                JSON.stringify({
+                    type: "partner_configuration",
+                    event: "capabilities",
+                    payload: { features: { save: true } },
+                })
+            );
+        }
 
         // Retrieve current config data given main token
         const extensionConfigResponse = await fetch(weightedConfigGetURL, 
