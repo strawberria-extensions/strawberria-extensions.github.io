@@ -29,6 +29,17 @@
             configurationToken = params.partnerConfigurationToken;
         }
 
+        // Communicate to Chaster that save capability is supported
+        if(window.parent) {
+            window.parent.postMessage(
+                JSON.stringify({
+                    type: "partner_configuration",
+                    event: "capabilities",
+                    payload: { features: { save: true } },
+                })
+            );
+        }
+
         // Add an event listener to receive events from Chaster
         addEventListener("message", async (event) => {
             if (typeof event.data !== "string") { return; }
