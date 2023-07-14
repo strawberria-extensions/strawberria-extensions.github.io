@@ -7,7 +7,15 @@ const config = {
 	// for more information about preprocessors
 	preprocess: vitePreprocess(),
 	kit: {
-		adapter: adapter(),
+		adapter: adapter({
+            // default options are shown. On some platforms
+            // these options are set automatically — see below
+            pages: 'docs',
+            assets: 'docs',
+            fallback: undefined,
+            precompress: false,
+            strict: true
+        }),
 		paths: {
 			// base: process.env.NODE_ENV === 'production' ? '/strawberria-extensions' : '',
 		}
