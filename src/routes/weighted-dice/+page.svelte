@@ -160,7 +160,7 @@
                             <div class="mt-2">The bot</div>
                         </div>
                     </div>
-                    <div class="mt-4" class:hidden={constructedAlertString === ""}>
+                    <div class="mt-4 w-full" class:hidden={constructedAlertString === ""}>
                         <div role="alert" class="alert alert-dismissible"
                             class:alert-success={timeDifference <= 0}
                             class:alert-danger={timeDifference > 0}>
