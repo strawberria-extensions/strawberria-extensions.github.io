@@ -71,7 +71,8 @@
         // Just in case, don't countdown if keyholder
         if(extensionSessionData.role === "keyholder") { return; }
         // Action not available, disable roll and set interval
-        if(extensionSessionData.regular.nextActionDate === null) { return; }
+        if(extensionSessionData.regular.nextActionDate === null
+            || extensionSessionData.regular.nbActionsRemaining === -1) { return; }
         if(countdownInterval === -1) {
             const currentTimeS = Math.floor(new Date().getTime() / 1000);
             const nextActionTimeS = Math.floor(new Date(extensionSessionData.regular.nextActionDate as string).getTime() / 1000);
