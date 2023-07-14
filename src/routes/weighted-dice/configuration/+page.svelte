@@ -29,32 +29,6 @@
             configurationToken = params.partnerConfigurationToken;
         }
 
-        // Add an event listener to receive events from Chaster
-        addEventListener("message", async (event) => {
-            alert("woo!")
-            if (typeof event.data !== "string") { return; }
-            const eventData = JSON.parse(event.data);
-            if (eventData.type === "chaster" && eventData.event === "partner_configuration_save") {
-                window.parent.postMessage(JSON.stringify({ type: "partner_configuration", event: "save_loading" }), "*");
-                alert(JSON.stringify({ chances: chanceInputs.map(v => new bigDecimal(v).getValue()), multiplier: $multiplierSecondsStore }))
-
-                // Send the configuration to your backend to save it
-                const lockConfigurationResponse = await fetch(weightedConfigGetURL, {
-                    method: "POST", headers: { 
-                        "Authorization": `Bearer ${anonKey}`,
-                    },
-                    body: JSON.stringify({ 
-                        configurationToken: configurationToken,
-                        config: { chances: chanceInputs.map(v => new bigDecimal(v).getValue()), multiplier: $multiplierSecondsStore }
-                    }),
-                });
-                await lockConfigurationResponse.text(); // Not sure if necessary
-            
-                // Close the modal
-                window.parent.postMessage(JSON.stringify({ type: "partner_configuration", event: "save_success" }), "*");
-            }
-        });
-
         // Communicate to Chaster that save capability is supported
         if(window.parent) {
             window.parent.postMessage(
@@ -63,8 +37,32 @@
                     event: "capabilities",
                     payload: { features: { save: true } },
                 })
-            );
+            , "*");
         }
+
+        // Add an event listener to receive events from Chaster
+        window.addEventListener("message", async (event) => {
+            if (typeof event.data !== "string") { return; }
+            const eventData = JSON.parse(event.data);
+
+            if (eventData.type === "chaster" && eventData.event === "partner_configuration_save") {
+                window.parent.postMessage(JSON.stringify({ type: "partner_configuration", event: "save_loading" }), "*");
+
+                // Send the configuration to your backend to save it
+                const lockConfigurationResponse = await fetch(weightedConfigPutURL, {
+                    method: "POST", headers: { 
+                        "Authorization": `Bearer ${anonKey}`,
+                    },
+                    body: JSON.stringify({ 
+                        configurationToken: configurationToken,
+                        config: { chances: chanceInputs.map(v => new bigDecimal(v).getValue()), multiplier: $multiplierSecondsStore }
+                    }),
+                });
+            
+                // Close the modal
+                window.parent.postMessage(JSON.stringify({ type: "partner_configuration", event: "save_success" }), "*");
+            }
+        });
 
         // Retrieve current config data given main token
         const extensionConfigResponse = await fetch(weightedConfigGetURL, 
