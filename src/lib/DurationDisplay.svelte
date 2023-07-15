@@ -1,6 +1,6 @@
 <script lang="ts">
     import type { Writable } from "svelte/store";
-    import type { DurationDisplaySettings, DurationMapped, DurationMappings } from "./DurationDisplay";
+    import type { DurationDisplaySettings, DurationMappings } from "./DurationDisplay";
 
     const displayKeys: ("day" | "hour" | "minute" | "second")[]
         = ["day", "hour", "minute", "second"];
@@ -54,8 +54,11 @@
                     <button role="presentation" aria-label={`Add ${key}`} type="button" class="sc-ikJzcn fJNrxx"
                         class:hidden={buttons === false}
                         on:click={() => { updateSeconds(keyMultiplier) }}>
-                        <div class="duration-btn duration-plus" style="font-size: 1.25em; padding: 0.075em">
+                        <!-- <div class="duration-btn duration-plus" style="font-size: 1.25em; padding: 0.075em">
                             ⨁
+                        </div> -->
+                        <div class="duration-btn duration-plus">
+                            <i class="fal fa-plus-circle"></i>
                         </div>
                     </button>
                     <div class="duration-digits">
@@ -67,8 +70,11 @@
                     <button role="presentation" aria-label={`Remove ${key}`} type="button" class="sc-ikJzcn fJNrxx"
                         class:hidden={buttons === false}
                         on:click={() => { updateSeconds(-1 * keyMultiplier) }}>
-                        <div class="duration-btn duration-minus" style="font-size: 1.25em; padding: 0.075em">
+                        <!-- <div class="duration-btn duration-minus" style="font-size: 1.25em; padding: 0.075em">
                             ⊖
+                        </div> -->
+                        <div class="duration-btn duration-minus">
+                            <i class="fal fa-minus-circle"></i>
                         </div>
                     </button>
                 </div>

@@ -27,6 +27,11 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"js-big-decimal": "^1.4.1"
+		"@fortawesome/fontawesome": "^1.1.8",
+		"@fortawesome/free-regular-svg-icons": "^6.4.0",
+		"@fortawesome/free-solid-svg-icons": "^6.4.0",
+		"js-big-decimal": "^1.4.1",
+		"svelte-fa": "^3.0.4",
+		"svrollbar": "^0.12.0"
 	}
 }

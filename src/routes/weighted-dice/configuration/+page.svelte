@@ -130,7 +130,7 @@
 <div class="container-bg w-full h-screen pl-4 pr-4">
     {#if initialLoadMessage !== ""}
         <!-- While extension data is loading, show Chaster logo -->
-        <div class="w-full h-screen flex flex-col items-center justify-center">
+        <div class="w-full h-full flex flex-col items-center justify-center">
             <img src={chasterLogo} alt="Chaster logo">
             <div class="mt-4 caption text-lg">{initialLoadMessage}</div>
         </div>
