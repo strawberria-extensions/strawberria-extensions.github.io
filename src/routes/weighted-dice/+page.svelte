@@ -134,7 +134,7 @@
         <div class="dice-container-row">
             <div class="dice-container">
                 <div class="DiceExtension card-content flex flex-col items-center">
-                    <h4>Roll the dice</h4>
+                    <h4 class="w-full">Roll the dice</h4>
                     <p class="caption">
                         If you score lower than the bot, time will be added. If you do better, time will be removed.
                         <br>
