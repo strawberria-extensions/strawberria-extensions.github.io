@@ -15,6 +15,7 @@
 		"@sveltejs/adapter-static": "^2.0.2",
 		"@sveltejs/kit": "^1.20.4",
 		"@types/cookie": "^0.5.1",
+		"@types/d3-ease": "^3.0.0",
 		"autoprefixer": "^10.4.14",
 		"gh-pages": "^5.0.0",
 		"postcss": "^8.4.26",
@@ -30,6 +31,7 @@
 		"@fortawesome/fontawesome": "^1.1.8",
 		"@fortawesome/free-regular-svg-icons": "^6.4.0",
 		"@fortawesome/free-solid-svg-icons": "^6.4.0",
+		"d3-ease": "^3.0.1",
 		"js-big-decimal": "^1.4.1",
 		"svelte-fa": "^3.0.4",
 		"svrollbar": "^0.12.0"

@@ -1,3 +1,5 @@
+import type { ChasterExtendedWheelData } from "./backend";
+
 // Generates random integer within range, inclusive
 export function randomInt(min: number, max: number) {
     const generated = Math.floor(Math.random() * (max - min)) + min;
@@ -52,4 +54,16 @@ export function generateTimeString(seconds: number, showSeconds: boolean = false
     }
 
     return finalString;
+}
+
+// Generate outcome action text for extended wheel
+export function generateOutcomeActionText(outcomeData: ChasterExtendedWheelData) {
+    let actionText = "";
+    if(outcomeData.key === "add_time") {
+        actionText = `Add ${generateTimeString(outcomeData.params[0])} to the session time.`
+    } else if(outcomeData.key === "remove_time") {
+        actionText = `Remove ${generateTimeString(outcomeData.params[0])} from the session time.`
+    }
+
+    return actionText;
 }

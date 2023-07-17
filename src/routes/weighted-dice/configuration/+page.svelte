@@ -111,6 +111,8 @@
             (textbox as any).oldSelectionEnd = (textbox as any).selectionEnd;
         } else {
             textbox.value = previousChanceInputs[index];
+            chanceInputs[index] = textbox.value;
+            chanceInputs = chanceInputs;
             (textbox as any).setSelectionRange(
                 (textbox as any).oldSelectionStart, (textbox as any).oldSelectionEnd);
         }

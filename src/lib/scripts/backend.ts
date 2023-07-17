@@ -25,3 +25,24 @@ export interface ChasterCustomConfig_WeightedDice {
     chances: [number, number, number, number, number, number, number, number, number, number, number];
     multiplier: number; // Integer, by minutes
 }
+export interface ChasterCustomConfig_ExtendedWheel {
+    outcomes: ChasterExtendedWheelData[]
+}
+export interface ChasterExtendedWheelData {
+    // Emulate regular actions for individual wheels
+    // action: {
+    //     mode:       "cumulative" | "non_cumulative" | "unlimited";
+    //     regularity: number;
+    // };
+    percentage: string;
+    text:       string;
+    key:        string;
+    params:     any[];
+}
+
+export interface ChasterCustomData_ExtendedWheel {
+    action: {
+        nbActionsRemaining: number;
+        nextActionDate?:    string;
+    };
+}
