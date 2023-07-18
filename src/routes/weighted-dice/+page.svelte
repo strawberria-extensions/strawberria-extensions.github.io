@@ -134,12 +134,17 @@
         <div class="dice-container-row">
             <div class="dice-container">
                 <div class="DiceExtension card-content flex flex-col items-center">
-                    <h4 class="w-full">Roll the dice</h4>
-                    <p class="caption">
-                        If you score lower than the bot, time will be added. If you do better, time will be removed.
-                        <br>
-                        Though, upon first glance these dice seem somewhat... unnatural. Still feeling lucky?
-                    </p>
+                    <div class="flex flex-row justify-between w-full">
+                        <div class="flex flex-col">
+                            <h4 class="w-full">Roll the dice</h4>
+                            <p class="caption">
+                                If you score lower than the bot, time will be added. If you do better, time will be removed.
+                                <br>
+                                Though, upon first glance these dice seem somewhat... unnatural. Still feeling lucky?
+                            </p>
+                        </div>
+                        <span class="caption">Developer: @strawberria</span>
+                    </div>
                     <div class="dices w-full">
                         <div class="dice-col">
                             <div class="DiceFace">

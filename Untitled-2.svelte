@@ -19,9 +19,9 @@
     ];
     const tickAudios: HTMLAudioElement[] = Array(16).fill(0).map(_ => {
         const audio = new Audio(tickAudioFile);
-        audio.volume = 0.3;
+        audio.volume = 0.6;
         return audio;
-    }); 
+    }); let audioIndex = 0;
     
     let maintoken = "";
     // let extensionSessionData: ChasterTrimmedExtensionSession<ChasterCustomConfig_ExtendedWheel>;
@@ -30,12 +30,8 @@
     extensionSessionConfigStore.update(_ => {
         const data: ChasterCustomConfig_ExtendedWheel = { 
             outcomes: [
-                { percentage: "5.00", text: "After spending an entire day stumbling through the forest, you find yourself exactly back where you started.", key: "add_time", params: [60 * 60 * 24] },
-                { percentage: "10.00", text: "You make significant progress during your exploration, getting closer and closer to civilization.", key: "remove_time", params: [12 * 60 * 60] },
-                { percentage: "5.00", text: "", key: "share_link-requirement-add", params: [12] },
-                { percentage: "20.00", text: "", key: "share_link-add_time-set", params: [60 * 60 * 4] },
-                { percentage: "4.50", text: "", key: "pillory-put", params: [] },
-                { percentage: "0.50", text: "", key: "dice-regular_actions-set", params: ["non_cumulative", 60 * 60] },
+                { percentage: "5", text: "After spending an entire day stumbling through the forest, you find yourself exactly back where you started.", key: "add_time", params: [60 * 60 * 24] },
+                { percentage: "10", text: "You make significant progress during your exploration, getting closer and closer to civilization.", key: "remove_time", params: [12 * 60 * 60] }
             ] 
         };
         data.outcomes.forEach(outcomeData => { outcomeData.label = generateOutcomeActionLabel(outcomeData); });
@@ -47,19 +43,19 @@
     let propsStore: Writable<any> = writable();
     let spinWheel: any;
     function spinTheWheel() {
-        // spinWheel.spinToItem(Math.floor(Math.random() * spinWheel.items.length), 15000, false, 5, 1, null)
-        spinWheel.spinToItem(Math.floor(Math.random() * spinWheel.items.length), 5000, false, 6, 1, easeSinInOut)
+        spinWheel.spinToItem(Math.floor(Math.random() * 14), 5000, false, 8, 1, easeSinInOut as any)
     }
 
     onMount(() => {
-        // propsStore.subscribe(() => { 
-            const items = JSON.parse(JSON.stringify($extensionSessionConfigStore.outcomes.map(
-                (outcomeData, index) => {
+        propsStore.subscribe(() => { 
+            const items = $extensionSessionConfigStore.outcomes.map(
+                outcomeData => {
                     const label = outcomeData.label ?? "";
                     const truncatedLabel = [truncateWords(label, 24), label.length >= 32 ? "..." : ""].join("");
-                    return { label: truncatedLabel, weight: index + 1 };
+                    return { label: truncatedLabel };
                 }
-            )));
+            );
+            console.log(items)
             const wheelProps = {
                 items: items,
                 pointerAngle: 270,
@@ -68,7 +64,7 @@
                 itemLabelRadius: 0.825,
                 itemLabelAlign: "left",
                 itemLabelRotation: 180,
-                // isInteractive: false,
+                isInteractive: false,
                 borderWidth: 2,
                 overlayImage: wheelBgOverlayFile,
             }
@@ -76,42 +72,16 @@
             // Initialize spinWheel if not already defined
             wheelContainer.innerHTML = "";
             spinWheel = new Wheel(wheelContainer, wheelProps);
-            (window as any).wheel = spinWheel;
-            (window as any).ease = easeSinInOut;
-            let audioIndex = 0;
-            let finishedSpinning = false;
-            let tickInterval: number;
-            spinWheel.onSpin = () => {
-                let lastRotation: number = 0;
-                let tickAngle = 30;
-
-                clearInterval(tickInterval);
-                tickInterval = setInterval(() => {
-                    if(finishedSpinning === true) { 
-                        clearInterval(tickInterval);
-                        finishedSpinning = false;
-                        return;
-                    }
-                    if(spinWheel._rotation >= lastRotation + tickAngle) {
-                        lastRotation = spinWheel._rotation;
-                        audioIndex = (audioIndex + 1) < tickAudios.length
-                            ? audioIndex + 1 : 0;
-                        tickAudios[audioIndex].play();
-                    }
-                }, 10);
-            };
-            spinWheel.onRest = () => { 
-                finishedSpinning = true; 
-                spinWheel._rotation = spinWheel._rotation - 360 * Math.floor(spinWheel._rotation / 360)
+            spinWheel.onCurrentIndexChange = () => { 
+                audioIndex = (audioIndex + 1) < tickAudios.length
+                    ? audioIndex + 1 : 0;
+                tickAudios[audioIndex].play();
             }
-
-            // spinWheel.onCurrentIndexChange = () => { 
-            //     console.log("woo")
-            //     audioIndex = (audioIndex + 1) < tickAudios.length
-            //         ? audioIndex + 1 : 0;
-            //     tickAudios[audioIndex].play();
-            // }
-        // });
+        });
+        // setTimeout(() => {
+        //     $propsStore.items.push({ label: "four" });
+        //     $propsStore = $propsStore;
+        // }, 8000)
     });
 
 
@@ -133,21 +103,18 @@
 <svelte:window bind:innerWidth={frameWidth} bind:innerHeight={frameHeight} />
 <div class="container-bg min-w-0 min-h-0 p-4 space-y-2 grow" 
     bind:this={pageContainer}>
-    <div class="card-content card-wrapper grow">
+    <div class="card-wrapper card-content grow">
         <div class="w-full h-full flex flex-row">
             <div class="h-full flex flex-col" class:card-horizontal={shouldHorizontal}>
-                <div class="flex flex-row items-end justify-between space-x-1 mb-2">
-                    <h4 class="mb-0">Extended Wheel of Fortune</h4>
-                    {#if !shouldHorizontal}
-                        <span class="caption">developer @strawberria</span>
-                    {/if}
-                </div>
+                <h4 class="w-full">Extended Wheel of Fortune</h4>
                 <div class="caption mb-2">
                     Try your luck and spin the <b>extended</b> wheel of fortune! <br>
                     Now supporting additional actions and multiple wheels with individual cooldowns!
                 </div>
-                <div class="aspect-square grow mt-1 wheel-container" 
-                    bind:this={wheelContainer} bind:clientWidth={wheelWidth} />
+                <div class="flex flex-col grow items-center">
+                    <div class="aspect-square grow mt-1 wheel-container" 
+                        bind:this={wheelContainer} bind:clientWidth={wheelWidth} />
+                </div>
                 <hr>
                 <div class="w-full flex flex-row items-stretch space-x-4">
                     <div class="grow">
@@ -175,21 +142,14 @@
             </div>
             {#if shouldHorizontal}
                 <div class="h-full flex flex-col ml-4" style={`width: ${wheelWidth}px`}>
-                    <div class="flex flex-row justify-between w-full">
-                        <div class="flex flex-col">
-                            <div>Outcomes</div>
-                            <div class="caption mb-2">
-                                View possible outcomes for the wheel
-                            </div>
-                        </div>
-                        <span class="caption">Developer: @strawberria</span>
+                    <div>Outcomes</div>
+                    <div class="caption mb-2">
+                        View possible outcomes for the wheel
                     </div>
                     {#if $extensionSessionConfigStore.outcomes.length > 0}
                         <div class="card-content outcomes-list flex flex-col space-y-1 items-stretch">
                             {#each $extensionSessionConfigStore.outcomes as outcomeData, index}
-                                {@const colorIndex = index - Math.floor(index / wheelColors.length)}
-                                {@const outcomeColor = wheelColors[index]}
-                                <WheelOutcome outcomeData={outcomeData} color={outcomeColor} />
+                                <WheelOutcome outcomeData={outcomeData} />
                                 {#if index !== $extensionSessionConfigStore.outcomes.length - 1}
                                     <hr class="mt-0.5 mb-0.5">
                                 {/if}

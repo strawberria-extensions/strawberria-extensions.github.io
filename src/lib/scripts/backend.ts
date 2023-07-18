@@ -23,8 +23,11 @@ export interface ChasterCustomConfig_WeightedDice {
     // - represents bot winning
     // -1, -2, -3, -4, -5, 0, 1, 2, 3, 4, 5
     chances: [number, number, number, number, number, number, number, number, number, number, number];
-    multiplier: number; // Integer, by minutes
+    multiplier:     number; // Integer, by minutes
+    multiplierText: string; // For handlebar
 }
+export type ChasterCustomConfig_WeightedDice_Payload = Omit<ChasterCustomConfig_WeightedDice, "multiplierText">;
+
 export interface ChasterCustomConfig_ExtendedWheel {
     outcomes: ChasterExtendedWheelData[]
 }
@@ -34,8 +37,9 @@ export interface ChasterExtendedWheelData {
     //     mode:       "cumulative" | "non_cumulative" | "unlimited";
     //     regularity: number;
     // };
-    percentage: string;
     text:       string;
+    label?:     string;
+    percentage: string;
     key:        string;
     params:     any[];
 }

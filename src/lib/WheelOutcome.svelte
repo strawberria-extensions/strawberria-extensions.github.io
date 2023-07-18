@@ -1,14 +1,13 @@
 <script lang="ts">
     import type { ChasterExtendedWheelData } from "./scripts/backend";
-    import { generateOutcomeActionText } from "./scripts/utility";
 
     export let outcomeData: ChasterExtendedWheelData;
-    const outcomeActionText = generateOutcomeActionText(outcomeData);
+    export let color: string;
 </script>
 
 <div class="flex flex-row justify-between">
-    <div class="flex flex-col outcome-left">
-        <div>{outcomeActionText}</div>
+    <div class="flex flex-col outcome-left pl-2" style={`border-left: 8px solid ${color}`}>
+        <div>{outcomeData.label ?? ""}</div>
         {#if outcomeData.text !== ""}
             <div class="caption whitespace-pre-wrap text-sm">{outcomeData.text}</div>
         {/if}
@@ -20,6 +19,7 @@
 
 <style>
     .outcome-left {
-        max-width: calc(100% - 6em)
+        max-width: calc(100% - 4em);
+        
     }
 </style>

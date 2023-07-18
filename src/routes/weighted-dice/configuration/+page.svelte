@@ -2,7 +2,7 @@
     import bigDecimal from 'js-big-decimal';
     import DurationDisplay from "$lib/DurationDisplay.svelte";
     import chasterLogo from "$lib/images/logo.png"
-    import type { ChasterCustomConfig_WeightedDice, ChasterExtensionConfiguration } from "$lib/scripts/backend";
+    import type { ChasterCustomConfig_WeightedDice_Payload } from "$lib/scripts/backend";
     import { onMount } from "svelte";
     import { writable, type Writable } from "svelte/store";
 
@@ -13,7 +13,7 @@
     const ordering = [-1, -2, -3, -4, -5, 0, 1, 2, 3, 4, 5];
 
     let configurationToken = "";
-    let extensionConfigData: ChasterCustomConfig_WeightedDice;
+    let extensionConfigData: ChasterCustomConfig_WeightedDice_Payload;
     let initialLoadMessage: string = "Loading extension data...";
     let chanceInputs = ["", "", "", "", "", "", "", "", "", "", ""];
     let previousChanceInputs = ["", "", "", "", "", "", "", "", "", "", ""];
@@ -73,7 +73,9 @@
             console.error(`Error retrieving extension configuration: ${await extensionConfigResponse.text()}`);
             return;
         }
-        extensionConfigData = await extensionConfigResponse.json();
+        const extensionConfigDataPre: any = await extensionConfigResponse.json();
+        delete extensionConfigDataPre["multiplierText"];
+        extensionConfigData = extensionConfigDataPre;
 
         // Populate current chances and multiplier
         chanceInputs = extensionConfigData.chances.map(v => `${v}`);

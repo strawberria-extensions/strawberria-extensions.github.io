@@ -56,14 +56,88 @@ export function generateTimeString(seconds: number, showSeconds: boolean = false
     return finalString;
 }
 
-// Generate outcome action text for extended wheel
-export function generateOutcomeActionText(outcomeData: ChasterExtendedWheelData) {
+export function truncateWords(input: string, maxLen: number) {
+    if(input.length <= maxLen) { return input; }
+    return input.substr(0, input.lastIndexOf(" ", maxLen));
+}
+
+// Generate outcome action label for extended wheel
+export function generateOutcomeActionLabel(outcomeData: ChasterExtendedWheelData) {
     let actionText = "";
+    // Time-related
     if(outcomeData.key === "add_time") {
-        actionText = `Add ${generateTimeString(outcomeData.params[0])} to the session time.`
+        actionText = `[Time] Add ${generateTimeString(outcomeData.params[0])} to the session time.`;
     } else if(outcomeData.key === "remove_time") {
-        actionText = `Remove ${generateTimeString(outcomeData.params[0])} from the session time.`
+        actionText = `[Time] Remove ${generateTimeString(outcomeData.params[0])} from the session time.`;
+    } else if(outcomeData.key === "multiply_time") {
+        actionText = `[Time] Multiply session time by ${outcomeData.params} times.`;
+    } 
+    // Share link
+    else if(outcomeData.key === "share_link-requirement-add") {
+        actionText = `[Share link] Increase the share link visit requirement by ${outcomeData.params[0]}.`;
+    } else if(outcomeData.key === "share_link-requirement-remove") {
+        actionText = `[Share link] Decrease the share link visit requirement by ${outcomeData.params[0]}.`;
+    } else if(outcomeData.key === "share_link-requirement-multiply") {
+        actionText = `[Share link] Multiply the share link visit requirement by ${outcomeData.params[0]} times.`;
+    } else if(outcomeData.key === "share_link-add_time-set") {
+        actionText = `[Share link] Set share link "Time to add" duration to ${generateTimeString(outcomeData.params[0])}.`;
+    } else if(outcomeData.key === "share_link-remove_time-set") {
+        actionText = `[Share link] Set share link "Time to remove" duration to ${generateTimeString(outcomeData.params[0])}.`;
+    } else if(outcomeData.key === "share_link-logged_in-set") {
+        actionText = outcomeData.params[0] === true
+            ? `[Share link] Only allow logged-in people to vote on share link visits.`
+            : `[Share link] Also allow not logged-in people to vote on share link visits.`;
     }
+    // Pillory
+    else if(outcomeData.key === "pillory-put") {
+        // Should run after any durations being set?
+        actionText = `[Pillory] Put the wearer into the pillory.`;
+    } if(outcomeData.key === "pillory-duration-set") {
+        actionText = `[Pillory] Set pillory add time per vote to ${generateTimeString(outcomeData.params[0])}.`;
+    }
+
+    // For safety purposes, don't allow hygiene opening to be changed
+
+    // Dice
+    else if(outcomeData.key === "dice-regular_actions-set") {
+        actionText = `[Dice] Set the dice regular action to mode '${outcomeData.params[0]}'`
+            + (outcomeData.params[0] !== "unlimited" ? ` with regularity ${generateTimeString(outcomeData.params[1])}` : "")
+            + ".";
+    } if(outcomeData.key === "dice-multiplier-set") {
+        // Should run after any durations being set?
+        actionText = `[Dice] Set the dice time multiplier to ${generateTimeString(outcomeData.params[0])}.`;
+    }
+
+    // Don't allow normal wheel of fortune to be modified, only this one
+
+    // Extended Wheel of Fortune
+    // TODO maybe add different wheel configs to swap between?
+    else if(outcomeData.key === "extended_wof-regular_actions-set") {
+        actionText = `[Extended Wheel of Fortune] Set the regular action for the wheel '${outcomeData.params[0]}' to mode '${outcomeData.params[0]}'`
+            + (outcomeData.params[1] !== "unlimited" ? ` with regularity ${generateTimeString(outcomeData.params[2])}` : "")
+            + ".";
+    }
+
+    // Tasks
+    else if(outcomeData.key === "tasks-regular_actions-set") {
+        actionText = `[Tasks] Set the tasks regular action to mode '${outcomeData.params[0]}'`
+            + (outcomeData.params[0] !== "unlimited" ? ` with regularity ${generateTimeString(outcomeData.params[1])}` : "")
+            + ".";
+    } else if(outcomeData.key === "tasks-task_points-add") {
+        actionText = `[Tasks] Increase the task points requirement by ${outcomeData.params[0]}.`;
+    } else if(outcomeData.key === "tasks-task_points-remove") {
+        actionText = `[Tasks] Decrease the task points requirement by ${outcomeData.params[0]}.`;
+    } else if(outcomeData.key === "tasks-task_points-multiply") {
+        // Disable can be achieved by multiplying requirement by zero
+        actionText = `[Tasks] Multiply the task points requirement by ${outcomeData.params[0]} times.`;
+    } else if(outcomeData.key === "tasks-task-add") {
+        // Don't allow a task to show up more than once
+        actionText = `[Tasks] Add the following task: ${outcomeData.params[0]}`;
+    } else if(outcomeData.key === "tasks-task-remove") {
+        actionText = `[Tasks] Remove the following task: ${outcomeData.params[0]}`;
+    } 
+
+    // Penalties: no penalty API currently
 
     return actionText;
 }
