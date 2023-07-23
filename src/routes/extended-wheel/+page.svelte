@@ -252,7 +252,7 @@
                         Try your luck and spin the <b>extended</b> wheel of fortune! <br>
                         Now supporting additional actions and multiple wheels with individual cooldowns!
                     </div>
-                    <div class="aspect-square grow mt-1 wheel-container" 
+                    <div class="grow mt-1 wheel-container" 
                         bind:this={$wheelContainerStore} bind:clientWidth={wheelWidth} />
                         <!-- bind:this={wheelContainer} bind:clientWidth={wheelWidth} /> -->
                     <hr>

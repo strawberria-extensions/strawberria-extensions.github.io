@@ -146,7 +146,7 @@
     }
 
     .quiz-container {
-        width: max(min(32em, 100%), 50%);
+        width: max(min(32em, 100%), 55%);
     }
 
     .quiz-answer-base {
