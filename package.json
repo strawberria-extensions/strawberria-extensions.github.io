@@ -31,8 +31,10 @@
 		"@fortawesome/fontawesome": "^1.1.8",
 		"@fortawesome/free-regular-svg-icons": "^6.4.0",
 		"@fortawesome/free-solid-svg-icons": "^6.4.0",
+		"@types/sha.js": "^2.4.1",
 		"d3-ease": "^3.0.1",
 		"js-big-decimal": "^1.4.1",
+		"sha.js": "^2.4.11",
 		"svelte-fa": "^3.0.4",
 		"svrollbar": "^0.12.0"
 	}

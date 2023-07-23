@@ -1,6 +1,6 @@
 <script lang="ts">
     import bigDecimal from 'js-big-decimal';
-    import DurationDisplay from "$lib/DurationDisplay.svelte";
+    import DurationDisplay from "$lib/components/DurationDisplay.svelte";
     import chasterLogo from "$lib/images/logo.png"
     import type { ChasterCustomConfig_WeightedDice_Payload } from "$lib/scripts/backend";
     import { onMount } from "svelte";

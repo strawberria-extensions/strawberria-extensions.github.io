@@ -1,7 +1,7 @@
 <script lang="ts">
     import chasterLogo from "$lib/images/logo.png"
     import type { ChasterCustomConfig_WeightedDice, ChasterTrimmedExtensionSession, WeightedDiceRollResponse } from "$lib/scripts/backend";
-    import { generateTimeString, randomInt, sleep } from "$lib/scripts/utility";
+    import { generateTimeString, randomInt } from "$lib/scripts/utility";
     import { onMount } from "svelte";
 
     // Supabase anon key has no database access due to RLS
@@ -36,9 +36,9 @@
 
         // Retrieve current session data given main token
         const extensionSessionResponse = await fetch(tokenSessionGetURL, 
-                { method: "POST", headers: { "Authorization": `Bearer ${anonKey}` },
-                body: JSON.stringify({ mainToken: mainToken }),
-            });
+            { method: "POST", headers: { "Authorization": `Bearer ${anonKey}` },
+            body: JSON.stringify({ mainToken: mainToken }),
+        });
         if(extensionSessionResponse.status !== 200) {
             console.error(`Error retrieving session data: ${await extensionSessionResponse.text()}`);
             return;
@@ -78,7 +78,7 @@
             const nextActionTimeS = Math.floor(new Date(extensionSessionData.regular.nextActionDate as string).getTime() / 1000);
             if(currentTimeS - nextActionTimeS < 0) {
                 generateNextAction(nextActionTimeS);
-                countdownInterval = setInterval(generateNextAction, 1000, nextActionTimeS);
+                countdownInterval = setInterval(generateNextAction, 1000, nextActionTimeS) as any;
             }
         }
     }

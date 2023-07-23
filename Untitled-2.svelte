@@ -149,7 +149,7 @@
                     {#if $extensionSessionConfigStore.outcomes.length > 0}
                         <div class="card-content outcomes-list flex flex-col space-y-1 items-stretch">
                             {#each $extensionSessionConfigStore.outcomes as outcomeData, index}
-                                <WheelOutcome outcomeData={outcomeData} />
+                                <WheelOutcome outcomeData={outcomeData} color={outcomeData.} />
                                 {#if index !== $extensionSessionConfigStore.outcomes.length - 1}
                                     <hr class="mt-0.5 mb-0.5">
                                 {/if}

@@ -1,5 +1,17 @@
 import type { ChasterExtendedWheelData } from "./backend";
 
+// Generate random string of specified length
+const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+export function generateRandomString(length: number) {
+    let result = "";
+    const charactersLength = characters.length;
+    for ( let i = 0; i < length; i++ ) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+
+    return result;
+}
+
 // Generates random integer within range, inclusive
 export function randomInt(min: number, max: number) {
     const generated = Math.floor(Math.random() * (max - min)) + min;

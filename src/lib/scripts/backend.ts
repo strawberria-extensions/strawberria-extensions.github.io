@@ -29,7 +29,8 @@ export interface ChasterCustomConfig_WeightedDice {
 export type ChasterCustomConfig_WeightedDice_Payload = Omit<ChasterCustomConfig_WeightedDice, "multiplierText">;
 
 export interface ChasterCustomConfig_ExtendedWheel {
-    outcomes: ChasterExtendedWheelData[]
+    outcomes:   ChasterExtendedWheelData[];
+    handleText: "";
 }
 export interface ChasterExtendedWheelData {
     // Emulate regular actions for individual wheels
