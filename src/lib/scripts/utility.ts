@@ -109,6 +109,9 @@ export function generateOutcomeActionLabel(outcomeData: ChasterExtendedWheelData
     }
 
     // For safety purposes, don't allow hygiene opening to be changed
+    else if(outcomeData.key === "hygiene-unlock") {
+        actionText = `[Hygiene Unlock] Temporarily hygiene unlock through keyholder (doesn't affect interval)`;
+    }
 
     // Dice
     else if(outcomeData.key === "dice-regular_actions-set") {
@@ -150,6 +153,17 @@ export function generateOutcomeActionLabel(outcomeData: ChasterExtendedWheelData
     } 
 
     // Penalties: no penalty API currently
+
+    // Lock actions - freeze, unfreeze, toggle freeze, unlock
+    else if(outcomeData.key === "lock-freeze") {
+        actionText = `[Lock] Freeze the lock (if unfrozen)`;
+    } else if(outcomeData.key === "lock-unfreeze") {
+        actionText = `[Lock] Unfreeze the lock (if frozen)`;
+    } else if(outcomeData.key === "lock-toggle_freeze") {
+        actionText = `[Lock] Toggle freeze on the lock (freeze -> unfreeze, and vice versa)`;
+    } else if(outcomeData.key === "lock-unlock") {
+        actionText = `[Lock] Fully unlock the lock`;
+    }
 
     return actionText;
 }
