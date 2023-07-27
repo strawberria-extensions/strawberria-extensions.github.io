@@ -114,3 +114,8 @@ input[type=number] {
     font-family: Font Awesome\ 5 Pro;
     font-weight: 300
 }
+
+html {
+    scrollbar-gutter: stable;
+    overflow: auto;
+}

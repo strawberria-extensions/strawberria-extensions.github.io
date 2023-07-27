@@ -141,10 +141,13 @@
     wheelContainerStore.subscribe(updateWheelContainer);
     extensionSessionConfigStore.subscribe(updateWheelContainer);
 
-    function updateWheelContainer() {
+    async function updateWheelContainer() {
         const wheelContainer = $wheelContainerStore;
 
         if(wheelContainer === undefined) { return; }
+
+        // Short delay so wheel is properly sized in container
+        await sleep(10);
 
         const items = JSON.parse(JSON.stringify($extensionSessionConfigStore.outcomes.map(
             (outcomeData, index) => {

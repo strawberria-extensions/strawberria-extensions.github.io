@@ -131,7 +131,6 @@
                         Go Back
                     </button>
                 </div>
-                
             {/if}
         {/if}
     </div>
