@@ -1,5 +1,5 @@
 <script lang="ts">
-    import chasterLogo from "$lib/images/logo.png"
+    import chasterLogo from "$lib/resources/logo.png"
     import type { ChasterCustomConfig_WeightedDice, ChasterTrimmedExtensionSession, WeightedDiceRollResponse } from "$lib/scripts/backend";
     import { generateTimeString, randomInt } from "$lib/scripts/utility";
     import { onMount } from "svelte";
@@ -123,7 +123,7 @@
     function closeAlert() { constructedAlertString = ""; }
 </script>
 
-<div class="container-bg w-full h-screen pl-4 pr-4">
+<div class="container-bg w-full h-screen pl-3 pr-3">
     {#if initialLoadMessage !== ""}
         <!-- While extension data is loading, show Chaster logo -->
         <div class="w-full h-screen flex flex-col items-center justify-center">

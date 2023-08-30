@@ -1,7 +1,7 @@
 <script lang="ts">
     import bigDecimal from 'js-big-decimal';
-    import DurationDisplay from "$lib/components/DurationDisplay.svelte";
-    import chasterLogo from "$lib/images/logo.png"
+    import DurationSelect from "$lib/components/DurationSelect.svelte";
+    import chasterLogo from "$lib/resources/logo.png"
     import type { ChasterCustomConfig_WeightedDice_Payload } from "$lib/scripts/backend";
     import { onMount } from "svelte";
     import { writable, type Writable } from "svelte/store";
@@ -19,7 +19,7 @@
     let previousChanceInputs = ["", "", "", "", "", "", "", "", "", "", ""];
     let chanceElements: HTMLInputElement[] = [];
     let invalidMessage = "";
-    const multiplierSecondsStore: Writable<number> = writable(3600);
+    let multiplierSeconds: number = 3600;
 
     onMount(async function() {
         // Retrieve configuration token from page URL
@@ -55,7 +55,7 @@
                     },
                     body: JSON.stringify({ 
                         configurationToken: configurationToken,
-                        config: { chances: chanceInputs.map(v => new bigDecimal(v).getValue()), multiplier: $multiplierSecondsStore }
+                        config: { chances: chanceInputs.map(v => new bigDecimal(v).getValue()), multiplier: multiplierSeconds }
                     }),
                 });
             
@@ -80,7 +80,7 @@
         // Populate current chances and multiplier
         chanceInputs = extensionConfigData.chances.map(v => `${v}`);
         previousChanceInputs = extensionConfigData.chances.map(v => `${v}`); // Deep copy
-        multiplierSecondsStore.set(extensionConfigData.multiplier);
+        multiplierSeconds = extensionConfigData.multiplier;
 
         initialLoadMessage = "";
     });
@@ -131,7 +131,7 @@
     }
 </script>
 
-<div class="container-bg w-full h-screen pl-4 pr-4">
+<div class="container-bg w-full h-screen pl-3 pr-3">
     {#if initialLoadMessage !== ""}
         <!-- While extension data is loading, show Chaster logo -->
         <div class="w-full h-full flex flex-col items-center justify-center">
@@ -139,11 +139,18 @@
             <div class="mt-4 caption text-lg">{initialLoadMessage}</div>
         </div>
     {:else}
+        <div class="caption">
+            With every action, you and the bot roll a dice. 
+            If you do more than the bot, time is removed. 
+            If the bot does more, time is added.
+            The dice outcome percentages are configurable and hidden to the wearer.
+        </div>
+        <hr>
         <div class="page-top">Time multiplier</div>
         <div class="caption mb-2">The difference between the two dice will be multiplied by this time.</div>
         <div class="d-flex justify-content-center">
-            <DurationDisplay secondsStore={multiplierSecondsStore} 
-                settings={{ day: true, hour: true, minute: true, second: false }}
+            <DurationSelect seconds={multiplierSeconds} 
+                settings={{ week: true, day: true, hour: true, minute: true, second: true }}
                 buttons={true} />
         </div>
         <div class="page-top" style="margin-top: 1em">Weighted Dice Outcomes</div>

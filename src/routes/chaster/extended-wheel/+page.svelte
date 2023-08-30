@@ -2,7 +2,7 @@
     import { easeSinInOut } from 'd3-ease';
     import { onMount } from 'svelte';
     import { writable, type Writable } from 'svelte/store';
-    import chasterLogo from "$lib/images/logo.png"
+    import chasterLogo from "$lib/resources/logo.png"
     import tickAudioFile from "$lib/resources/tick.mp3";
     import wheelBgOverlayFile from "$lib/resources/wheel-bg-overlay.svg"
     import { Wheel } from '$lib/resources/spin-wheel.js';
@@ -39,28 +39,28 @@
             outcomes: [
                 { percentage: "5.00", text: "After spending an entire day stumbling through the forest, you find yourself exactly back where you started.", key: "add_time", params: [60 * 60 * 24] },
                 { percentage: "10.00", text: "You make significant progress during your exploration, getting closer and closer to civilization.", key: "remove_time", params: [12 * 60 * 60] },
-                { percentage: "5.00", text: "", key: "share_link-requirement-add", params: [12] },
+                { percentage: "5.00", text: "", key: "share_link-requirement-increase", params: [12] },
                 { percentage: "20.00", text: "", key: "share_link-add_time-set", params: [60 * 60 * 4] },
                 { percentage: "4.50", text: "", key: "pillory-put", params: [] },
-                { percentage: "0.50", text: "", key: "dice-regular_actions-set", params: ["non_cumulative", 60 * 60] },
+                { percentage: "0.50", text: "", key: "dice-regularitys-set", params: ["non_cumulative", 60 * 60] },
                 { percentage: "5.00", text: "After spending an entire day stumbling through the forest, you find yourself exactly back where you started.", key: "add_time", params: [60 * 60 * 24] },
                 { percentage: "10.00", text: "You make significant progress during your exploration, getting closer and closer to civilization.", key: "remove_time", params: [12 * 60 * 60] },
-                { percentage: "5.00", text: "", key: "share_link-requirement-add", params: [12] },
+                { percentage: "5.00", text: "", key: "share_link-requirement-increase", params: [12] },
                 { percentage: "20.00", text: "", key: "share_link-add_time-set", params: [60 * 60 * 4] },
                 { percentage: "4.50", text: "", key: "pillory-put", params: [] },
-                { percentage: "0.50", text: "", key: "dice-regular_actions-set", params: ["non_cumulative", 60 * 60] },
+                { percentage: "0.50", text: "", key: "dice-regularitys-set", params: ["non_cumulative", 60 * 60] },
                 { percentage: "5.00", text: "After spending an entire day stumbling through the forest, you find yourself exactly back where you started.", key: "add_time", params: [60 * 60 * 24] },
                 { percentage: "10.00", text: "You make significant progress during your exploration, getting closer and closer to civilization.", key: "remove_time", params: [12 * 60 * 60] },
-                { percentage: "5.00", text: "", key: "share_link-requirement-add", params: [12] },
+                { percentage: "5.00", text: "", key: "share_link-requirement-increase", params: [12] },
                 { percentage: "20.00", text: "", key: "share_link-add_time-set", params: [60 * 60 * 4] },
                 { percentage: "4.50", text: "", key: "pillory-put", params: [] },
-                { percentage: "0.50", text: "", key: "dice-regular_actions-set", params: ["non_cumulative", 60 * 60] },
+                { percentage: "0.50", text: "", key: "dice-regularitys-set", params: ["non_cumulative", 60 * 60] },
                 { percentage: "5.00", text: "After spending an entire day stumbling through the forest, you find yourself exactly back where you started.", key: "add_time", params: [60 * 60 * 24] },
                 { percentage: "10.00", text: "You make significant progress during your exploration, getting closer and closer to civilization.", key: "remove_time", params: [12 * 60 * 60] },
-                { percentage: "5.00", text: "", key: "share_link-requirement-add", params: [12] },
+                { percentage: "5.00", text: "", key: "share_link-requirement-increase", params: [12] },
                 { percentage: "20.00", text: "", key: "share_link-add_time-set", params: [60 * 60 * 4] },
                 { percentage: "4.50", text: "", key: "pillory-put", params: [] },
-                { percentage: "0.50", text: "", key: "dice-regular_actions-set", params: ["non_cumulative", 60 * 60] },
+                { percentage: "0.50", text: "", key: "dice-regularitys-set", params: ["non_cumulative", 60 * 60] },
             ],
             handleText: ""
         };
@@ -235,7 +235,7 @@
 </script>
 
 <svelte:window bind:innerWidth={frameWidth} bind:innerHeight={frameHeight} />
-<div class="container-bg min-w-0 min-h-0 p-4 space-y-2 grow" 
+<div class="container-bg min-w-0 min-h-0 pl-3 pr-3 space-y-2 grow" 
     bind:this={pageContainer}>
     {#if initialLoadMessage !== ""}
         <!-- While extension data is loading, show Chaster logo -->

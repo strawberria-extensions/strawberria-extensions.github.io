@@ -1,28 +1,30 @@
 <script lang="ts">
-    import type { Writable } from "svelte/store";
-    import type { DurationDisplaySettings, DurationMappings } from "./DurationDisplay";
+    import type { DurationSelectSettings, DurationMappings } from "./DurationSelect";
 
-    const displayKeys: ("day" | "hour" | "minute" | "second")[]
-        = ["day", "hour", "minute", "second"];
+    const displayKeys: ("week" | "day" | "hour" | "minute" | "second")[]
+        = ["week", "day", "hour", "minute", "second"];
     const multipliers = {
+        "week": 7 * 24 * 60 * 60,
         "day": 24 * 60 * 60,
         "hour": 60 * 60,
         "minute": 60,
         "second": 1
     };
     let durationMappings: DurationMappings = {
+        week: { tens: "0", ones: "0" },
         day: { tens: "0", ones: "0" },
         hour: { tens: "0", ones: "0" },
         minute: { tens: "0", ones: "0" },
         second: { tens: "0", ones: "0" },
     };
 
-    export let secondsStore: Writable<number>; // Seconds in current display
-    export let settings: DurationDisplaySettings;
+    export let seconds: number; // Seconds in current display
+    export let settings: DurationSelectSettings;
     export let buttons: boolean = false;
 
     // Whenever seconds changes, modify duration display
-    secondsStore.subscribe((seconds) => {
+    $: {
+        seconds;
         let remainingSeconds = seconds;
         for(const key of displayKeys) {
             const multiplier = multipliers[key];
@@ -32,12 +34,12 @@
             durationMappings[key].tens = tens;
             durationMappings[key].ones = ones;
         }
-    });
+    }
 
     // Update seconds with given difference unless it goes negative
     function updateSeconds(diff: number) {
-        if($secondsStore + diff > 0) {
-            secondsStore.update((seconds) => seconds + diff);
+        if(seconds + diff > 0) {
+            seconds += diff;
         }
     }
 </script>
@@ -65,7 +67,7 @@
                         <div class="duration-digit">{keyMappings.tens}</div>
                         <div class="duration-digit">{keyMappings.ones}</div>
                     </div>
-                    <div class="duration-label">day</div>
+                    <div class="duration-label">{key}</div>
                     <!-- svelte-ignore a11y-no-interactive-element-to-noninteractive-role -->
                     <button role="presentation" aria-label={`Remove ${key}`} type="button" class="sc-ikJzcn fJNrxx"
                         class:hidden={buttons === false}

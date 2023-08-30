@@ -1,9 +1,19 @@
 import type { ChasterExtendedWheelData } from "./backend";
 
 // Generate random string of specified length
-const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-export function generateRandomString(length: number) {
+// const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+const characterMappings = {
+    "all-alphanumeric": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+    "upper-alphanumeric": "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+    "lower-alphanumeric": "abcdefghijklmnopqrstuvwxyz0123456789",
+    "all-alpha": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    "caps-alpha": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    "lower-alpha": "abcdefghijklmnopqrstuvwxyz",
+    "numeric": "0123456789",
+} as const;
+export function generateRandomString(length: number, charset: keyof typeof characterMappings = "upper-alphanumeric") {
     let result = "";
+    const characters = characterMappings[charset]
     const charactersLength = characters.length;
     for ( let i = 0; i < length; i++ ) {
         result += characters.charAt(Math.floor(Math.random() * charactersLength));
@@ -31,7 +41,8 @@ export function generateTimeString(seconds: number, showSeconds: boolean = false
     const multipliers: { [key: string]: number } = {
         "day": 60 * 60 * 24,
         "hour": 60 * 60,
-        "minute": 60
+        "minute": 60,
+        "second": 1,
     };
     if(showSeconds) {
         multipliers["second"] = 1;
@@ -85,9 +96,9 @@ export function generateOutcomeActionLabel(outcomeData: ChasterExtendedWheelData
         actionText = `[Time] Multiply session time by ${outcomeData.params} times.`;
     } 
     // Share link
-    else if(outcomeData.key === "share_link-requirement-add") {
+    else if(outcomeData.key === "share_link-requirement-increase") {
         actionText = `[Share link] Increase the share link visit requirement by ${outcomeData.params[0]}.`;
-    } else if(outcomeData.key === "share_link-requirement-remove") {
+    } else if(outcomeData.key === "share_link-requirement-decrease") {
         actionText = `[Share link] Decrease the share link visit requirement by ${outcomeData.params[0]}.`;
     } else if(outcomeData.key === "share_link-requirement-multiply") {
         actionText = `[Share link] Multiply the share link visit requirement by ${outcomeData.params[0]} times.`;
@@ -114,7 +125,7 @@ export function generateOutcomeActionLabel(outcomeData: ChasterExtendedWheelData
     }
 
     // Dice
-    else if(outcomeData.key === "dice-regular_actions-set") {
+    else if(outcomeData.key === "dice-regularitys-set") {
         actionText = `[Dice] Set the dice regular action to mode '${outcomeData.params[0]}'`
             + (outcomeData.params[0] !== "unlimited" ? ` with regularity ${generateTimeString(outcomeData.params[1])}` : "")
             + ".";
@@ -127,20 +138,22 @@ export function generateOutcomeActionLabel(outcomeData: ChasterExtendedWheelData
 
     // Extended Wheel of Fortune
     // TODO maybe add different wheel configs to swap between?
-    else if(outcomeData.key === "extended_wof-regular_actions-set") {
+    else if(outcomeData.key === "extended_wof-mode-set") {
+        actionText = `[Extended Wheel of Fortune] Set the mode for the wheel '${outcomeData.params[0]}' to mode '${outcomeData.params[0]}'`;
+    } else if(outcomeData.key === "extended_wof-regularitys-set") {
         actionText = `[Extended Wheel of Fortune] Set the regular action for the wheel '${outcomeData.params[0]}' to mode '${outcomeData.params[0]}'`
             + (outcomeData.params[1] !== "unlimited" ? ` with regularity ${generateTimeString(outcomeData.params[2])}` : "")
             + ".";
     }
 
     // Tasks
-    else if(outcomeData.key === "tasks-regular_actions-set") {
+    else if(outcomeData.key === "tasks-regularitys-set") {
         actionText = `[Tasks] Set the tasks regular action to mode '${outcomeData.params[0]}'`
             + (outcomeData.params[0] !== "unlimited" ? ` with regularity ${generateTimeString(outcomeData.params[1])}` : "")
             + ".";
-    } else if(outcomeData.key === "tasks-task_points-add") {
+    } else if(outcomeData.key === "tasks-task_points-increase") {
         actionText = `[Tasks] Increase the task points requirement by ${outcomeData.params[0]}.`;
-    } else if(outcomeData.key === "tasks-task_points-remove") {
+    } else if(outcomeData.key === "tasks-task_points-decrease") {
         actionText = `[Tasks] Decrease the task points requirement by ${outcomeData.params[0]}.`;
     } else if(outcomeData.key === "tasks-task_points-multiply") {
         // Disable can be achieved by multiplying requirement by zero

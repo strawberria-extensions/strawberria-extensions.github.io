@@ -119,3 +119,44 @@ html {
     scrollbar-gutter: stable;
     overflow: auto;
 }
+
+.tippy-box {
+    max-width: 200;
+}
+.tippy-box[data-theme~='tooltip'] > .tippy-arrow::before {
+    color: #000;
+}
+.tippy-box[data-theme~='tooltip'] {
+    background-color: #000;
+    border-radius: 10px;
+    word-wrap: break-word;
+    font-size: .875rem;
+    font-style: normal;
+    font-weight: 400;
+    letter-spacing: normal;
+    line-break: auto;
+    line-height: 1.5;
+    margin: 0;
+    text-align: center;
+    text-decoration: none;
+    text-shadow: none;
+    text-transform: none;
+    white-space: normal;
+    word-break: normal;
+    word-spacing: normal;
+    z-index: 1070;
+    opacity: 0.9
+}
+.tippy-box {
+    transition-timing-function: linear;
+}
+
+.icon-button {
+    color: inherit;
+    cursor: pointer;
+    text-decoration: inherit;
+    transition: .15s;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}

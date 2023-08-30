@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { ChasterExtendedWheelData } from "./scripts/backend";
+    import type { ChasterExtendedWheelData } from "../scripts/backend";
 
     export let outcomeData: ChasterExtendedWheelData;
     export let color: string;
@@ -20,6 +20,5 @@
 <style>
     .outcome-left {
         max-width: calc(100% - 4em);
-        
     }
 </style>
