@@ -1,13 +1,13 @@
 <script lang="ts">
     import { Popover } from "flowbite-svelte";
-    import type { ExtendedWheel_ActionData, ExtendedWheel_OutcomeData } from "$lib/scripts/backend";
-    import { communicationStore } from "$lib/scripts/duration-tooltip";
+    import type { ExtendedWheel_ActionData } from "$lib/scripts/backend";
     import { generateRandomString, generateTimeString } from "$lib/scripts/utility";
     import DurationSelect from "./DurationSelect.svelte";
     import { fade } from "svelte/transition";
+    import type { DurationSelectSettings } from "./DurationSelect";
 
     export let actionData: ExtendedWheel_ActionData;
-    export let index:      number | undefined = undefined;
+    export let settings:   DurationSelectSettings = { week: false, day: true, hour: true, minute: true, second: true };
 
     let element: HTMLElement;
     let refElement: HTMLElement;
@@ -35,7 +35,7 @@
         <div style="border-radius: 10px">
             Time to add
             <DurationSelect bind:seconds={actionData.params[0]}
-                settings={{ week: false, day: true, hour: true, minute: true, second: true }}
+                settings={settings}
                 buttons={true} />
         </div>
     </Popover>

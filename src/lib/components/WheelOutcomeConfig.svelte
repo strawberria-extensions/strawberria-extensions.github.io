@@ -1,9 +1,12 @@
 <script lang="ts">
-    import { extendedWheelActionTemplates, type ExtendedWheel_OutcomeData, extendedWheelActions, type ExtendedWheel_ActionType } from "$lib/scripts/backend";
+    import { extendedWheelActionTemplates, type ExtendedWheel_OutcomeData, extendedWheelActions, type ExtendedWheel_ActionType, regularityModeOptionsData, extendedWheelDataStore } from "$lib/scripts/backend";
     import { createEventDispatcher } from "svelte";
     import { tippy } from "svelte-tippy";
     import ConfigDurationPopover from "./ConfigDuration_Popover.svelte";
     import InformationTooltip from "./InformationTooltip.svelte";
+    import InputCheckbox from "./InputCheckbox.svelte";
+    import InputRadio from "./InputRadio.svelte";
+    import DurationSelect from "./DurationSelect.svelte";
 
     const dispatch = createEventDispatcher();
 
@@ -19,6 +22,12 @@
         newActionData.params = JSON.parse(JSON.stringify(newActionTemplate.default));
         outcomeData = outcomeData;
     }
+
+    let wheelOptionsData: { key: string; display: string }[] = [];
+    extendedWheelDataStore.subscribe((extendedWheelData) => {
+        wheelOptionsData = Object.entries(extendedWheelData.wheels)
+            .map(([wheelKey, wheelData]) => ({ key: wheelKey, display: wheelData.display }))
+    })
 
     // const actionsOptionsData = Object.entries(extendedWheelActions)
     //     .map(([actionKey, actionText]) => ({ key: actionKey, display: actionText }));
@@ -64,7 +73,7 @@
                     </svg>                      
                 </span>
             </div>
-            <div class="flex flex-col items-start grow !mr-[1.5em]">
+            <div class="flex flex-col items-start grow !mr-[0.75em]">
                 <textarea class="form-control resize-none" 
                     rows="3"
                     placeholder="Flavor Text"
@@ -111,26 +120,24 @@
         {#each outcomeData.actions as actionData, actionIndex}
             {@const actionTemplateData = extendedWheelActionTemplates[actionData.type]}
             <hr />
-            <div class="flex flex-row w-full space-x-[0.5em] pr-[0.5em]">
-                <div class="flex flex-row items-center justify-around mx-[0.25rem]">
-                    <!-- svelte-ignore a11y-no-static-element-interactions -->
-                    <!-- svelte-ignore a11y-click-events-have-key-events -->
-                    <span class="icon-button p-[0.25em]"
-                        use:tippy={{ content: "Delete Action", placement: "top", arrow: true, theme: "tooltip",
-                            duration: 150, animation: "fade" }}
-                        on:click={() => { dispatch("deleteAction") }}>
-                        <div class="flex flex-row items-center h-full">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-[1.5em] h-[1.5em]">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                    </span>
-                </div>
-                <div class="flex flex-col grow space-y-[0.5em]">
-                    <div class="flex flex-row justify-between space-x-[1em] mr-[0.5em]">
+            <div class="flex flex-col w-full space-y-[0.5em]">
+                <div class="flex flex-col">
+                    <div class="flex flex-row items-center justify-around mx-[0.25rem] space-x-[0.75em] pr-[0.25em]">
+                        <!-- svelte-ignore a11y-no-static-element-interactions -->
+                        <!-- svelte-ignore a11y-click-events-have-key-events -->
+                        <span class="icon-button p-[0.25em]"
+                            use:tippy={{ content: "Delete Action", placement: "top", arrow: true, theme: "tooltip",
+                                duration: 150, animation: "fade" }}
+                            on:click={() => { dispatch("deleteAction", actionIndex) }}>
+                            <div class="flex flex-row items-center h-full">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-[1.5em] h-[1.5em]">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                        </span>
                         <!-- <InputSelect optionsData={actionsOptionsData}
                             bind:selected={actionData.type} /> -->
-                        <select class="form-control" 
+                            <select class="form-control" 
                             bind:value={intermediateActionTypes[actionIndex]}
                             on:change={() => { resetAction(actionIndex); }}>
                             {#each Object.entries(extendedWheelActions) as [actionKey, actionText]}
@@ -142,19 +149,32 @@
                                 placement={"top"} />
                         </div>
                     </div>
-                    <div class="flex flex-row space-x-[1em] px-[1em]">
+                </div>
+                {#if actionTemplateData.params.length > 0}
+                    <div class="flex flex-row items-center space-x-[1.5em] px-[1em]">
                         <!-- {#key actionTemplateData} -->
                             {#each actionTemplateData.params as paramData, paramIndex}
-                                <div class={`flex flex-col items-start space-y-[0.25em] ${paramData.class ?? ""}`}>
-                                    <div class="caption">
-                                        {paramData.label}
+                                <!-- {#if paramIndex !== 0}
+                                    <div class="h-[2em] border-l-[1px] border-black">
+                                        <span />
                                     </div>
-                                    {#if paramData.type === "duration"}
+                                {/if} -->
+                                <div class={`flex flex-col items-start space-y-[0.25em] ${paramData.class ?? ""}`}>
+                                    {#if paramData.label !== "" && paramData.type !== "boolean" && paramData.type !== "regularity"}
+                                        <div class="caption">
+                                            {paramData.label}
+                                        </div>
+                                    {/if}
+                                    {#if paramData.type === "boolean"}
+                                        <InputCheckbox bind:value={actionData.params[paramIndex]}
+                                            display={paramData.label}
+                                            tooltip={paramData.params["tooltip"]} />
+                                    {:else if paramData.type === "duration"}
                                         <ConfigDurationPopover actionData={actionData}
-                                            index={paramIndex} />
+                                            settings={{ week: true, day: true, hour: true, minute: true, second: true }} />
                                     {:else if paramData.type === "number"}
                                         <div class="flex flex-row items-center">
-                                            <input class={`form-control !w-[6em] 
+                                            <input class={`form-control !w-[6em]
                                                 ${paramData.params["suffix"] ? "!pr-[2em]" : ""}`}
                                                 class:is-invalid={false}
                                                 bind:value={actionData.params[paramIndex]}
@@ -169,14 +189,53 @@
                                                 </div>
                                             {/if}
                                         </div>
+                                    {:else if paramData.type === "select" || paramData.type === "select_wheel"}
+                                        <select class="form-control !w-auto" 
+                                            bind:value={actionData.params[paramIndex]}>
+                                            {#if paramData.type === "select"}
+                                                {#each paramData.params["options"] as paramOptionData}
+                                                    <option value={paramOptionData.key}>{paramOptionData.display}</option>
+                                                {/each}
+                                            {:else}
+                                                {#each wheelOptionsData as wheelOptionData}
+                                                    <option value={wheelOptionData.key}>{wheelOptionData.display}</option>
+                                                {/each}
+                                            {/if}
+                                        </select> 
+                                    {:else if paramData.type === "regularity"}
+                                        <div class="flex flex-row justify-between space-x-4">
+                                            <div class="shrink-0">
+                                                <InputRadio title="Mode"
+                                                    optionsData={regularityModeOptionsData}
+                                                    bind:selected={actionData.params[paramIndex][0]} />
+                                            </div>
+                                            <div class="grow" />
+                                            {#if actionData.params[paramIndex][0] !== "unlimited"}
+                                                <div>
+                                                    <div class="mb-2">Regularity</div>
+                                                    <DurationSelect bind:seconds={actionData.params[paramIndex][1]}
+                                                        settings={{ week: false, day: true, hour: true, minute: true, second: false }}
+                                                        buttons={true} />
+                                                </div>
+                                            {/if}
+                                        </div>
+                                    {:else if paramData.type === "text"}
+                                        <div class={`flex flex-row items-center ${paramData.params["innerClass"] ?? ""}`}>
+                                            <input class="form-control"
+                                                class:is-invalid={false}
+                                                bind:value={actionData.params[paramIndex]}
+                                                on:input={() => { dispatch("update"); }}
+                                            />
+                                        </div>
+                                    <!-- omit radio for now -->
                                     {/if}
                                 </div>  
                             {/each}
                         <!-- {/key} -->
                     </div>
-                </div>
-                <!-- <div class="border-l-[0.5em] border-red-700 pr-[0.5em]" /> -->
+                {/if}
             </div>
+            <!-- <div class="border-l-[0.5em] border-red-700 pr-[0.5em]" /> -->
         {/each}
     </div>
 </div>

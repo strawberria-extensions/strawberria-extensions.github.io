@@ -1,2 +1,6 @@
 tooltip: use tippy > popper.js
 html tooltip: use flowbite (note no arrow)
+
+ideas: 
+- wheel which has cost associated with spinning
+- numeric "spins" available for wheel

@@ -22315,14 +22315,14 @@ hr {
  * Font Awesome Pro 5.15.1 by @fontawesome - https://fontawesome.com
  * License - https://fontawesome.com/license (Commercial License)
  */
-@font-face {
+/* @font-face {
     font-display: block;
     font-family: Font Awesome\ 5 Pro;
     font-style: normal;
     font-weight: 900;
     src: url(https://chaster.app/static/media/fa-solid-900.52e50a473ce5a810b96c.eot);
     src: url(https://chaster.app/static/media/fa-solid-900.52e50a473ce5a810b96c.eot?#iefix) format("embedded-opentype"),url(https://chaster.app/static/media/fa-solid-900.eb1e9adc85b4ee46fadd.woff2) format("woff2"),url(https://chaster.app/static/media/fa-solid-900.d01c913b964766c49d6f.woff) format("woff"),url(https://chaster.app/static/media/fa-solid-900.e3dd595576a3022bd3e4.ttf) format("truetype"),url(https://chaster.app/static/media/fa-solid-900.0b3a54080a347a20a349.svg#fontawesome) format("svg")
-}
+} */
 
 .fa,.fas {
     font-weight: 900

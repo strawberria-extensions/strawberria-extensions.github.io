@@ -106,8 +106,25 @@ input[type=number] {
     font-family: Font Awesome\ 5 Pro;
     font-style: normal;
     font-weight: 300;
-    src: url($lib/resources/fa-light-300.eot);
-    src: url($lib/resources/fa-light-300.eot) format("embedded-opentype"),url($lib/resources/fa-light-300.woff2) format("woff2"),url(https://chaster.app/static/media/fa-light-300.bbd12b90acd4a233eeb7.woff) format("woff"),url(https://chaster.app/static/media/fa-light-300.6d947d220c3db834bd53.ttf) format("truetype"),url($lib/resources/fa-light-300.svg) format("svg")
+    src: url($lib/resources/fonts/fa-light-300.eot);
+    src: url($lib/resources/fonts/fa-light-300.eot) format("embedded-opentype"),
+         url($lib/resources/fonts/fa-light-300.woff2) format("woff2"),
+         url($lib/resources/fonts/fa-light-300.woff) format("woff"),
+         url($lib/resources/fonts/fa-light-300.ttf) format("truetype"),
+         url($lib/resources/fonts/fa-light-300.svg) format("svg")
+}
+
+@font-face {
+    font-display: block;
+    font-family: Font Awesome\ 5 Pro;
+    font-style: normal;
+    font-weight: 900;
+    src: url($lib/resources/fonts/fa-solid-900.eot);
+    src: url($lib/resources/fonts/fa-solid-900.eot) format("embedded-opentype"),
+         url($lib/resources/fonts/fa-solid-900.woff2) format("woff2"),
+         url($lib/resources/fonts/fa-solid-900.woff) format("woff"),
+         url($lib/resources/fonts/fa-solid-900.ttf) format("truetype"),
+         url($lib/resources/fonts/fa-solid-900.svg) format("svg")
 }
 
 .fal {

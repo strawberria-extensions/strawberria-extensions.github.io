@@ -1,16 +1,16 @@
 <script lang="ts">
-    import { writable, type Writable } from "svelte/store";
     // @ts-ignore
     import DurationSelect from "$lib/components/DurationSelect.svelte";
     import InputRadio from '$lib/components/InputRadio.svelte';
     import InputSelect from '$lib/components/InputSelect.svelte';
     import type { InputSelectOptionData } from '$lib/components/InputSelect';
     import type { InputRadioOption } from '$lib/components/InputRadio';
-    import type { ExtendedWheelData } from "$lib/scripts/backend";
+    import { regularityModeOptionsData, extendedWheelDataStore } from "$lib/scripts/backend";
     import { generateRandomString } from '$lib/scripts/utility';
     import WheelOutcomeConfig from "$lib/components/WheelOutcomeConfig.svelte";
-    import { communicationStore, selectedWheelIDStore } from "$lib/scripts/duration-tooltip";
+    import { selectedWheelIDStore } from "$lib/scripts/duration-tooltip";
     import bigDecimal from "js-big-decimal";
+    import InputCheckbox from "$lib/components/InputCheckbox.svelte";
     // import ConfigDurationTooltip from "$lib/components/ConfigDurationTooltip.svelte";
 
     // Supabase anon key has no database access due to RLS
@@ -21,7 +21,6 @@
 
     // Everything pertaining to selected wheel including selection, creation, and deletion
     let extendedWheelOptionsData: InputSelectOptionData[] = [];
-    let extendedWheelDataStore: Writable<ExtendedWheelData> = writable({ wheels: {} });
     extendedWheelDataStore.subscribe((extendedWheelData) => {
         generateWheelOptionsData();
     });
@@ -41,7 +40,12 @@
         const randomID = generateRandomString(6);
         $extendedWheelDataStore.wheels[randomID] = { 
             display: newWheelName, 
-            spinSetting: "normal",
+            settings: {
+                disabled:         false,
+                falsePercentages: false,
+                hiddenActions: false,
+                hiddenOutcomes: false,
+            },
             regularity: {
                 interval: 3600,
                 mode: "non_cumulative",
@@ -74,8 +78,13 @@
         delete $extendedWheelDataStore.wheels[oldSelectedWheelOptionID];
         $extendedWheelDataStore = $extendedWheelDataStore;
     }
+    function toggleSetting(key: "disabled" | "falsePercentages" | "hiddenActions" | "hiddenOutcomes") {
+        if($selectedWheelIDStore === null) { return; }
+        $extendedWheelDataStore.wheels[$selectedWheelIDStore].settings[key] = !$extendedWheelDataStore.wheels[$selectedWheelIDStore].settings[key]
+    }
     function addOutcome() {
-        const wheelOutcomes = $extendedWheelDataStore.wheels[$selectedWheelIDStore as string].outcomes;
+        if($selectedWheelIDStore === null) { return; }
+        const wheelOutcomes = $extendedWheelDataStore.wheels[$selectedWheelIDStore].outcomes;
         wheelOutcomes.push({
             text: "",
             actions: [],
@@ -91,6 +100,15 @@
         wheelOutcomes.splice(index + 1, 0, duplicateOutcome);
         $extendedWheelDataStore = $extendedWheelDataStore;
     }
+    function deleteOutcome(index: number) {
+        if($selectedWheelIDStore === null) { return; }
+
+        // Delete outcome and dispatch duration config to rerender
+        // const oldOutcomeData = $extendedWheelDataStore.wheels[$selectedWheelIDStore].outcomes[index];
+        $extendedWheelDataStore.wheels[$selectedWheelIDStore].outcomes.splice(index, 1);
+        $extendedWheelDataStore = $extendedWheelDataStore;
+        // communicationStore.update([null, oldOutcomeData, "update"] as any);
+    }
     function addAction(index: number) {
         // Duplicate outcome, use index + 1 to insert by splicing
         const wheelOutcomes = $extendedWheelDataStore.wheels[$selectedWheelIDStore as string].outcomes;
@@ -101,14 +119,11 @@
         });
         $extendedWheelDataStore = $extendedWheelDataStore;
     }
-    function deleteOutcome(index: number) {
-        if($selectedWheelIDStore === null) { return; }
-
-        // Delete outcome and dispatch duration config to rerender
-        const oldOutcomeData = $extendedWheelDataStore.wheels[$selectedWheelIDStore].outcomes[index];
-        $extendedWheelDataStore.wheels[$selectedWheelIDStore].outcomes.splice(index, 1);
+    function deleteAction(index: number, actionIndex: number) {
+        const wheelOutcomes = $extendedWheelDataStore.wheels[$selectedWheelIDStore as string].outcomes;
+        const wheelActions = wheelOutcomes[index];
+        wheelActions.actions.splice(actionIndex, 1);
         $extendedWheelDataStore = $extendedWheelDataStore;
-        communicationStore.update([null, oldOutcomeData, "update"] as any);
     }
 
     let totalPercentage: string = "0";
@@ -133,15 +148,11 @@
         falseTotalPercentage = falseTotalPercentageDecimal.getValue();
     }
 
-    const spinSettingOptionsData: InputRadioOption[] = [
-        { key: "normal", display: "Normal" }, 
-        { key: "false", display: "False Percentages", tooltip: "Displays false outcome percentages to the wearer (and shows a disclaimer).", placement: "left" }, 
-        { key: "hidden", display: "Hidden Outcomes", tooltip: "Hides possible outcomes from the wearer, only revealing the spin result.", placement: "left" }
-    ];
-    const regularityModeOptionsData: InputRadioOption[] = [
-        { key: "non_cumulative", display: "Non cumulative", tooltip: "After each spin, you will have to wait a certain amount of time before spinning again."}, 
-        { key: "cumulative", display: "Cumulative", tooltip: "The number of possible wheel spins is cumulated over time."}, 
-        { key: "unlimited", display: "Unlimited", tooltip: "You can spin the wheel as many times as you like."}
+    const wheelSettingsOptionsData: InputRadioOption<"disabled" | "falsePercentages" | "hiddenActions" | "hiddenOutcomes">[] = [
+        { key: "disabled", display: "Disabled", tooltip: "Disable this wheel of fortune.", placement: "left" }, 
+        { key: "falsePercentages", display: "False Percentages", tooltip: "Display false outcome percentages to the wearer.", placement: "left" }, 
+        { key: "hiddenActions", display: "Hidden Actions", tooltip: "Hides outcome actions from the wearer including from the spin result.", placement: "left" },
+        { key: "hiddenOutcomes", display: "Hidden Outcomes", tooltip: "Hides possible outcomes from the wearer, only revealing the spin result.", placement: "left" }
     ];
 </script>
 
@@ -186,9 +197,15 @@
             </div>
             <div class="grow" />
             <div class="w-52 shrink-0">
-                <InputRadio title="Spin setting" subtitle="Set the wheel spin setting"
-                    optionsData={spinSettingOptionsData}
-                    bind:selected={$extendedWheelDataStore.wheels[$selectedWheelIDStore].spinSetting} />
+                <div>Wheel settings</div>
+                <div class="caption mb-2">Set the wheel settings</div>
+                <div class="flex flex-col space-y-[0.25em]">
+                    {#each wheelSettingsOptionsData as optionData}
+                        <InputCheckbox bind:value={$extendedWheelDataStore.wheels[$selectedWheelIDStore].settings[optionData.key]}
+                            display={optionData.display}
+                            tooltip={optionData.tooltip} />
+                    {/each}
+                </div>
             </div>
         </div>
         <hr>
@@ -241,6 +258,7 @@
             {#each $extendedWheelDataStore.wheels[$selectedWheelIDStore].outcomes as outcomeData, index}
                 <WheelOutcomeConfig outcomeData={outcomeData}
                     on:deleteOutcome={() => { deleteOutcome(index) }}
+                    on:deleteAction={(event) => { deleteAction(index, event.detail) }}
                     on:duplicate={() => { duplicateOutcome(index) }}
                     on:addAction={() => { addAction(index) }}
                     on:update={() => { updateTotalPercentage() }} />

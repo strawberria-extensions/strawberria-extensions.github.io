@@ -6,7 +6,7 @@
     export let title:       string | null = null;
     export let subtitle:    string | null = null;
     export let tooltip:     string | null = null;
-    export let optionsData: InputRadioOption[];
+    export let optionsData: InputRadioOption<any>[];
     export let selected:    string = optionsData[0]?.key ?? "";
 
     function handleRadioClick(optionKey: string) {
@@ -17,7 +17,7 @@
 <div class="ExtensionModeInput">
     {#if title !== null}
         <div class="flex flex-row space-x-1">
-            <div>{title}</div>
+            <div class:mb-2={subtitle === null}>{title}</div>
             {#if tooltip !== null}
                 <InformationTooltip tooltip={tooltip} />
             {/if}
@@ -34,7 +34,7 @@
                     on:click={() => { handleRadioClick(optionData.key) }}
                     checked={selected === optionData.key} />
                 <label title="" class="custom-control-label" for={randomID}>
-                    <div class="flex flex-row space-x-1">
+                    <div class="flex flex-row space-x-[0.5em]">
                         <span>{optionData.display}</span>
                         {#if optionData.tooltip !== undefined}
                             <InformationTooltip tooltip={optionData.tooltip}

@@ -1,3 +1,6 @@
+import type { InputRadioOption } from "$lib/components/InputRadio";
+import { writable, type Writable } from "svelte/store";
+
 export type WeightedDiceRollResponse = [[number, number], number, string | null];
 
 export interface ChasterTrimmedExtensionSession<ExtensionConfig> {
@@ -58,7 +61,12 @@ export interface ExtendedWheelData {
 }
 export interface ExtendedWheel_WheelData {
     display:     string;
-    spinSetting: "normal" | "false" | "hidden";
+    settings:    {
+        disabled:         boolean;
+        falsePercentages: boolean;
+        hiddenActions:    boolean;
+        hiddenOutcomes:   boolean;
+    }
     regularity:  {
         interval: number; // Seconds
         mode:     "unlimited" | "cumulative" | "non_cumulative";
@@ -83,6 +91,14 @@ export interface ExtendedWheel_ActionData {
     params:         any[];
 }
 
+export const extendedWheelDataStore: Writable<ExtendedWheelData> = writable({ wheels: {} });
+
+export const regularityModeOptionsData: InputRadioOption<string>[] = [
+    { key: "non_cumulative", display: "Non cumulative", tooltip: "After each spin, you will have to wait a certain amount of time before spinning again."}, 
+    { key: "cumulative", display: "Cumulative", tooltip: "The number of possible wheel spins is cumulated over time."}, 
+    { key: "unlimited", display: "Unlimited", tooltip: "You can spin the wheel as many times as you like."}
+];
+
 export const extendedWheelActions = {
     "set_time": "Set time",
     "add_time": "Add time",
@@ -92,34 +108,37 @@ export const extendedWheelActions = {
     "lock-unfreeze": "Unfreeze the lock",
     "lock-toggle_freeze": "Freeze or unfreeze the lock",
     "lock-unlock": "Unlock the wearer",
-    "share_link-requirement-increase": "[Share Link] Increase link requirement",
-    "share_link-requirement-decrease": "[Share Link] Decrease link requirement",
-    "share_link-requirement-multiply": "[Share Link] Multiply link requirement",
-    "share_link-add_time-set": "[Share Link] Set link time added",
-    "share_link-remove_time-set": "[Share Link] Set link time removed",
-    "share_link-logged_in-set": "[Share Link] Set logged-in requirement",
+    "share_link-requirement-set": "[Share Link] Set the share link requirement",
+    "share_link-requirement-modify": "[Share Link] Modify the share link requirement",
+    "share_link-requirement-multiply": "[Share Link] Multiply the share link requirement",
+    "share_link-add_time-set": "[Share Link] Set share link time added",
+    "share_link-remove_time-set": "[Share Link] Set share link time removed",
+    "share_link-logged_in-set": "[Share Link] Set share link logged-in requirement",
     "pillory-put": "[Pillory] Put the wearer in pillory",
     "pillory-duration-set": "[Pillory] Set pillory time added",
     "hygiene-unlock": "[Hygiene Unlock] Perform an unlock",
-    "dice-regularitys-set": "[Dice] Set regularity",
+    "dice-regularity-set": "[Dice] Set regularity",
     "dice-multiplier-set": "[Dice] Set time multiplier",
-    "tasks-regularitys-set": "[Tasks] Set regularity",
-    "tasks-task_points-increase": "[Tasks] Increase points requirement",
-    "tasks-task_points-decrease": "[Tasks] Decrease points requirement",
-    "tasks-task_points-multiply": "[Tasks] Multiply points requirement",
+    "tasks-regularity-set": "[Tasks] Set regularity",
+    "tasks-task_points-set": "[Tasks] Set the task points requirement",
+    "tasks-task_points-modify": "[Tasks] Modify the task points requirement",
+    "tasks-task_points-multiply": "[Tasks] Multiply the task points requirement",
     "tasks-task-add": "[Tasks] Add task",
     "tasks-task-remove": "[Tasks] Remove task",
-    "extended_wof-mode-set": "[Extended WoF] Set wheel mode",
-    "extended_wof-regularitys-set": "[Extended WoF] Set wheel regularity",
+    "extended_wof-wheel": "[Extended WoF] Enable or disable wheel",
+    "extended_wof-mode-settings": "[Extended WoF] Set wheel settings",
+    "extended_wof-regularity-set": "[Extended WoF] Set wheel regularity",
 } as const;
 export type ExtendedWheel_ActionType = keyof typeof extendedWheelActions;
+// TODO add modular enable/disable/toggle to boolean
 export const extendedWheelActionTemplates: {
     [key: string]: {
         tooltip: string;
         params:  { 
-            type: "boolean" | "duration" | "number" | "regularity" | "spin_mode" | "text"; 
-            label: string; 
+            type:   "boolean" | "duration" | "number" | "regularity" | "select" | "select_wheel" | "radio" | "text"; 
+            label:  string; 
             class?: string;
+            regex?: string;
             params: { [key: string]: any };
         }[];
         default: any[];
@@ -142,7 +161,7 @@ export const extendedWheelActionTemplates: {
     },
     "multiply_time": {
         tooltip: "Multiply the remaining lock time.",
-        params: [{ type: "number", label: "Time Multiplier", class: "w-[16em]", params: { suffix: "x" } }],
+        params: [{ type: "number", label: "Time Multiplier", regex: "^\d+(\.\d+)?$", class: "w-[16em]", params: { suffix: "X" } }],
         default: [1],
     },
     "lock-freeze": {
@@ -165,19 +184,19 @@ export const extendedWheelActionTemplates: {
         params: [],
         default: [],
     },
-    "share_link-requirement-increase": {
-        tooltip: "Increase the share link requirement.",
-        params: [{ type: "number", label: "Requirement Increase", params: {} }],
+    "share_link-requirement-set": {
+        tooltip: "Set the share link requirement.",
+        params: [{ type: "number", label: "Requirement", regex: "^\d+$", params: {} }],
         default: [1],
     },
-    "share_link-requirement-decrease": {
-        tooltip: "Decrease the share link requirement.",
-        params: [{ type: "number", label: "Requirement Decrease", params: {} }],
+    "share_link-requirement-modify": {
+        tooltip: "Increase or decrease the share link requirement.",
+        params: [{ type: "number", label: "Requirement Change", regex: "^-?\d+$", params: {} }],
         default: [1],
     },
     "share_link-requirement-multiply": {
         tooltip: "Multiply the share link requirement.",
-        params: [{ type: "number", label: "Requirement Multiplier", params: { suffix: "x" } }],
+        params: [{ type: "number", label: "Requirement Multiplier", regex: "^\d+(\.\d+)?$", params: { suffix: "X" } }],
         default: [1],
     },
     "share_link-add_time-set": {
@@ -192,7 +211,9 @@ export const extendedWheelActionTemplates: {
     },
     "share_link-logged_in-set": {
         tooltip: "Set logged-in requirement for share links.",
-        params: [{ type: "boolean", label: "Logged-in Required", params: {} }],
+        params: [{ type: "boolean", label: "Only allow logged-in people to vote", params: {
+            tooltip: "If you enable this option, visitors will need to be logged in to add or remove time."
+        }}],
         default: [true],
     },
     "pillory-put": {
@@ -210,54 +231,68 @@ export const extendedWheelActionTemplates: {
         params: [],
         default: [],
     },
-    "dice-regularitys-set": {
+    "dice-regularity-set": {
         tooltip: "Set dice regularity (mode and interval).",
-        params: [],
-        default: ["non_cumulative", 3600],
+        params: [{ type: "regularity", label: "", params: {} }],
+        default: [["non_cumulative", 3600]],
     },
     "dice-multiplier-set": {
         tooltip: "Set dice duration multiplier.",
         params: [{ type: "duration", label: "Multiplication Duration", params: {} }],
         default: [3600],
     },
-    "tasks-regularitys-set": {
+    "tasks-regularity-set": {
         tooltip: "Set tasks regularity (mode and interval).",
-        params: [],
-        default: ["non_cumulative", 3600],
+        params: [{ type: "regularity", label: "", params: {} }],
+        default: [["non_cumulative", 3600]],
     },
-    "tasks-task_points-increase": {
-        tooltip: "Increase the task points requirement.",
-        params: [{ type: "number", label: "Requirement Increase", params: {} }],
+    "tasks-task_points-set": {
+        tooltip: "Set the task points requirement.",
+        params: [{ type: "number", label: "Requirement", regex: "^\d+$", params: {} }],
         default: [0],
     },
-    "tasks-task_points-decrease": {
-        tooltip: "Decrease the task points requirement.",
-        params: [{ type: "number", label: "Requirement Decrease", params: {} }],
+    "tasks-task_points-modify": {
+        tooltip: "Increase or decrease the task points requirement.",
+        params: [{ type: "number", label: "Requirement Change", regex: "^-?\d+(\.\d+)?$", params: {} }],
         default: [0],
     },
     "tasks-task_points-multiply": {
         tooltip: "Multiply the task points requirement.",
-        params: [{ type: "number", label: "Requirement Multiplier", params: { suffix: "x" } }],
+        params: [{ type: "number", label: "Requirement Multiplier", regex: "^\d+(\.\d+)?$", params: { suffix: "X" } }],
         default: [1],
     },
     "tasks-task-add": {
         tooltip: "Add a task with the given text (note: 60-character limit).",
-        params: [{ type: "text", label: "Task Text", params: { limit: 60 } }],
+        params: [{ type: "text", label: "Task Text", regex: ".+", class: "!grow", params: { limit: 60, innerClass: "w-full" } }],
         default: [""],
     },
     "tasks-task-remove": {
-        tooltip: "Remove a task with the given text.",
-        params: [{ type: "text", label: "Task Text", params: { limit: 60 } }],
+        tooltip: "Remove a task with the given text (note: 60-character limit).",
+        params: [{ type: "text", label: "Task Text", regex: ".+", class: "!grow", params: { limit: 60, innerClass: "w-full" } }],
         default: [""],
     },
-    "extended_wof-mode-set": {
-        tooltip: "Set the current wheel's spin mode.",
-        params: [{ type: "spin_mode", label: "Wheel Mode", params: {} }],
-        default: ["normal"],
+    "extended_wof-wheel": {
+        tooltip: "Enable or disable this and other wheels.",
+        params: [
+            { type: "select_wheel", label: "", params: {}}, 
+            { type: "boolean", label: "Enable this wheel", params: []}
+        ],
+        default: ["", true],
     },
-    "extended_wof-regularitys-set": {
+    "extended_wof-mode-settings": {
+        tooltip: "Set wheel settings for \"False Percentages\", \"Hidden Actions\", and \"Hidden Outcomes\".",
+        params: [{ type: "select", label: "", params: {
+            options: [
+                { key: "falsePercentages", display: "False Percentages" },
+                { key: "hiddenActions", display: "Hidden Actions" },
+                { key: "hiddenOutcomes", display: "Hidden Outcomes" },
+            ]
+        }}, { type: "boolean", label: "Enable this setting", params: []}],
+        default: ["falsePercentages", true],
+    },
+    "extended_wof-regularity-set": {
         tooltip: "Set the current wheel's regularity (mode and interval).",
-        params: [{ type: "regularity", label: "Wheel Regularity", params: {} }],
-        default: ["non_cumulative", 3600],
+        params: [{ type: "regularity", label: "", params: {} }],
+        default: [["non_cumulative", 3600]],
     },
 }
