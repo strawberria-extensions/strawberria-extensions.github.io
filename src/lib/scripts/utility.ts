@@ -1,4 +1,4 @@
-import type { ChasterExtendedWheelData } from "./backend";
+import type { ChasterCustomConfig_ExtendedWheel, ChasterExtendedWheelData, ExtendedWheelData, ExtendedWheel_ActionData } from "./backend";
 
 // Generate random string of specified length
 // const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -85,96 +85,108 @@ export function truncateWords(input: string, maxLen: number) {
 }
 
 // Generate outcome action label for extended wheel
-export function generateOutcomeActionLabel(outcomeData: ChasterExtendedWheelData) {
+export function generateOutcomeActionLabel(actionData: ExtendedWheel_ActionData, data: ExtendedWheelData) {
     let actionText = "";
     // Time-related
-    if(outcomeData.key === "add_time") {
-        actionText = `[Time] Add ${generateTimeString(outcomeData.params[0])} to the session time.`;
-    } else if(outcomeData.key === "remove_time") {
-        actionText = `[Time] Remove ${generateTimeString(outcomeData.params[0])} from the session time.`;
-    } else if(outcomeData.key === "multiply_time") {
-        actionText = `[Time] Multiply session time by ${outcomeData.params} times.`;
+    if(actionData.type === "set_time") {
+        actionText = `[Time] Set the remaining time to ${generateTimeString(actionData.params[0])}`;
+    } else if(actionData.type === "add_time") {
+        actionText = `[Time] Add ${generateTimeString(actionData.params[0])} to the remaining time.`;
+    } else if(actionData.type === "remove_time") {
+        actionText = `[Time] Remove ${generateTimeString(actionData.params[0])} from the remaining time.`;
+    } else if(actionData.type === "multiply_time") {
+        actionText = `[Time] Multiply remaining time by ${actionData.params} times.`;
     } 
+
     // Share link
-    else if(outcomeData.key === "share_link-requirement-increase") {
-        actionText = `[Share link] Increase the share link visit requirement by ${outcomeData.params[0]}.`;
-    } else if(outcomeData.key === "share_link-requirement-decrease") {
-        actionText = `[Share link] Decrease the share link visit requirement by ${outcomeData.params[0]}.`;
-    } else if(outcomeData.key === "share_link-requirement-multiply") {
-        actionText = `[Share link] Multiply the share link visit requirement by ${outcomeData.params[0]} times.`;
-    } else if(outcomeData.key === "share_link-add_time-set") {
-        actionText = `[Share link] Set share link "Time to add" duration to ${generateTimeString(outcomeData.params[0])}.`;
-    } else if(outcomeData.key === "share_link-remove_time-set") {
-        actionText = `[Share link] Set share link "Time to remove" duration to ${generateTimeString(outcomeData.params[0])}.`;
-    } else if(outcomeData.key === "share_link-logged_in-set") {
-        actionText = outcomeData.params[0] === true
+    else if(actionData.type === "share_link-requirement-set") {
+        actionText = `[Share link] Set the share link visit requirement to ${actionData.params[0]}.`;
+    } else if(actionData.type === "share_link-requirement-modify") {
+        actionText = `[Share link] Modify the share link visit requirement by ${actionData.params[0]}.`;
+    } else if(actionData.type === "share_link-requirement-multiply") {
+        actionText = `[Share link] Multiply the share link visit requirement by ${actionData.params[0]} times.`;
+    } else if(actionData.type === "share_link-add_time-set") {
+        actionText = `[Share link] Set share link "Time to add" duration to ${generateTimeString(actionData.params[0])}.`;
+    } else if(actionData.type === "share_link-remove_time-set") {
+        actionText = `[Share link] Set share link "Time to remove" duration to ${generateTimeString(actionData.params[0])}.`;
+    } else if(actionData.type === "share_link-logged_in-set") {
+        actionText = actionData.params[0] === true
             ? `[Share link] Only allow logged-in people to vote on share link visits.`
             : `[Share link] Also allow not logged-in people to vote on share link visits.`;
     }
     // Pillory
-    else if(outcomeData.key === "pillory-put") {
+    else if(actionData.type === "pillory-put") {
         // Should run after any durations being set?
         actionText = `[Pillory] Put the wearer into the pillory.`;
-    } if(outcomeData.key === "pillory-duration-set") {
-        actionText = `[Pillory] Set pillory add time per vote to ${generateTimeString(outcomeData.params[0])}.`;
+    } if(actionData.type === "pillory-duration-set") {
+        actionText = `[Pillory] Set pillory add time per vote to ${generateTimeString(actionData.params[0])}.`;
     }
 
     // For safety purposes, don't allow hygiene opening to be changed
-    else if(outcomeData.key === "hygiene-unlock") {
+    else if(actionData.type === "hygiene-unlock") {
         actionText = `[Hygiene Unlock] Temporarily hygiene unlock through keyholder (doesn't affect interval)`;
     }
 
     // Dice
-    else if(outcomeData.key === "dice-regularitys-set") {
-        actionText = `[Dice] Set the dice regular action to mode '${outcomeData.params[0]}'`
-            + (outcomeData.params[0] !== "unlimited" ? ` with regularity ${generateTimeString(outcomeData.params[1])}` : "")
+    else if(actionData.type === "dice-regularity-set") {
+        actionText = `[Dice] Set the dice regular action to mode '${actionData.params[0][0]}'`
+            + (actionData.params[0][0] !== "unlimited" ? ` with regularity ${generateTimeString(actionData.params[0][1])}` : "")
             + ".";
-    } if(outcomeData.key === "dice-multiplier-set") {
+    } if(actionData.type === "dice-multiplier-set") {
         // Should run after any durations being set?
-        actionText = `[Dice] Set the dice time multiplier to ${generateTimeString(outcomeData.params[0])}.`;
+        actionText = `[Dice] Set the dice time multiplier to ${generateTimeString(actionData.params[0][0])}.`;
     }
 
     // Don't allow normal wheel of fortune to be modified, only this one
 
+    // Tasks
+    else if(actionData.type === "tasks-regularity-set") {
+        actionText = `[Tasks] Set the tasks regular action to mode '${actionData.params[0][0]}'`
+            + (actionData.params[0][0] !== "unlimited" ? ` with regularity ${generateTimeString(actionData.params[0][1])}` : "")
+            + ".";
+    } else if(actionData.type === "tasks-task_points-modify") {
+        actionText = `[Tasks] Modify the task points requirement by ${actionData.params[0]}.`;
+    } else if(actionData.type === "tasks-task_points-multiply") {
+        // Disable can be achieved by multiplying requirement by zero
+        actionText = `[Tasks] Multiply the task points requirement by ${actionData.params[0]} times.`;
+    } else if(actionData.type === "tasks-task-add") {
+        // Don't allow a task to show up more than once
+        actionText = `[Tasks] Add the following task: ${actionData.params[0]}`;
+    } else if(actionData.type === "tasks-task-remove") {
+        actionText = `[Tasks] Remove the following task: ${actionData.params[0]}`;
+    } 
+
     // Extended Wheel of Fortune
     // TODO maybe add different wheel configs to swap between?
-    else if(outcomeData.key === "extended_wof-mode-set") {
-        actionText = `[Extended Wheel of Fortune] Set the mode for the wheel '${outcomeData.params[0]}' to mode '${outcomeData.params[0]}'`;
-    } else if(outcomeData.key === "extended_wof-regularitys-set") {
-        actionText = `[Extended Wheel of Fortune] Set the regular action for the wheel '${outcomeData.params[0]}' to mode '${outcomeData.params[0]}'`
-            + (outcomeData.params[1] !== "unlimited" ? ` with regularity ${generateTimeString(outcomeData.params[2])}` : "")
+    else if(actionData.type === "extended_wof-wheel") {
+        const wheelName = data.wheels[actionData.params[0]]
+        actionText = `[Extended Wheel of Fortune] ${actionData.params[1] === true ? "Enable" : "Disable"} the wheel named '${wheelName}'`;
+    } else if(actionData.type === "extended_wof-mode-settings") {
+        const mapping = {
+            "disabled": "Disabled",
+            "availableSpins": "Count Spins",
+            "falsePercentages": "False Percentages",
+            "hiddenActions": "Hidden Actions",
+            "hiddenOutcomes": "Hidden Outcomes",
+        } as any;
+        const settingName = mapping[actionData.params[0]];
+        actionText = `[Extended Wheel of Fortune] ${actionData.params[1] === true ? "Enable" : "Disable"} the wheel setting '${settingName}'`;
+    } else if(actionData.type === "extended_wof-regularity-set") {
+        actionText = `[Extended Wheel of Fortune] Set the regular action for the wheel '${actionData.params[0][0]}' to mode '${actionData.params[0]}'`
+            + (actionData.params[0][1] !== "unlimited" ? ` with regularity ${generateTimeString(actionData.params[0][1])}` : "")
             + ".";
     }
-
-    // Tasks
-    else if(outcomeData.key === "tasks-regularitys-set") {
-        actionText = `[Tasks] Set the tasks regular action to mode '${outcomeData.params[0]}'`
-            + (outcomeData.params[0] !== "unlimited" ? ` with regularity ${generateTimeString(outcomeData.params[1])}` : "")
-            + ".";
-    } else if(outcomeData.key === "tasks-task_points-increase") {
-        actionText = `[Tasks] Increase the task points requirement by ${outcomeData.params[0]}.`;
-    } else if(outcomeData.key === "tasks-task_points-decrease") {
-        actionText = `[Tasks] Decrease the task points requirement by ${outcomeData.params[0]}.`;
-    } else if(outcomeData.key === "tasks-task_points-multiply") {
-        // Disable can be achieved by multiplying requirement by zero
-        actionText = `[Tasks] Multiply the task points requirement by ${outcomeData.params[0]} times.`;
-    } else if(outcomeData.key === "tasks-task-add") {
-        // Don't allow a task to show up more than once
-        actionText = `[Tasks] Add the following task: ${outcomeData.params[0]}`;
-    } else if(outcomeData.key === "tasks-task-remove") {
-        actionText = `[Tasks] Remove the following task: ${outcomeData.params[0]}`;
-    } 
 
     // Penalties: no penalty API currently
 
     // Lock actions - freeze, unfreeze, toggle freeze, unlock
-    else if(outcomeData.key === "lock-freeze") {
+    else if(actionData.type === "lock-freeze") {
         actionText = `[Lock] Freeze the lock (if unfrozen)`;
-    } else if(outcomeData.key === "lock-unfreeze") {
+    } else if(actionData.type === "lock-unfreeze") {
         actionText = `[Lock] Unfreeze the lock (if frozen)`;
-    } else if(outcomeData.key === "lock-toggle_freeze") {
+    } else if(actionData.type === "lock-toggle_freeze") {
         actionText = `[Lock] Toggle freeze on the lock (freeze -> unfreeze, and vice versa)`;
-    } else if(outcomeData.key === "lock-unlock") {
+    } else if(actionData.type === "lock-unlock") {
         actionText = `[Lock] Fully unlock the lock`;
     }
 

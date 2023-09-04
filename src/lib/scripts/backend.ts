@@ -1,5 +1,6 @@
 import type { InputRadioOption } from "$lib/components/InputRadio";
-import { writable, type Writable } from "svelte/store";
+import { get, writable, type Writable } from "svelte/store";
+import { updateValid, validateWheels } from "./validation";
 
 export type WeightedDiceRollResponse = [[number, number], number, string | null];
 
@@ -55,7 +56,6 @@ export interface ChasterCustomData_ExtendedWheel {
     };
 }
 
-
 export interface ExtendedWheelData {
     wheels:   { [key: string]: ExtendedWheel_WheelData };
 }
@@ -63,12 +63,14 @@ export interface ExtendedWheel_WheelData {
     display:     string;
     settings:    {
         disabled:         boolean;
+        availableSpins:   boolean;
         falsePercentages: boolean;
         hiddenActions:    boolean;
         hiddenOutcomes:   boolean;
     }
+    remainingSpins: string; // Only for setting in config
     regularity:  {
-        interval: number; // Seconds
+        interval: number; // Seconds, or remaining spins
         mode:     "unlimited" | "cumulative" | "non_cumulative";
     }
     penalty: {
@@ -117,30 +119,34 @@ export const extendedWheelActions = {
     "pillory-put": "[Pillory] Put the wearer in pillory",
     "pillory-duration-set": "[Pillory] Set pillory time added",
     "hygiene-unlock": "[Hygiene Unlock] Perform an unlock",
-    "dice-regularity-set": "[Dice] Set regularity",
-    "dice-multiplier-set": "[Dice] Set time multiplier",
-    "tasks-regularity-set": "[Tasks] Set regularity",
+    "dice-regularity-set": "[Dice] Set the regularity",
+    "dice-multiplier-set": "[Dice] Set the duration multiplier",
+    "tasks-regularity-set": "[Tasks] Set the regularity",
     "tasks-task_points-set": "[Tasks] Set the task points requirement",
     "tasks-task_points-modify": "[Tasks] Modify the task points requirement",
     "tasks-task_points-multiply": "[Tasks] Multiply the task points requirement",
-    "tasks-task-add": "[Tasks] Add task",
-    "tasks-task-remove": "[Tasks] Remove task",
+    "tasks-task-add": "[Tasks] Add task by text",
+    "tasks-task-remove": "[Tasks] Remove task by text",
     "extended_wof-wheel": "[Extended WoF] Enable or disable wheel",
     "extended_wof-mode-settings": "[Extended WoF] Set wheel settings",
     "extended_wof-regularity-set": "[Extended WoF] Set wheel regularity",
+    "extended_wof-available-set": "[Extended WoF] Set available wheel spins",
+    "extended_wof-available-modify": "[Extended WoF] Modify available wheel spins",
 } as const;
 export type ExtendedWheel_ActionType = keyof typeof extendedWheelActions;
+
+export type ActionTemplateParamData = { 
+    type:   "boolean" | "duration" | "number" | "regularity" | "select" | "select_wheel" | "radio" | "text"; 
+    label:  string; 
+    class?: string;
+    regex?: RegExp;
+    params: { [key: string]: any };
+}
 // TODO add modular enable/disable/toggle to boolean
 export const extendedWheelActionTemplates: {
     [key: string]: {
         tooltip: string;
-        params:  { 
-            type:   "boolean" | "duration" | "number" | "regularity" | "select" | "select_wheel" | "radio" | "text"; 
-            label:  string; 
-            class?: string;
-            regex?: string;
-            params: { [key: string]: any };
-        }[];
+        params:  ActionTemplateParamData[];
         default: any[];
     }
 } = {
@@ -161,7 +167,7 @@ export const extendedWheelActionTemplates: {
     },
     "multiply_time": {
         tooltip: "Multiply the remaining lock time.",
-        params: [{ type: "number", label: "Time Multiplier", regex: "^\d+(\.\d+)?$", class: "w-[16em]", params: { suffix: "X" } }],
+        params: [{ type: "number", label: "Time Multiplier", regex: new RegExp(String.raw`^\d+(\.\d+)?$`), class: "w-[16em]", params: { suffix: "X" } }],
         default: [1],
     },
     "lock-freeze": {
@@ -186,17 +192,17 @@ export const extendedWheelActionTemplates: {
     },
     "share_link-requirement-set": {
         tooltip: "Set the share link requirement.",
-        params: [{ type: "number", label: "Requirement", regex: "^\d+$", params: {} }],
+        params: [{ type: "number", label: "Requirement", regex: new RegExp(String.raw`^\d+$`), params: {} }],
         default: [1],
     },
     "share_link-requirement-modify": {
         tooltip: "Increase or decrease the share link requirement.",
-        params: [{ type: "number", label: "Requirement Change", regex: "^-?\d+$", params: {} }],
+        params: [{ type: "number", label: "Requirement Change", regex: new RegExp(String.raw`^-?\d+$`), params: {} }],
         default: [1],
     },
     "share_link-requirement-multiply": {
         tooltip: "Multiply the share link requirement.",
-        params: [{ type: "number", label: "Requirement Multiplier", regex: "^\d+(\.\d+)?$", params: { suffix: "X" } }],
+        params: [{ type: "number", label: "Requirement Multiplier", regex: new RegExp(String.raw`^\d+(\.\d+)?$`), params: { suffix: "X" } }],
         default: [1],
     },
     "share_link-add_time-set": {
@@ -248,51 +254,72 @@ export const extendedWheelActionTemplates: {
     },
     "tasks-task_points-set": {
         tooltip: "Set the task points requirement.",
-        params: [{ type: "number", label: "Requirement", regex: "^\d+$", params: {} }],
+        params: [{ type: "number", label: "Requirement", regex: new RegExp(String.raw`^\d+$`), params: {} }],
         default: [0],
     },
     "tasks-task_points-modify": {
         tooltip: "Increase or decrease the task points requirement.",
-        params: [{ type: "number", label: "Requirement Change", regex: "^-?\d+(\.\d+)?$", params: {} }],
+        params: [{ type: "number", label: "Requirement Change", regex: new RegExp(String.raw`^-?\d+(\.\d+)?$`), params: {} }],
         default: [0],
     },
     "tasks-task_points-multiply": {
         tooltip: "Multiply the task points requirement.",
-        params: [{ type: "number", label: "Requirement Multiplier", regex: "^\d+(\.\d+)?$", params: { suffix: "X" } }],
+        params: [{ type: "number", label: "Requirement Multiplier", regex: new RegExp(String.raw`^\d+(\.\d+)?$`), params: { suffix: "X" } }],
         default: [1],
     },
     "tasks-task-add": {
         tooltip: "Add a task with the given text (note: 60-character limit).",
-        params: [{ type: "text", label: "Task Text", regex: ".+", class: "!grow", params: { limit: 60, innerClass: "w-full" } }],
+        params: [{ type: "text", label: "Task Text", regex: new RegExp(String.raw`.+`), class: "!grow", params: { limit: 60, innerClass: "w-full" } }],
         default: [""],
     },
     "tasks-task-remove": {
         tooltip: "Remove a task with the given text (note: 60-character limit).",
-        params: [{ type: "text", label: "Task Text", regex: ".+", class: "!grow", params: { limit: 60, innerClass: "w-full" } }],
+        params: [{ type: "text", label: "Task Text", regex: new RegExp(String.raw`.+`), class: "!grow", params: { limit: 60, innerClass: "w-full" } }],
         default: [""],
     },
     "extended_wof-wheel": {
         tooltip: "Enable or disable this and other wheels.",
         params: [
-            { type: "select_wheel", label: "", params: {}}, 
+            { type: "select_wheel", label: "Selected Wheel", class: "!w-[16em]", params: {}}, 
             { type: "boolean", label: "Enable this wheel", params: []}
         ],
         default: ["", true],
     },
     "extended_wof-mode-settings": {
-        tooltip: "Set wheel settings for \"False Percentages\", \"Hidden Actions\", and \"Hidden Outcomes\".",
-        params: [{ type: "select", label: "", params: {
+        tooltip: "Enable or disable various wheel settings.",
+        params: [{ type: "select", label: "Selected Wheel Setting", class: "!w-[16em]", params: {
             options: [
+                { key: "disabled", display: "Disabled" },
                 { key: "falsePercentages", display: "False Percentages" },
                 { key: "hiddenActions", display: "Hidden Actions" },
                 { key: "hiddenOutcomes", display: "Hidden Outcomes" },
+                { key: "availableSpins", display: "Count Available Spins" },
             ]
         }}, { type: "boolean", label: "Enable this setting", params: []}],
-        default: ["falsePercentages", true],
+        default: ["falsePercentages", false],
     },
     "extended_wof-regularity-set": {
-        tooltip: "Set the current wheel's regularity (mode and interval).",
-        params: [{ type: "regularity", label: "", params: {} }],
-        default: [["non_cumulative", 3600]],
+        tooltip: "Set the wheel regularity (mode and interval).",
+        params: [
+            { type: "select_wheel", label: "Selected Wheel", class: "!w-[16em]", params: {}}, 
+            { type: "regularity", label: "", params: {} }
+        ],
+        default: ["", ["non_cumulative", 3600]],
+    },
+    "extended_wof-available-set": {
+        tooltip: "Set the wheel available spins.",
+        params: [
+            { type: "select_wheel", label: "Selected Wheel", class: "!w-[16em]", params: {}}, 
+            { type: "number", label: "Available Spins", regex: new RegExp(String.raw`^\d+$`), params: {} }
+        ],
+        default: ["", 0],
+    },
+    "extended_wof-available-modify": {
+        tooltip: "Increase or decrease the wheel available spins.",
+        params: [
+            { type: "select_wheel", label: "Selected Wheel", class: "!w-[16em]", params: {}}, 
+            { type: "number", label: "Available Spins Change", regex: new RegExp(String.raw`^-\d+(\.\d+)?$`), params: {} },
+        ],
+        default: ["", 0],
     },
 }

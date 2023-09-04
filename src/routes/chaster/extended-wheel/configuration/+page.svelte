@@ -11,6 +11,8 @@
     import { selectedWheelIDStore } from "$lib/scripts/duration-tooltip";
     import bigDecimal from "js-big-decimal";
     import InputCheckbox from "$lib/components/InputCheckbox.svelte";
+    import { extendedValidDataStore, updateValid } from "$lib/scripts/validation";
+    import InformationTooltip from "$lib/components/InformationTooltip.svelte";
     // import ConfigDurationTooltip from "$lib/components/ConfigDurationTooltip.svelte";
 
     // Supabase anon key has no database access due to RLS
@@ -19,6 +21,8 @@
     const wheelConfigGetURL = "https://bpnjlbjpcfebqpaqkphy.supabase.co/functions/v1/wheel-config-get";
     const wheelConfigPutURL = "https://bpnjlbjpcfebqpaqkphy.supabase.co/functions/v1/wheel-config-put";
 
+    extendedWheelDataStore.subscribe(() => updateValid($extendedWheelDataStore));
+
     // Everything pertaining to selected wheel including selection, creation, and deletion
     let extendedWheelOptionsData: InputSelectOptionData[] = [];
     extendedWheelDataStore.subscribe((extendedWheelData) => {
@@ -26,7 +30,10 @@
     });
     function generateWheelOptionsData() {
         extendedWheelOptionsData = Object.entries($extendedWheelDataStore.wheels)
-            .map(([wheelID, wheelData]) => ({ key: wheelID, display: wheelData.display }))
+            .map(([wheelID, wheelData]) => ({ 
+                key: wheelID, 
+                display: wheelData.display,
+            }))
             .sort((optionDataA, optionDataB) => optionDataA.display.localeCompare(optionDataB.display));
     }
     function createWheel() {
@@ -41,11 +48,13 @@
         $extendedWheelDataStore.wheels[randomID] = { 
             display: newWheelName, 
             settings: {
-                disabled:         false,
+                disabled: false,
+                availableSpins: false,
                 falsePercentages: false,
                 hiddenActions: false,
                 hiddenOutcomes: false,
             },
+            remainingSpins: "",
             regularity: {
                 interval: 3600,
                 mode: "non_cumulative",
@@ -77,10 +86,6 @@
         }
         delete $extendedWheelDataStore.wheels[oldSelectedWheelOptionID];
         $extendedWheelDataStore = $extendedWheelDataStore;
-    }
-    function toggleSetting(key: "disabled" | "falsePercentages" | "hiddenActions" | "hiddenOutcomes") {
-        if($selectedWheelIDStore === null) { return; }
-        $extendedWheelDataStore.wheels[$selectedWheelIDStore].settings[key] = !$extendedWheelDataStore.wheels[$selectedWheelIDStore].settings[key]
     }
     function addOutcome() {
         if($selectedWheelIDStore === null) { return; }
@@ -148,11 +153,11 @@
         falseTotalPercentage = falseTotalPercentageDecimal.getValue();
     }
 
-    const wheelSettingsOptionsData: InputRadioOption<"disabled" | "falsePercentages" | "hiddenActions" | "hiddenOutcomes">[] = [
+    const wheelSettingsOptionsData: InputRadioOption<"disabled" | "falsePercentages" | "hiddenActions" | "hiddenOutcomes" | "availableSpins">[] = [
         { key: "disabled", display: "Disabled", tooltip: "Disable this wheel of fortune.", placement: "left" }, 
         { key: "falsePercentages", display: "False Percentages", tooltip: "Display false outcome percentages to the wearer.", placement: "left" }, 
         { key: "hiddenActions", display: "Hidden Actions", tooltip: "Hides outcome actions from the wearer including from the spin result.", placement: "left" },
-        { key: "hiddenOutcomes", display: "Hidden Outcomes", tooltip: "Hides possible outcomes from the wearer, only revealing the spin result.", placement: "left" }
+        { key: "hiddenOutcomes", display: "Hidden Outcomes", tooltip: "Hides possible outcomes from the wearer, only revealing the spin result.", placement: "left" },
     ];
 </script>
 
@@ -166,13 +171,19 @@
     </div>
     <hr>
     <div class="w-full flex flex-row items-stretch space-x-4">
-        <div class="w-96">
-            <InputSelect title="Select" subtitle="Choose which wheel to configure" 
+        <div class="w-[24em]">
+            <InputSelect title="Select" 
+                subtitle="Choose which wheel to configure" 
                 bind:selected={$selectedWheelIDStore}
-                optionsData={extendedWheelOptionsData} />
+                optionsData={extendedWheelOptionsData}
+                invalid={!$extendedValidDataStore[0]} />
+            <div class="feedback"
+                class:invalid-feedback-min={!$extendedValidDataStore[0]}>
+                One or more wheels are invalid!
+            </div>
         </div>
         <div class="grow" />
-        <div class="flex flex-col justify-center space-y-1 w-52 shrink-0">
+        <div class="flex flex-col justify-center space-y-1 w-[13em] shrink-0">
             <button type="button" class="btn btn-primary btn-md"
                 on:click={createWheel}>
                 <span>Create New Wheel</span>
@@ -187,16 +198,20 @@
     <!-- <InputRadio title="Mode" subtitle="Select the extension mode" optionsData={dat} /> -->
     {#if $selectedWheelIDStore !== null}
         <hr>
-        <div class="flex flex-row justify-between space-x-4">
-            <div class="w-96">
-                <div>Name</div>
-                <div class="caption mb-2">Set the wheel display name</div>
-                <input class="form-control" placeholder="Mystical Wheel of Fortune"
-                    bind:value={$extendedWheelDataStore.wheels[$selectedWheelIDStore].display}
-                    on:change={generateWheelOptionsData} />
+        <div class="flex flex-row justify-between space-x-[1em]">
+            <div class="flex flex-col space-y-[0.75em] w-[24em]">
+                <div class="flex flex-col">
+                    <div>Name</div>
+                    <div class="caption mb-2">Set the wheel display name</div>
+                    <input class="form-control"
+                        class:is-invalid={!$extendedValidDataStore[1][$selectedWheelIDStore][1].display} 
+                        placeholder="Mystical Wheel of Fortune"
+                        bind:value={$extendedWheelDataStore.wheels[$selectedWheelIDStore].display}
+                        on:change={generateWheelOptionsData} />
+                </div>
             </div>
             <div class="grow" />
-            <div class="w-52 shrink-0">
+            <div class="w-[13em] shrink-0">
                 <div>Wheel settings</div>
                 <div class="caption mb-2">Set the wheel settings</div>
                 <div class="flex flex-col space-y-[0.25em]">
@@ -209,8 +224,30 @@
             </div>
         </div>
         <hr>
+        <div class="flex flex-row justify-between space-x-[1em]">
+            <div class="w-[24em]">
+                <div>Count Available Spins</div>
+                <div class="caption mb-2">
+                    When the number of available spins reaches zero, the wheel will become unspinnable (for the wearer).
+                </div>
+                <InputCheckbox bind:value={$extendedWheelDataStore.wheels[$selectedWheelIDStore].settings.availableSpins}
+                    display="Enable counting spins" />
+            </div>
+            <div class="grow" />
+            <div class="w-[13em] shrink-0">
+                <div>Set Available Spins</div>
+                <div class="caption mb-2">Set available wheel spins, leave blank to keep existing amount.</div>
+                <input class="form-control !w-[11em]"
+                    class:disabled={!$extendedWheelDataStore.wheels[$selectedWheelIDStore].settings.availableSpins}
+                    class:is-invalid-min={!$extendedValidDataStore[1][$selectedWheelIDStore][1].remainingSpins} 
+                    placeholder="Existing: 11"
+                    bind:value={$extendedWheelDataStore.wheels[$selectedWheelIDStore].remainingSpins}
+                    on:change={generateWheelOptionsData} />
+            </div>
+        </div>
+        <hr>
         <div class="flex flex-row justify-between space-x-4">
-            <div class="w-52 shrink-0">
+            <div class="w-[13em] shrink-0">
                 <InputRadio title="Mode" 
                     subtitle="Set the wheel mode"
                     optionsData={regularityModeOptionsData}
@@ -218,7 +255,7 @@
             </div>
             <div class="grow" />
             {#if $extendedWheelDataStore.wheels[$selectedWheelIDStore].regularity.mode !== "unlimited"}
-                <div class="w-96">
+                <div class="w-[24em]">
                     <div>Regularity</div>
                     <div class="caption mb-2">After spinning the wheel, you will have to wait this duration before spinning again.</div>
                     <DurationSelect bind:seconds={$extendedWheelDataStore.wheels[$selectedWheelIDStore].regularity.interval}
@@ -244,19 +281,24 @@
         <div class="flex flex-row justify-between space-x-[0.25em] mb-2">
             <div class="caption">Configure outcomes for the wheel</div>
             <div class="grow" />
-            <div>False Total:</div>
-            <div class="w-24 text-right">{falseTotalPercentage}%</div>
-            <div>
-                {#if new bigDecimal(falseTotalPercentage).compareTo(new bigDecimal("100")) === 0}
-                    ✔️
-                {:else}
-                    ❌
-                {/if}
-            </div>
+            {#if $extendedWheelDataStore.wheels[$selectedWheelIDStore].settings.falsePercentages}
+                <div>False Total:</div>
+                <div class="w-24 text-right">{falseTotalPercentage}%</div>
+                <div>
+                    {#if new bigDecimal(falseTotalPercentage).compareTo(new bigDecimal("100")) === 0}
+                        ✔️
+                    {:else}
+                        ❌
+                    {/if}
+                </div>
+            {/if}
         </div> 
         <div class="w-full flex flex-col items-stretch space-y-[0.5em] mb-3">
             {#each $extendedWheelDataStore.wheels[$selectedWheelIDStore].outcomes as outcomeData, index}
+                {@const outcomeValidData = $extendedValidDataStore[1][$selectedWheelIDStore][1].outcomes[index]}
                 <WheelOutcomeConfig outcomeData={outcomeData}
+                    outcomeValidData={outcomeValidData}
+                    falsePercentageEnabled={$extendedWheelDataStore.wheels[$selectedWheelIDStore].settings.falsePercentages}
                     on:deleteOutcome={() => { deleteOutcome(index) }}
                     on:deleteAction={(event) => { deleteAction(index, event.detail) }}
                     on:duplicate={() => { duplicateOutcome(index) }}
@@ -281,5 +323,15 @@
     .container-bg {
         /* background-color: #272533; */
         position: absolute;
+    }
+    .feedback {
+        color: #e74c3c;
+        font-size: 80%;
+        margin-top: 0.25rem;
+        width: 100%;
+        visibility: hidden;
+    }
+    .invalid-feedback-min {
+        visibility: visible;
     }
 </style>

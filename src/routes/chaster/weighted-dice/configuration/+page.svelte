@@ -55,7 +55,7 @@
                     },
                     body: JSON.stringify({ 
                         configurationToken: configurationToken,
-                        config: { chances: chanceInputs.map(v => new bigDecimal(v).getValue()), multiplier: multiplierSeconds }
+                        config: { chances: chanceInputs.map(v => parseFloat(v)), multiplier: multiplierSeconds }
                     }),
                 });
             

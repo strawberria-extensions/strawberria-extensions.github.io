@@ -10,6 +10,7 @@
     export let tooltip:      string | null = null;
     export let optionsData:  InputSelectOptionData[];
     export let selected:     string | null = null;
+    export let invalid:      boolean = false;
     
     let svelecteOptions: { id: string, name: string }[] = [];
     $: {
@@ -35,7 +36,8 @@
     {/if}
     <!-- Force rerender every time something changes -->
     {#key optionsData}
-        <Svelecte class="input-select"
+        <Svelecte class={`input-select pl-[1px] 
+            ${invalid ? "is-invalid-min" : ""}`}
             bind:value={selected}
             options={svelecteOptions}
             dropdownItem={InputSelectDropdown}

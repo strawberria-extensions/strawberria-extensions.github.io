@@ -21,6 +21,7 @@
     export let seconds: number; // Seconds in current display
     export let settings: DurationSelectSettings;
     export let buttons: boolean = false;
+    export let minSeconds: number = 1;
 
     // Whenever seconds changes, modify duration display
     $: {
@@ -38,8 +39,10 @@
 
     // Update seconds with given difference unless it goes negative
     function updateSeconds(diff: number) {
-        if(seconds + diff > 0) {
+        if(seconds + diff >= minSeconds) {
             seconds += diff;
+        } else {
+            seconds = minSeconds;
         }
     }
 </script>

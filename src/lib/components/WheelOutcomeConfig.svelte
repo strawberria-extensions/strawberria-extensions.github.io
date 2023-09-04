@@ -7,10 +7,14 @@
     import InputCheckbox from "./InputCheckbox.svelte";
     import InputRadio from "./InputRadio.svelte";
     import DurationSelect from "./DurationSelect.svelte";
+    import { updateValid, type ExtendedValidData_Outcome } from "$lib/scripts/validation";
 
     const dispatch = createEventDispatcher();
 
     export let outcomeData: ExtendedWheel_OutcomeData;
+    export let outcomeValidData: ExtendedValidData_Outcome;
+    export let falsePercentageEnabled: boolean;
+    $: outcomeData, updateValid($extendedWheelDataStore);
 
     // Intermediate type storage flip-flop to propagate after change
     let intermediateActionTypes: ExtendedWheel_ActionType[] = outcomeData.actions
@@ -33,7 +37,8 @@
     //     .map(([actionKey, actionText]) => ({ key: actionKey, display: actionText }));
 </script>
 
-<div class="card-content !px-[0.5em] !py-[0.75em] rounded-[1.5em]">
+<div class="card-content card-border !px-[0.5em] !py-[0.75em] rounded-[1.5em]"
+    class:is-invalid-min={!outcomeValidData[0]}>
     <div class="flex flex-col items-stretch w-full space-y-[0.75em]">
         <div class="flex flex-row items-stretch justify-between space-x-[0.5em]">
             <div class="flex flex-col justify-around mx-[0.25em]">
@@ -87,9 +92,15 @@
                     <div class="w-[4em]">Real</div>
                     <div class="grow" />
                     <input class="form-control !pr-[2em] !w-[6em]" 
-                        class:is-invalid={false}
+                        class:is-invalid-min={!outcomeValidData[1].percentage}
                         bind:value={outcomeData.percentage}
-                        on:input={() => { dispatch("update"); }}
+                        on:input={() => { 
+                            dispatch("update");  
+                            // Replicate to false percentage if disabled
+                            // if(falsePercentageEnabled === false) {
+                            //     outcomeData.falsePercentage = outcomeData.percentage;
+                            // }
+                        }}
                     />
                     <div class="relative text-sm">
                         <div class="absolute"
@@ -99,19 +110,21 @@
                     </div>
                 </div>
                 <div class="flex flex-row items-center">
-                    <div class="w-[5em]">False</div>
-                    <div class="grow" />
-                    <input class="form-control !pr-[2em] !w-[6em]" 
-                        class:is-invalid={false}
-                        bind:value={outcomeData.falsePercentage}
-                        on:input={() => { dispatch("update"); }}
-                    />
-                    <div class="relative text-sm">
-                        <div class="absolute"
-                            style="transform: translate(-1.5em, -50%)">
-                            %
+                    {#if falsePercentageEnabled}
+                        <div class="w-[5em]">False</div>
+                        <div class="grow" />
+                        <input class="form-control !pr-[2em] !w-[6em]" 
+                            class:is-invalid-min={!outcomeValidData[1].falsePercentage}
+                            bind:value={outcomeData.falsePercentage}
+                            on:input={() => { dispatch("update"); }}
+                        />
+                        <div class="relative text-sm">
+                            <div class="absolute"
+                                style="transform: translate(-1.5em, -50%)">
+                                %
+                            </div>
                         </div>
-                    </div>
+                    {/if}
                 </div>
             </div>
             <!-- <ConfigDuration outcomeData={outcomeData} /> -->
@@ -119,6 +132,7 @@
         </div>
         {#each outcomeData.actions as actionData, actionIndex}
             {@const actionTemplateData = extendedWheelActionTemplates[actionData.type]}
+            {@const actionValidData = outcomeValidData[1].actions[actionIndex]}
             <hr />
             <div class="flex flex-col w-full space-y-[0.5em]">
                 <div class="flex flex-col">
@@ -151,7 +165,7 @@
                     </div>
                 </div>
                 {#if actionTemplateData.params.length > 0}
-                    <div class="flex flex-row items-center space-x-[1.5em] px-[1em]">
+                    <div class="flex flex-col items-start space-y-[1em] px-[1em]">
                         <!-- {#key actionTemplateData} -->
                             {#each actionTemplateData.params as paramData, paramIndex}
                                 <!-- {#if paramIndex !== 0}
@@ -176,7 +190,7 @@
                                         <div class="flex flex-row items-center">
                                             <input class={`form-control !w-[6em]
                                                 ${paramData.params["suffix"] ? "!pr-[2em]" : ""}`}
-                                                class:is-invalid={false}
+                                                class:is-invalid-min={!actionValidData[1][paramIndex]}
                                                 bind:value={actionData.params[paramIndex]}
                                                 on:input={() => { dispatch("update"); }}
                                             />
@@ -190,18 +204,21 @@
                                             {/if}
                                         </div>
                                     {:else if paramData.type === "select" || paramData.type === "select_wheel"}
-                                        <select class="form-control !w-auto" 
-                                            bind:value={actionData.params[paramIndex]}>
-                                            {#if paramData.type === "select"}
-                                                {#each paramData.params["options"] as paramOptionData}
-                                                    <option value={paramOptionData.key}>{paramOptionData.display}</option>
-                                                {/each}
-                                            {:else}
-                                                {#each wheelOptionsData as wheelOptionData}
-                                                    <option value={wheelOptionData.key}>{wheelOptionData.display}</option>
-                                                {/each}
-                                            {/if}
-                                        </select> 
+                                        <div class={paramData.class} >
+                                            <select class="form-control" 
+                                                class:is-invalid-min={!actionValidData[1][paramIndex]}
+                                                bind:value={actionData.params[paramIndex]}>
+                                                {#if paramData.type === "select"}
+                                                    {#each paramData.params["options"] as paramOptionData}
+                                                        <option value={paramOptionData.key}>{paramOptionData.display}</option>
+                                                    {/each}
+                                                {:else}
+                                                    {#each wheelOptionsData as wheelOptionData}
+                                                        <option value={wheelOptionData.key}>{wheelOptionData.display}</option>
+                                                    {/each}
+                                                {/if}
+                                            </select> 
+                                        </div>
                                     {:else if paramData.type === "regularity"}
                                         <div class="flex flex-row justify-between space-x-4">
                                             <div class="shrink-0">
@@ -222,7 +239,7 @@
                                     {:else if paramData.type === "text"}
                                         <div class={`flex flex-row items-center ${paramData.params["innerClass"] ?? ""}`}>
                                             <input class="form-control"
-                                                class:is-invalid={false}
+                                                class:is-invalid-min={!actionValidData[1][paramIndex]}
                                                 bind:value={actionData.params[paramIndex]}
                                                 on:input={() => { dispatch("update"); }}
                                             />
@@ -243,6 +260,10 @@
 <style>
     :global(.sv-dropdown) {
         height: calc((1.5em + 2px * 2) * 16);
+    }
+
+    .card-border {
+        border: 1px solid #343241;
     }
 
     /* .param-tooltip {

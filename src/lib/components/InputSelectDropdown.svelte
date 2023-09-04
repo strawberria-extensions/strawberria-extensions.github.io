@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { extendedValidDataStore } from '$lib/scripts/validation';
     // @ts-ignore
     import { itemActions } from 'svelecte/item';
   
@@ -9,12 +10,17 @@
 </script>
 
 <div use:itemActions={{item, index}}
-    class="dropdown-hover"
+    class="flex flex-row dropdown-hover"
     class:dropdown-disabled={item["disabled"]}
+    class:dropdown-invalid={!$extendedValidDataStore[1][item.id][0]}
     on:select
     on:deselect
     on:hover>
     {item["name"]}
+    <div class="grow" />
+    {#if $extendedValidDataStore[1][item.id][0] === false}
+    ❌
+    {/if}
 </div>
   
 
@@ -23,7 +29,11 @@
         background-color: #22212c;
         padding: 2px 0px 2px 14px;
         user-select: none;
-        margin: 0
+        margin: 0;
+        border: 1px solid #22212c;
+    }
+    .dropdown-invalid {
+        border-color: #e74c3c;
     }
     .dropdown-disabled {
         background-color: #35343f !important;

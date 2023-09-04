@@ -177,3 +177,7 @@ html {
     flex-direction: row;
     align-items: center;
 }
+
+.is-invalid-min {
+    border: 1px solid #e74c3c !important;
+}
