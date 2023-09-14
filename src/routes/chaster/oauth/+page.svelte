@@ -49,7 +49,7 @@
             "https://sso.chaster.app/auth/realms/app/protocol/openid-connect/auth?",
             `client_id=${oAuthClientID}&`,
             `redirect_uri=${currentURL}&`,
-            `response_type=code&${oAuthRequestedScopes}&state=`,
+            `response_type=code&scope=${oAuthRequestedScopes}&state=`,
         ];
         const redirectURL = urlChunks.join("");
         window.location.href = redirectURL;
