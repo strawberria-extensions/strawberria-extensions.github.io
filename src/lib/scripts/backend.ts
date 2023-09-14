@@ -1,6 +1,5 @@
 import type { InputRadioOption } from "$lib/components/InputRadio";
-import { get, writable, type Writable } from "svelte/store";
-import { updateValid, validateWheels } from "./validation";
+import { writable, type Writable } from "svelte/store";
 
 export type WeightedDiceRollResponse = [[number, number], number, string | null];
 
@@ -33,33 +32,15 @@ export interface ChasterCustomConfig_WeightedDice {
 export type ChasterCustomConfig_WeightedDice_Payload = Omit<ChasterCustomConfig_WeightedDice, "multiplierText">;
 
 export interface ChasterCustomConfig_ExtendedWheel {
-    outcomes:   ChasterExtendedWheelData[];
-    handleText: "";
+    wheels:   { [key: string]: ExtendedWheelConfig_WheelData };
+    text:     string;
 }
-export interface ChasterExtendedWheelData {
-    // Emulate regular actions for individual wheels
-    // action: {
-    //     mode:       "cumulative" | "non_cumulative" | "unlimited";
-    //     regularity: number;
-    // };
-    text:       string;
-    label?:     string;
-    percentage: string;
-    key:        ExtendedWheel_ActionType;
-    params:     any[];
-}
-
+export type ChasterCustomConfig_ExtendedWheel_Payload = ChasterCustomConfig_ExtendedWheel;
 export interface ChasterCustomData_ExtendedWheel {
-    action: {
-        nbActionsRemaining: number;
-        nextActionDate?:    string;
-    };
+    [key: string]: number;
 }
 
-export interface ExtendedWheelData {
-    wheels:   { [key: string]: ExtendedWheel_WheelData };
-}
-export interface ExtendedWheel_WheelData {
+export interface ExtendedWheelConfig_WheelData {
     display:     string;
     settings:    {
         disabled:         boolean;
@@ -67,8 +48,8 @@ export interface ExtendedWheel_WheelData {
         falsePercentages: boolean;
         hiddenActions:    boolean;
         hiddenOutcomes:   boolean;
+        initialSpins:     number;
     }
-    remainingSpins: string; // Only for setting in config
     regularity:  {
         interval: number; // Seconds, or remaining spins
         mode:     "unlimited" | "cumulative" | "non_cumulative";
@@ -76,24 +57,25 @@ export interface ExtendedWheel_WheelData {
     penalty: {
         requirement: number;
         penalties:   {
-            type:   ExtendedWheel_ActionType;
+            type:   ExtendedWheelConfig_ActionType;
             params: any[];
         }[];
     }
-    outcomes:    ExtendedWheel_OutcomeData[];
+    outcomes:    ExtendedWheelConfig_OutcomeData[];
 }
-export interface ExtendedWheel_OutcomeData {
+export interface ExtendedWheelConfig_OutcomeData {
     text:            string;
-    actions:         ExtendedWheel_ActionData[];
+    actions:         ExtendedWheelConfig_ActionData[];
     percentage:      string;
     falsePercentage: string; // Default same?
 }
-export interface ExtendedWheel_ActionData {
-    type:           ExtendedWheel_ActionType;
+export interface ExtendedWheelConfig_ActionData {
+    type:           ExtendedWheelConfig_ActionType;
     params:         any[];
 }
 
-export const extendedWheelDataStore: Writable<ExtendedWheelData> = writable({ wheels: {} });
+export const extendedWheelDataStore: Writable<ChasterCustomConfig_ExtendedWheel> = writable({ wheels: {}, text: "" });
+export const extendedWheelSpinsStore: Writable<{ [key: string]: string}> = writable({});
 
 export const regularityModeOptionsData: InputRadioOption<string>[] = [
     { key: "non_cumulative", display: "Non cumulative", tooltip: "After each spin, you will have to wait a certain amount of time before spinning again."}, 
@@ -133,7 +115,7 @@ export const extendedWheelActions = {
     "extended_wof-available-set": "[Extended WoF] Set available wheel spins",
     "extended_wof-available-modify": "[Extended WoF] Modify available wheel spins",
 } as const;
-export type ExtendedWheel_ActionType = keyof typeof extendedWheelActions;
+export type ExtendedWheelConfig_ActionType = keyof typeof extendedWheelActions;
 
 export type ActionTemplateParamData = { 
     type:   "boolean" | "duration" | "number" | "regularity" | "select" | "select_wheel" | "radio" | "text"; 
@@ -287,16 +269,19 @@ export const extendedWheelActionTemplates: {
     },
     "extended_wof-mode-settings": {
         tooltip: "Enable or disable various wheel settings.",
-        params: [{ type: "select", label: "Selected Wheel Setting", class: "!w-[16em]", params: {
-            options: [
-                { key: "disabled", display: "Disabled" },
-                { key: "falsePercentages", display: "False Percentages" },
-                { key: "hiddenActions", display: "Hidden Actions" },
-                { key: "hiddenOutcomes", display: "Hidden Outcomes" },
-                { key: "availableSpins", display: "Count Available Spins" },
-            ]
-        }}, { type: "boolean", label: "Enable this setting", params: []}],
-        default: ["falsePercentages", false],
+        params: [
+            { type: "select_wheel", label: "Selected Wheel", class: "!w-[16em]", params: {}}, 
+            { type: "select", label: "Selected Wheel Setting", class: "!w-[16em]", params: {
+                options: [
+                    { key: "disabled", display: "Disabled" },
+                    { key: "falsePercentages", display: "False Percentages" },
+                    { key: "hiddenActions", display: "Hidden Actions" },
+                    { key: "hiddenOutcomes", display: "Hidden Outcomes" },
+                    { key: "availableSpins", display: "Count Available Spins" },
+                ]
+            }}, 
+            { type: "boolean", label: "Enable this setting", params: []}],
+        default: ["", "falsePercentages", false],
     },
     "extended_wof-regularity-set": {
         tooltip: "Set the wheel regularity (mode and interval).",

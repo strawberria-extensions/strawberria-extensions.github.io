@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { ExtendedWheel_ActionData } from "$lib/scripts/backend";
+    import type { ExtendedWheelConfig_ActionData } from "$lib/scripts/backend";
     import { communicationStore } from "$lib/scripts/duration-tooltip";
     import { generateTimeString } from "$lib/scripts/utility";
     import { onDestroy } from "svelte";

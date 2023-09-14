@@ -9,20 +9,21 @@
     export let formatter, isDisabled, inputValue, disableHighlight;
 </script>
 
-<div use:itemActions={{item, index}}
-    class="flex flex-row dropdown-hover"
-    class:dropdown-disabled={item["disabled"]}
-    class:dropdown-invalid={!$extendedValidDataStore[1][item.id][0]}
-    on:select
-    on:deselect
-    on:hover>
-    {item["name"]}
-    <div class="grow" />
-    {#if $extendedValidDataStore[1][item.id][0] === false}
-    ❌
-    {/if}
-</div>
-  
+{#if $extendedValidDataStore[1][item.id]}
+    <div use:itemActions={{item, index}}
+        class="flex flex-row dropdown-hover"
+        class:dropdown-disabled={item["disabled"]}
+        class:dropdown-invalid={!$extendedValidDataStore[1][item.id][0]}
+        on:select
+        on:deselect
+        on:hover>
+        {item["name"]}
+        <div class="grow" />
+        {#if $extendedValidDataStore[1][item.id][0] === false}
+        ❌
+        {/if}
+    </div>
+{/if}
 
 <style>
     .dropdown-hover {

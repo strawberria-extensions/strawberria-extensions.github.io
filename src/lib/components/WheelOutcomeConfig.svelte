@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { extendedWheelActionTemplates, type ExtendedWheel_OutcomeData, extendedWheelActions, type ExtendedWheel_ActionType, regularityModeOptionsData, extendedWheelDataStore } from "$lib/scripts/backend";
+    import { extendedWheelActionTemplates, type ExtendedWheelConfig_OutcomeData, extendedWheelActions, type ExtendedWheelConfig_ActionType, regularityModeOptionsData, extendedWheelDataStore } from "$lib/scripts/backend";
     import { createEventDispatcher } from "svelte";
     import { tippy } from "svelte-tippy";
     import ConfigDurationPopover from "./ConfigDuration_Popover.svelte";
@@ -11,13 +11,13 @@
 
     const dispatch = createEventDispatcher();
 
-    export let outcomeData: ExtendedWheel_OutcomeData;
+    export let outcomeData: ExtendedWheelConfig_OutcomeData;
     export let outcomeValidData: ExtendedValidData_Outcome;
     export let falsePercentageEnabled: boolean;
     $: outcomeData, updateValid($extendedWheelDataStore);
 
     // Intermediate type storage flip-flop to propagate after change
-    let intermediateActionTypes: ExtendedWheel_ActionType[] = outcomeData.actions
+    let intermediateActionTypes: ExtendedWheelConfig_ActionType[] = outcomeData.actions
         .map(actionData => actionData.type);
     function resetAction(index: number) {
         const newActionData = outcomeData.actions[index];

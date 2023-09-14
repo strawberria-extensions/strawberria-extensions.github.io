@@ -218,9 +218,10 @@
 
     // When keyholder and not alraedy authorized, redirect to OAuth
     const oAuthClientID = "extensions-318826";
-    const oAuthRequestedScopes = "profile,locks,shared_locks,keyholder";
+    const oAuthRequestedScopes = "profile%20locks%20shared_locks%20keyholder";
     function redirectOAuth() {
         // Construct redirect URL from current URL, manually add main token
+        // NOTE: scopes should be separated by space
         let currentURL = encodeURIComponent(window.location.href.split("#")[0]);
         const urlChunks = [
             "https://sso.chaster.app/auth/realms/app/protocol/openid-connect/auth?",
@@ -237,7 +238,7 @@
 <svelte:window bind:innerWidth={frameWidth} bind:innerHeight={frameHeight} />
 <div class="container-bg min-w-0 min-h-0 pl-3 pr-3 space-y-2 grow" 
     bind:this={pageContainer}>
-    {#if initialLoadMessage !== ""}
+    {#if false}
         <!-- While extension data is loading, show Chaster logo -->
         <div class="w-full h-screen flex flex-col items-center justify-center">
             <img src={chasterLogo} alt="Chaster logo">

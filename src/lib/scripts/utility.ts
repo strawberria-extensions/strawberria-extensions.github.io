@@ -1,4 +1,4 @@
-import type { ChasterCustomConfig_ExtendedWheel, ChasterExtendedWheelData, ExtendedWheelData, ExtendedWheel_ActionData } from "./backend";
+import type { ChasterCustomConfig_ExtendedWheel, ExtendedWheelConfig_ActionData } from "./backend";
 
 // Generate random string of specified length
 // const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -85,7 +85,7 @@ export function truncateWords(input: string, maxLen: number) {
 }
 
 // Generate outcome action label for extended wheel
-export function generateOutcomeActionLabel(actionData: ExtendedWheel_ActionData, data: ExtendedWheelData) {
+export function generateOutcomeActionLabel(actionData: ExtendedWheelConfig_ActionData, data: ChasterCustomConfig_ExtendedWheel) {
     let actionText = "";
     // Time-related
     if(actionData.type === "set_time") {
@@ -159,9 +159,10 @@ export function generateOutcomeActionLabel(actionData: ExtendedWheel_ActionData,
     // Extended Wheel of Fortune
     // TODO maybe add different wheel configs to swap between?
     else if(actionData.type === "extended_wof-wheel") {
-        const wheelName = data.wheels[actionData.params[0]]
-        actionText = `[Extended Wheel of Fortune] ${actionData.params[1] === true ? "Enable" : "Disable"} the wheel named '${wheelName}'`;
+        const wheelName = data.wheels[actionData.params[0]].display;
+        actionText = `[Extended Wheel of Fortune] ${actionData.params[1] === true ? "Enable" : "Disable"} the wheel '${wheelName}'`;
     } else if(actionData.type === "extended_wof-mode-settings") {
+        const wheelName = data.wheels[actionData.params[0]].display;
         const mapping = {
             "disabled": "Disabled",
             "availableSpins": "Count Spins",
@@ -169,13 +170,20 @@ export function generateOutcomeActionLabel(actionData: ExtendedWheel_ActionData,
             "hiddenActions": "Hidden Actions",
             "hiddenOutcomes": "Hidden Outcomes",
         } as any;
-        const settingName = mapping[actionData.params[0]];
-        actionText = `[Extended Wheel of Fortune] ${actionData.params[1] === true ? "Enable" : "Disable"} the wheel setting '${settingName}'`;
+        const settingName = mapping[actionData.params[1]];
+        actionText = `[Extended Wheel of Fortune] ${actionData.params[2] === true ? "Enable" : "Disable"} the wheel setting '${settingName}' for the wheel '${wheelName}'`;
     } else if(actionData.type === "extended_wof-regularity-set") {
-        actionText = `[Extended Wheel of Fortune] Set the regular action for the wheel '${actionData.params[0][0]}' to mode '${actionData.params[0]}'`
-            + (actionData.params[0][1] !== "unlimited" ? ` with regularity ${generateTimeString(actionData.params[0][1])}` : "")
+        const wheelName = data.wheels[actionData.params[0]].display;
+        actionText = `[Extended Wheel of Fortune] Set the regular action for the wheel '${wheelName}' to mode '${actionData.params[1][0]}'`
+            + (actionData.params[0][1] !== "unlimited" ? ` with regularity ${generateTimeString(actionData.params[1][1])}` : "")
             + ".";
-    }
+    } else if(actionData.type === "extended_wof-available-set") {
+        const wheelName = data.wheels[actionData.params[0]].display;
+        actionText = `[Extended Wheel of Fortune] Set the number of available spins to ${actionData.params[1]} for the wheel '${wheelName}'`;
+    } else if(actionData.type === "extended_wof-available-modify") {
+        const wheelName = data.wheels[actionData.params[0]].display;
+        actionText = `[Extended Wheel of Fortune] Modify the number of available spins by ${actionData.params[1]} for the wheel '${wheelName}'`;
+    } 
 
     // Penalties: no penalty API currently
 

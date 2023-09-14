@@ -1,12 +1,12 @@
 <script lang="ts">
     import { Popover } from "flowbite-svelte";
-    import type { ExtendedWheel_ActionData } from "$lib/scripts/backend";
+    import type { ExtendedWheelConfig_ActionData } from "$lib/scripts/backend";
     import { generateRandomString, generateTimeString } from "$lib/scripts/utility";
     import DurationSelect from "./DurationSelect.svelte";
     import { fade } from "svelte/transition";
     import type { DurationSelectSettings } from "./DurationSelect";
 
-    export let actionData: ExtendedWheel_ActionData;
+    export let actionData: ExtendedWheelConfig_ActionData;
     export let settings:   DurationSelectSettings = { week: false, day: true, hour: true, minute: true, second: true };
 
     let element: HTMLElement;
