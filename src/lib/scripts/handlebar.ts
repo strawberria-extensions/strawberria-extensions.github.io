@@ -1,5 +1,5 @@
 import type { ChasterCustomConfig_ExtendedWheel_Payload, ChasterCustomData_ExtendedWheel } from "./backend";
-import { generateOutcomeActionLabel, generateTimeString } from "./utility";
+import { generateOutcomeEffectLabel, generateTimeString } from "./utility";
 
 interface WheelTextData {
     displayText:    string;
@@ -69,7 +69,7 @@ export function generateExtendedWheelText(config: ChasterCustomConfig_ExtendedWh
 
             const actionsTextArr: string[] = [];
             for(const actionData of outcomeData.actions) {
-                actionsTextArr.push(generateOutcomeActionLabel(actionData, { ...config, text: "" }));
+                actionsTextArr.push(generateOutcomeEffectLabel(actionData, { ...config, text: "" }));
             }
             outcomeTextData.actionsText = actionsTextArr
                 .map(text => `  - ${text}`)

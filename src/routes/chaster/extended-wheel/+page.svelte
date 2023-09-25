@@ -6,14 +6,16 @@
     import tickAudioFile from "$lib/resources/tick.mp3";
     import wheelBgOverlayFile from "$lib/resources/wheel-bg-overlay.svg"
     import { Wheel } from '$lib/resources/spin-wheel.js';
-    import type { ChasterCustomConfig_ExtendedWheel, ChasterTrimmedExtensionSession } from '$lib/scripts/backend';
     import WheelOutcome from "$lib/components/WheelOutcome.svelte";
-    import { generateOutcomeActionLabel, sleep, truncateWords } from "$lib/scripts/utility";
+    import { sleep, truncateWords } from "$lib/scripts/utility";
+    import type { ExtendedWheelConfig_User, ExtendedWheelCustom } from '$lib/scripts/signature-extended_wheel';
+    import type { ChasterUserRole } from '$lib/scripts/signature-chaster';
+    import type { BackendResponseSignature } from '$lib/scripts/signature-backend';
     
     // Supabase anon key has no database access due to RLS
     const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwbmpsYmpwY2ZlYnFwYXFrcGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODg1NDM0NTgsImV4cCI6MjAwNDExOTQ1OH0.CsGySz2c8bIWphE6--T51CsmSeBQajfwvBYfTkjviM4";
-    const chasterOAuthStoreURL = "https://bpnjlbjpcfebqpaqkphy.supabase.co/functions/v1/chaster-oauth-store";
-    const extendedSessionGetURL = "https://bpnjlbjpcfebqpaqkphy.supabase.co/functions/v1/wheel-session-get";
+    const chasterUtilitiesURL = "https://bpnjlbjpcfebqpaqkphy.supabase.co/functions/v1/chaster_utilities";
+    const databaseUtilitiesURL = "https://bpnjlbjpcfebqpaqkphy.supabase.co/functions/v1/database_utilities";
     const wheelColors: string[] = [ 
         // 200-darkness wheel colors from Tailwind CSS (for convenience)
         "#fecaca", "#fed7aa", "#fde68a", "#d9f99d", "#bbf7d0", // "#fef08a"
@@ -25,49 +27,15 @@
         audio.volume = 0.3;
         return audio;
     }); 
-    
-    let mainToken = "";
+
     let initialLoadMessage: string = "Loading extension data...";
-    // let extensionSessionData: ChasterTrimmedExtensionSession<ChasterCustomConfig_ExtendedWheel>;
-    // let extensionCustomData: ChasterCustomData_ExtendedWheel;
-    let extendedSessionData: ChasterTrimmedExtensionSession<ChasterCustomConfig_ExtendedWheel>;
-    let extensionSessionConfigStore: Writable<ChasterCustomConfig_ExtendedWheel> = writable({ outcomes: [], handleText: "" });
-    let userRole: "wearer" | "keyholder" = "keyholder";
+    let selectedWheelID: string | undefined = undefined;
+
+    let mainToken = "";
+    let userRole: ChasterUserRole = "keyholder";
     let hasKeyholderOAuth = false;
-    extensionSessionConfigStore.update(_ => {
-        const data: ChasterCustomConfig_ExtendedWheel = { 
-            outcomes: [
-                { percentage: "5.00", text: "After spending an entire day stumbling through the forest, you find yourself exactly back where you started.", key: "add_time", params: [60 * 60 * 24] },
-                { percentage: "10.00", text: "You make significant progress during your exploration, getting closer and closer to civilization.", key: "remove_time", params: [12 * 60 * 60] },
-                { percentage: "5.00", text: "", key: "share_link-requirement-increase", params: [12] },
-                { percentage: "20.00", text: "", key: "share_link-add_time-set", params: [60 * 60 * 4] },
-                { percentage: "4.50", text: "", key: "pillory-put", params: [] },
-                { percentage: "0.50", text: "", key: "dice-regularitys-set", params: ["non_cumulative", 60 * 60] },
-                { percentage: "5.00", text: "After spending an entire day stumbling through the forest, you find yourself exactly back where you started.", key: "add_time", params: [60 * 60 * 24] },
-                { percentage: "10.00", text: "You make significant progress during your exploration, getting closer and closer to civilization.", key: "remove_time", params: [12 * 60 * 60] },
-                { percentage: "5.00", text: "", key: "share_link-requirement-increase", params: [12] },
-                { percentage: "20.00", text: "", key: "share_link-add_time-set", params: [60 * 60 * 4] },
-                { percentage: "4.50", text: "", key: "pillory-put", params: [] },
-                { percentage: "0.50", text: "", key: "dice-regularitys-set", params: ["non_cumulative", 60 * 60] },
-                { percentage: "5.00", text: "After spending an entire day stumbling through the forest, you find yourself exactly back where you started.", key: "add_time", params: [60 * 60 * 24] },
-                { percentage: "10.00", text: "You make significant progress during your exploration, getting closer and closer to civilization.", key: "remove_time", params: [12 * 60 * 60] },
-                { percentage: "5.00", text: "", key: "share_link-requirement-increase", params: [12] },
-                { percentage: "20.00", text: "", key: "share_link-add_time-set", params: [60 * 60 * 4] },
-                { percentage: "4.50", text: "", key: "pillory-put", params: [] },
-                { percentage: "0.50", text: "", key: "dice-regularitys-set", params: ["non_cumulative", 60 * 60] },
-                { percentage: "5.00", text: "After spending an entire day stumbling through the forest, you find yourself exactly back where you started.", key: "add_time", params: [60 * 60 * 24] },
-                { percentage: "10.00", text: "You make significant progress during your exploration, getting closer and closer to civilization.", key: "remove_time", params: [12 * 60 * 60] },
-                { percentage: "5.00", text: "", key: "share_link-requirement-increase", params: [12] },
-                { percentage: "20.00", text: "", key: "share_link-add_time-set", params: [60 * 60 * 4] },
-                { percentage: "4.50", text: "", key: "pillory-put", params: [] },
-                { percentage: "0.50", text: "", key: "dice-regularitys-set", params: ["non_cumulative", 60 * 60] },
-            ],
-            handleText: ""
-        };
-        data.outcomes.forEach(outcomeData => { outcomeData.label = generateOutcomeActionLabel(outcomeData); });
-        // data.outcomes.sort((outcomeDataA, outcomeDataB) => parseFloat(outcomeDataB.percentage) - parseFloat(outcomeDataA.percentage));
-        return data;
-    });
+    let extendedWheelConfigStore: Writable<ExtendedWheelConfig_User> = writable({ "wheels": {} });
+    let extendedWheelCustomStore: Writable<ExtendedWheelCustom> = writable({});
 
     let hash: string = "";
     onMount(async () => {
@@ -92,9 +60,10 @@
         if(authorizationCode !== null) {
             // Valid authorization code, call oauth database store function
             const redirectURI = window.location.href.split("?")[0];
-            await fetch(chasterOAuthStoreURL, {
+            await fetch(databaseUtilitiesURL, {
                 method: "POST", headers: { "Authorization": `Bearer ${anonKey}` },
                 body: JSON.stringify({ 
+                    action: "chaster_access-set",
                     authorizationCode: authorizationCode, 
                     redirectURI: redirectURI,
                     scopes: oAuthRequestedScopes,
@@ -112,46 +81,68 @@
             history.pushState(null, "", url.toString());
         }
 
-        initialLoadMessage = "Checking OAuth permissions...";
+        initialLoadMessage = "Retrieving extended wheel data...";
 
-        // Retrieve current session data and keyholder authorization given main token
-        const extensionSessionResponse = await fetch(extendedSessionGetURL, 
-            { method: "POST", headers: { "Authorization": `Bearer ${anonKey}` },
-            body: JSON.stringify({ mainToken: mainToken }),
+        // Retrieve wheel data including keyholder authorization, config, and custom data given main token
+        const extendedMainPageResponse = await fetch(chasterUtilitiesURL, {
+            method: "POST", headers: { "Authorization": `Bearer ${anonKey}` },
+            body: JSON.stringify({ 
+                action: "extended-main-page",
+                mainToken: mainToken,
+            })
         });
-        if(extensionSessionResponse.status !== 200) {
-            console.error(`Error retrieving session data: ${await extensionSessionResponse.text()}`);
+        if(extendedMainPageResponse.status !== 200) {
+            console.error(`Error retrieving session data: ${await extendedMainPageResponse.text()}`);
             return;
         }
-        const extensionSessionData: any[] = await extensionSessionResponse.json();
-        // $extensionSessionConfigStore
-        hasKeyholderOAuth = extensionSessionData[1];
+        const extendedMainPageData: BackendResponseSignature["chaster_utilities"]["extended-main-page"] 
+            = await extendedMainPageResponse.json();
+        hasKeyholderOAuth = extendedMainPageData.hasKeyholder;
+        $extendedWheelConfigStore = extendedMainPageData.config;
+        $extendedWheelCustomStore = extendedMainPageData.customData;
+        selectedWheelID = Object.keys($extendedWheelConfigStore.wheels)[0] ?? undefined;
 
         initialLoadMessage = "";
     });
 
     // Wheel-related logic including spinning, etc.
     let wheelContainerStore: Writable<HTMLDivElement | undefined> = writable(undefined);
+    let spinDisabled = false;
     let spinWheel: any;
     async function spinTheWheel() {
-        spinWheel.spinToItem(Math.floor(Math.random() * spinWheel.items.length), 5000, false, 5, 1, easeSinInOut)
+        spinDisabled = true;
+        const spinResponse = await await fetch(chasterUtilitiesURL, {
+            method: "POST", headers: { "Authorization": `Bearer ${anonKey}` },
+            body: JSON.stringify({ 
+                action: "extended-main-spin",
+                mainToken: mainToken,
+                wheelID: selectedWheelID,
+            })
+        });
+        console.log(await spinResponse.json());
+        spinDisabled = false;
+        // spinWheel.spinToItem(Math.floor(Math.random() * spinWheel.items.length), 5000, false, 5, 1, easeSinInOut);
+        // setTimeout(() => { spinDisabled = false; }, 5000);
     }
 
     // Update wheel container with new outcomes from selected wheel
     wheelContainerStore.subscribe(updateWheelContainer);
-    extensionSessionConfigStore.subscribe(updateWheelContainer);
+    extendedWheelConfigStore.subscribe(updateWheelContainer);
+    extendedWheelCustomStore.subscribe(updateWheelContainer);
 
     async function updateWheelContainer() {
+        if(selectedWheelID === undefined) { return; }
         const wheelContainer = $wheelContainerStore;
-
         if(wheelContainer === undefined) { return; }
 
         // Short delay so wheel is properly sized in container
         await sleep(10);
 
-        const items = JSON.parse(JSON.stringify($extensionSessionConfigStore.outcomes.map(
-            (outcomeData, index) => {
-                const label = outcomeData.label ?? "";
+        const wheelData = $extendedWheelConfigStore.wheels[selectedWheelID];
+
+        const items = JSON.parse(JSON.stringify(wheelData.outcomes.map(
+            (outcomeData) => {
+                const label = outcomeData.text ?? "";
                 const truncatedLabel = [truncateWords(label, 24), label.length >= 32 ? "..." : ""].join("");
                 const weight = parseFloat(outcomeData.percentage);
                 return { label: truncatedLabel, weight: weight };
@@ -218,7 +209,7 @@
 
     // When keyholder and not alraedy authorized, redirect to OAuth
     const oAuthClientID = "extensions-318826";
-    const oAuthRequestedScopes = "profile%20locks%20shared_locks%20keyholder";
+    const oAuthRequestedScopes = "profile locks shared_locks keyholder";
     function redirectOAuth() {
         // Construct redirect URL from current URL, manually add main token
         // NOTE: scopes should be separated by space
@@ -227,7 +218,7 @@
             "https://sso.chaster.app/auth/realms/app/protocol/openid-connect/auth?",
             `client_id=${oAuthClientID}&`,
             `redirect_uri=${currentURL}&`,
-            `response_type=code&${oAuthRequestedScopes}&state=${hash}`,
+            `response_type=code&scope=${oAuthRequestedScopes}&state=${hash}`,
         ];
         const redirectURL = urlChunks.join("");
         window.location.href = redirectURL;
@@ -236,15 +227,15 @@
 </script>
 
 <svelte:window bind:innerWidth={frameWidth} bind:innerHeight={frameHeight} />
-<div class="container-bg min-w-0 min-h-0 pl-3 pr-3 space-y-2 grow" 
+<div class="container-bg min-w-0 min-h-0 p-4 space-y-2 grow" 
     bind:this={pageContainer}>
-    {#if false}
+    {#if initialLoadMessage !== ""}
         <!-- While extension data is loading, show Chaster logo -->
         <div class="w-full h-screen flex flex-col items-center justify-center">
             <img src={chasterLogo} alt="Chaster logo">
             <div class="mt-4 caption text-lg">{initialLoadMessage}</div>
         </div>
-    {:else}
+    {:else if selectedWheelID !== undefined}
         <div class="card-content grow" class:card-wrapper-desktop={shouldHorizontal}>
             <div class="w-full h-full flex flex-row">
                 <div class="h-full flex flex-col" class:card-horizontal={shouldHorizontal}>
@@ -265,26 +256,30 @@
                             <div>Select</div>
                             <div class="caption mb-2">Choose which wheel to spin with</div>
                             <div class="w-full">
-                                <select class="form-control">
-                                    <option value="add_time">Task Wheel</option>
-                                    <option value="freeze">Freeze</option>
-                                    <option value="pillory">Pillory</option>
+                                <select class="form-control" bind:value={selectedWheelID}>
+                                    {#each Object.entries($extendedWheelConfigStore.wheels) as [wheelKey, wheelData]}
+                                        {#if wheelData.settings.disabled === false}
+                                            <option value={wheelKey}>{wheelData.display}</option>
+                                        {/if}
+                                    {/each}
                                 </select>
                             </div>
                         </div>
                         <div class="flex flex-col justify-center ml-4 mr-4">
                             <button type="button" class="btn btn-primary btn-lg"
+                                disabled={spinDisabled}
                                 on:click={spinTheWheel}>
                                 <span>Spin the wheel!</span>
                             </button>
                         </div>
                     </div>
                     {#if !shouldHorizontal}
-                        <hr>
-                        <div>Outcomes</div>
+                        <!-- Temporarily no horizontal support -->
                     {/if}
                 </div>
                 {#if shouldHorizontal}
+                    {@const wheelData = $extendedWheelConfigStore.wheels[selectedWheelID]}
+                    {@const totalPercentage = wheelData.outcomes.reduce((sum, data) => sum += parseFloat(data.percentage), 0)}
                     {@const renderOAuth = !hasKeyholderOAuth && userRole === "keyholder"}
                     <div class="h-full flex flex-col ml-4 something" style={`width: calc(${wheelWidth}px * 1.0)`}>
                         <div class={`flex flex-row flex-start items-center ${renderOAuth ? "justify-between" : "justify-start"}`}>
@@ -304,21 +299,37 @@
                             {/if}
                         </div>
                         <hr>
-                        <div>Outcomes</div>
-                        <div class="caption mb-2">
-                            View possible outcomes for the wheel
+                        <div class="flex flex-row justify-between">
+                            <div>
+                                <div>Outcomes</div>
+                                <div class="caption mb-2">
+                                    View possible outcomes for the wheel
+                                </div>
+                            </div>
+                            <div>
+                                {#if wheelData.settings.falsePercentages === true}
+                                    <div class="w-[14em] text-red-600 min-h-[1em]">❗ False Percentages Shown ❗</div>
+                                {/if}
+                                {#if wheelData.settings.hiddenEffects === true}
+                                    <div class="w-[14em] text-red-600 min-h-[1em]">❗ Outcome Effects Hidden ❗</div>
+                                {/if}
+                            </div>
                         </div>
-                        {#if $extensionSessionConfigStore.outcomes.length > 0}
+                        {#if wheelData.outcomes.length > 0}
                             <div class="card-content outcomes-list">
                                 <div class="flex flex-col space-y-1 items-stretch">
-                                    {#each $extensionSessionConfigStore.outcomes as outcomeData, index}
-                                        {@const colorIndex = index - Math.floor(index / wheelColors.length) * wheelColors.length}
-                                        {@const outcomeColor = wheelColors[colorIndex]}
-                                        <WheelOutcome outcomeData={outcomeData} color={outcomeColor} />
-                                        {#if index !== $extensionSessionConfigStore.outcomes.length - 1}
-                                            <hr class="mt-0.5 mb-0.5">
-                                        {/if}
-                                    {/each}
+                                    {#key $extendedWheelConfigStore}
+                                        {#each wheelData.outcomes as outcomeData, index}
+                                            {@const colorIndex = index - Math.floor(index / wheelColors.length) * wheelColors.length}
+                                            {@const outcomeColor = wheelColors[colorIndex]}
+                                            <WheelOutcome outcomeData={outcomeData} 
+                                                totalPercentage={totalPercentage}
+                                                color={outcomeColor} />
+                                            {#if index !== wheelData.outcomes.length - 1}
+                                                <hr class="mt-0.5 mb-0.5">
+                                            {/if}
+                                        {/each}
+                                    {/key}
                                 </div>
                             </div>
                         {/if}
