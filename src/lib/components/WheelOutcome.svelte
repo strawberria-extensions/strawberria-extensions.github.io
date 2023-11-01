@@ -1,17 +1,18 @@
 <script lang="ts">
     import { generateOutcomeEffectLabel } from "$lib/scripts/utility";
     import bigDecimal from "js-big-decimal";
-    import type { ExtendedWheelConfig_OutcomeData_User } from "../scripts/signature-extended_wheel";
+    import type { ExtendedWheelConfig_OutcomeData_User, ExtendedWheelConfig_User } from "../scripts/signature-extended_wheel";
 
     export let outcomeData: ExtendedWheelConfig_OutcomeData_User;
+    export let configData: ExtendedWheelConfig_User;
     export let totalPercentage: number;
     export let color: string;
 
     let actualPercentage = new bigDecimal(outcomeData.percentage)
         .divide(new bigDecimal(totalPercentage), 8)
         .multiply(new bigDecimal(100))
-        .round(4).getValue()
-        .replace(/\.0+$|([^\.])0+/, "$1");
+        .round(3).getValue()
+        .replace(/\.0+$|([^\.])0+$/, "$1");
 
 </script>
 
@@ -20,8 +21,8 @@
         <div>{outcomeData.text ?? ""}</div>
         {#if outcomeData.effects !== undefined}
             {#each outcomeData.effects as effectData}
-                {@const effectText = generateOutcomeEffectLabel(effectData)}
-                <div class="caption whitespace-pre-wrap text-sm">•  {effectText}</div>
+                {@const effectText = generateOutcomeEffectLabel(effectData, configData)}
+                <div class="caption whitespace-pre-wrap text-sm">• {effectText}</div>
             {/each}
         {/if}
     </div>

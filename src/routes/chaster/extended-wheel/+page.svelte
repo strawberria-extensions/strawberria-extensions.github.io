@@ -83,20 +83,7 @@
 
         initialLoadMessage = "Retrieving extended wheel data...";
 
-        // Retrieve wheel data including keyholder authorization, config, and custom data given main token
-        const extendedMainPageResponse = await fetch(chasterUtilitiesURL, {
-            method: "POST", headers: { "Authorization": `Bearer ${anonKey}` },
-            body: JSON.stringify({ 
-                action: "extended-main-page",
-                mainToken: mainToken,
-            })
-        });
-        if(extendedMainPageResponse.status !== 200) {
-            console.error(`Error retrieving session data: ${await extendedMainPageResponse.text()}`);
-            return;
-        }
-        const extendedMainPageData: BackendResponseSignature["chaster_utilities"]["extended-main-page"] 
-            = await extendedMainPageResponse.json();
+        const extendedMainPageData = await retrieveWheelConfig();
         hasKeyholderOAuth = extendedMainPageData.hasKeyholder;
         $extendedWheelConfigStore = extendedMainPageData.config;
         $extendedWheelCustomStore = extendedMainPageData.customData;
@@ -109,9 +96,12 @@
     let wheelContainerStore: Writable<HTMLDivElement | undefined> = writable(undefined);
     let spinDisabled = false;
     let spinWheel: any;
+    let lastRotation: [string, number] = ["", 0];
     async function spinTheWheel() {
         spinDisabled = true;
-        const spinResponse = await await fetch(chasterUtilitiesURL, {
+
+        // Spin the wheel first
+        const spinResultResponse = await fetch(chasterUtilitiesURL, {
             method: "POST", headers: { "Authorization": `Bearer ${anonKey}` },
             body: JSON.stringify({ 
                 action: "extended-main-spin",
@@ -119,16 +109,51 @@
                 wheelID: selectedWheelID,
             })
         });
-        console.log(await spinResponse.json());
-        spinDisabled = false;
-        // spinWheel.spinToItem(Math.floor(Math.random() * spinWheel.items.length), 5000, false, 5, 1, easeSinInOut);
-        // setTimeout(() => { spinDisabled = false; }, 5000);
+        const spinResultData: BackendResponseSignature["chaster_utilities"]["extended-main-spin"] = await spinResultResponse.json();
+        // TODO handle hidden outcome missing index
+        if(spinResultData.index === undefined) { return; }
+
+        // Cache the post-spin data to update after spin
+        const extendedMainPageData = await retrieveWheelConfig();
+
+        spinWheel.spinToItem(spinResultData.index, 5000, false, 5, 1, easeSinInOut);
+
+        // spinDisabled = false;
+        setTimeout(() => { 
+            spinDisabled = false; 
+            lastRotation = [selectedWheelID as string, spinWheel.rotation];
+            $extendedWheelConfigStore = extendedMainPageData.config; // Intensive?
+
+            // Update the wheel if necessary?
+            hasKeyholderOAuth = extendedMainPageData.hasKeyholder;
+            // Somewhat redundant?
+            $extendedWheelCustomStore = extendedMainPageData.customData;
+            selectedWheelID = Object.keys($extendedWheelConfigStore.wheels)[0] ?? undefined;
+        }, 5100);
     }
 
     // Update wheel container with new outcomes from selected wheel
     wheelContainerStore.subscribe(updateWheelContainer);
     extendedWheelConfigStore.subscribe(updateWheelContainer);
     extendedWheelCustomStore.subscribe(updateWheelContainer);
+
+    async function retrieveWheelConfig(): Promise<BackendResponseSignature["chaster_utilities"]["extended-main-page"]> {
+        // Retrieve wheel data including keyholder authorization, config, and custom data given main token
+        const extendedMainPageResponse = await fetch(chasterUtilitiesURL, {
+            method: "POST", headers: { "Authorization": `Bearer ${anonKey}` },
+            body: JSON.stringify({ 
+                action: "extended-main-page",
+                mainToken: mainToken,
+            })
+        });
+        if(extendedMainPageResponse.status !== 200) {
+            console.error(`Error retrieving session data: ${await extendedMainPageResponse.text()}`);
+            throw new Error("error retrieving session data")
+        }
+        const extendedMainPageData: BackendResponseSignature["chaster_utilities"]["extended-main-page"] 
+            = await extendedMainPageResponse.json();
+        return extendedMainPageData;   
+    }
 
     async function updateWheelContainer() {
         if(selectedWheelID === undefined) { return; }
@@ -148,9 +173,18 @@
                 return { label: truncatedLabel, weight: weight };
             }
         )));
+
+        let rotation: number = 0;
+        if(lastRotation[0] == selectedWheelID as string) {
+            rotation = lastRotation[1];
+        } else {
+            lastRotation = ["", 0];
+        }
+
         const wheelProps = {
             items: items,
             pointerAngle: 270,
+            isInteractive: false,
             itemBackgroundColors: wheelColors,
             itemLabelRadiusMax: 0.3,
             itemLabelRadius: 0.825,
@@ -159,6 +193,7 @@
             // isInteractive: false,
             borderWidth: 2,
             overlayImage: wheelBgOverlayFile,
+            rotation: rotation,
         }
 
         wheelContainer.innerHTML = "";
@@ -204,7 +239,7 @@
     $: { pageContainer; if(pageContainer !== undefined) { 
         emValue = parseFloat(getComputedStyle(pageContainer).fontSize); 
         necessaryWidth = (wheelWidth * 2) + (4 * emValue * 4) + (4 * emValue + 4);
-        shouldHorizontal = frameWidth > necessaryWidth;
+        // shouldHorizontal = frameWidth > necessaryWidth;
     }}
 
     // When keyholder and not alraedy authorized, redirect to OAuth
@@ -236,6 +271,7 @@
             <div class="mt-4 caption text-lg">{initialLoadMessage}</div>
         </div>
     {:else if selectedWheelID !== undefined}
+        {@const wheelData = $extendedWheelConfigStore.wheels[selectedWheelID]}
         <div class="card-content grow" class:card-wrapper-desktop={shouldHorizontal}>
             <div class="w-full h-full flex flex-row">
                 <div class="h-full flex flex-col" class:card-horizontal={shouldHorizontal}>
@@ -247,10 +283,12 @@
                         Try your luck and spin the <b>extended</b> wheel of fortune! <br>
                         Now supporting additional actions and multiple wheels with individual cooldowns!
                     </div>
-                    <div class="grow mt-1 wheel-container" 
-                        bind:this={$wheelContainerStore} bind:clientWidth={wheelWidth} />
-                        <!-- bind:this={wheelContainer} bind:clientWidth={wheelWidth} /> -->
-                    <hr>
+                    {#key selectedWheelID}
+                        <div class="grow mt-1 wheel-container" 
+                            bind:this={$wheelContainerStore} bind:clientWidth={wheelWidth} />
+                            <!-- bind:this={wheelContainer} bind:clientWidth={wheelWidth} /> -->
+                        <hr>
+                    {/key}
                     <div class="w-full flex flex-row items-stretch space-x-4">
                         <div class="grow">
                             <div>Select</div>
@@ -267,7 +305,7 @@
                         </div>
                         <div class="flex flex-col justify-center ml-4 mr-4">
                             <button type="button" class="btn btn-primary btn-lg"
-                                disabled={spinDisabled}
+                                disabled={spinDisabled || wheelData.settings.disabled === true}
                                 on:click={spinTheWheel}>
                                 <span>Spin the wheel!</span>
                             </button>
@@ -278,7 +316,6 @@
                     {/if}
                 </div>
                 {#if shouldHorizontal}
-                    {@const wheelData = $extendedWheelConfigStore.wheels[selectedWheelID]}
                     {@const totalPercentage = wheelData.outcomes.reduce((sum, data) => sum += parseFloat(data.percentage), 0)}
                     {@const renderOAuth = !hasKeyholderOAuth && userRole === "keyholder"}
                     <div class="h-full flex flex-col ml-4 something" style={`width: calc(${wheelWidth}px * 1.0)`}>
@@ -299,40 +336,43 @@
                             {/if}
                         </div>
                         <hr>
-                        <div class="flex flex-row justify-between">
-                            <div>
-                                <div>Outcomes</div>
-                                <div class="caption mb-2">
-                                    View possible outcomes for the wheel
+                        {#key selectedWheelID}
+                            <div class="flex flex-row justify-between">
+                                <div>
+                                    <div>Outcomes</div>
+                                    <div class="caption mb-2">
+                                        View possible outcomes for the wheel
+                                    </div>
+                                </div>
+                                <div>
+                                    {#if wheelData.settings.falsePercentages === true}
+                                        <div class="w-[14em] text-red-600 min-h-[1em]">❗ False Percentages Shown ❗</div>
+                                    {/if}
+                                    {#if wheelData.settings.hiddenEffects === true}
+                                        <div class="w-[14em] text-red-600 min-h-[1em]">❗ Outcome Effects Hidden ❗</div>
+                                    {/if}
                                 </div>
                             </div>
-                            <div>
-                                {#if wheelData.settings.falsePercentages === true}
-                                    <div class="w-[14em] text-red-600 min-h-[1em]">❗ False Percentages Shown ❗</div>
-                                {/if}
-                                {#if wheelData.settings.hiddenEffects === true}
-                                    <div class="w-[14em] text-red-600 min-h-[1em]">❗ Outcome Effects Hidden ❗</div>
-                                {/if}
-                            </div>
-                        </div>
-                        {#if wheelData.outcomes.length > 0}
-                            <div class="card-content outcomes-list">
-                                <div class="flex flex-col space-y-1 items-stretch">
-                                    {#key $extendedWheelConfigStore}
-                                        {#each wheelData.outcomes as outcomeData, index}
-                                            {@const colorIndex = index - Math.floor(index / wheelColors.length) * wheelColors.length}
-                                            {@const outcomeColor = wheelColors[colorIndex]}
-                                            <WheelOutcome outcomeData={outcomeData} 
-                                                totalPercentage={totalPercentage}
-                                                color={outcomeColor} />
-                                            {#if index !== wheelData.outcomes.length - 1}
-                                                <hr class="mt-0.5 mb-0.5">
-                                            {/if}
-                                        {/each}
-                                    {/key}
+                            {#if wheelData.outcomes.length > 0}
+                                <div class="card-content outcomes-list">
+                                    <div class="flex flex-col space-y-1 items-stretch">
+                                        {#key $extendedWheelConfigStore}
+                                            {#each wheelData.outcomes as outcomeData, index}
+                                                {@const colorIndex = index - Math.floor(index / wheelColors.length) * wheelColors.length}
+                                                {@const outcomeColor = wheelColors[colorIndex]}
+                                                <WheelOutcome outcomeData={outcomeData} 
+                                                    configData={$extendedWheelConfigStore}
+                                                    totalPercentage={totalPercentage}
+                                                    color={outcomeColor} />
+                                                {#if index !== wheelData.outcomes.length - 1}
+                                                    <hr class="mt-0.5 mb-0.5">
+                                                {/if}
+                                            {/each}
+                                        {/key}
+                                    </div>
                                 </div>
-                            </div>
-                        {/if}
+                            {/if}
+                        {/key}
                     </div>
                 {/if}
             </div>

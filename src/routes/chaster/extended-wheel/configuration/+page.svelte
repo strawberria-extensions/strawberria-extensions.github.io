@@ -278,7 +278,7 @@
 
     // When keyholder not already authorized, redirect to OAuth
     const oAuthClientID = "extensions-318826";
-    const oAuthRequestedScopes = "profile,locks,shared_locks,keyholder";
+    const oAuthRequestedScopes = "profile locks shared_locks keyholder";
     function redirectOAuth() {
         // Construct redirect URL from current URL, manually add main token
         let currentURL = encodeURIComponent(window.location.href.split("#")[0]);
@@ -286,7 +286,7 @@
             "https://sso.chaster.app/auth/realms/app/protocol/openid-connect/auth?",
             `client_id=${oAuthClientID}&`,
             `redirect_uri=${currentURL}&`,
-            `response_type=code&${oAuthRequestedScopes}&state=${hash}`,
+            `response_type=code&scope=${oAuthRequestedScopes}&state=${hash}`,
         ];
         const redirectURL = urlChunks.join("");
         window.location.href = redirectURL;

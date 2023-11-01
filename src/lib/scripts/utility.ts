@@ -1,4 +1,5 @@
 import type { ChasterCustomConfig_ExtendedWheel, ExtendedWheelConfig_ActionData } from "./backend";
+import type { ExtendedWheelConfig_User } from "./signature-extended_wheel";
 import type { ExtensionSlug, LockEffectData } from "./signature-lock_effects";
 
 // Generate random string of specified length
@@ -93,11 +94,12 @@ export const extensionDisplayNames: { [key in ExtensionSlug]-?: string } = {
     "pillory": "Pillory",
     "random-events": "Random Events",
     "tasks": "Tasks",
-    "temporary-opening": "Hygiene Opening"
+    "temporary-opening": "Hygiene Opening",
+    "extended-wheel-of-fortune": "Extended Wheel of Fortune"
 }
 
 // Generate outcome effect label for extended wheel
-export function generateOutcomeEffectLabel(actionData: LockEffectData) {
+export function generateOutcomeEffectLabel(actionData: LockEffectData, configData: ExtendedWheelConfig_User) {
     let actionText = "";
 
     // Extension enabling and disabling
@@ -243,6 +245,13 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
             : actionData.params[0] === "multiply"
                 ? `[Guess the Timer] Multiply the maximum-added duration by ${actionData.params[1]}`
             : `[Guess the Timer] Set the maximum-added duration to ${paramDuration}`;
+    }
+
+    // Extended Wheel of Fortune
+    else if(actionData.key === "extended_wheel-setting") {
+        const wheelName = configData.wheels[actionData.params[0]].display;
+        const capitalized = actionData.params[1].charAt(0).toUpperCase() + actionData.params[1].slice(1);
+        actionText = `[Extended Wheel of Fortune] ${capitalized} the setting ${actionData.params[2]} for the wheel '${wheelName}'`;
     }
 
     // // Extended Wheel of Fortune

@@ -31,6 +31,7 @@ export interface BackendResponseSignature {
             customData:   ExtendedWheelCustom, // Available spins for each wheel
         }; 
         "extended-main-spin": {
+            index?:     number; // Not present for hidden outcome
             result:     ExtendedWheelConfig_OutcomeData_Result, 
             customData: ExtendedWheelCustom, // Return for all wheels?
         }; 

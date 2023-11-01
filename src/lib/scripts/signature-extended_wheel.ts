@@ -53,5 +53,5 @@ export interface ExtendedWheelConfig_OutcomeData_User extends Omit<ExtendedWheel
     text:             string;
     effects?:         LockEffectData[];
     percentage:       string;
-    falsePercentage?: string;
+    // falsePercentage?: string; // Only server side
 }

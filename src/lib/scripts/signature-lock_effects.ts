@@ -1,3 +1,4 @@
+import type { ExtendedWheelConfig_WheelData } from "./backend.js";
 import type { ChasterRegularityMode } from "./signature-chaster.ts";
 
 export type LockModificationType = "set" | "modify" | "multiply";
@@ -33,6 +34,13 @@ export type LockEffectData = {
 } | {
     key:    "pillory-put";
     params: [number, string]; // Duration and reason
+} | {
+    key:    "extended_wheel-setting",
+    params: [
+        string, // wheelID
+        keyof Omit<ExtendedWheelConfig_WheelData["settings"], "initialSpins">,
+        "enable" | "disable" | "toggle"
+    ]
 }
 export type LockEffectKey = LockEffectData["key"]
 
@@ -64,6 +72,7 @@ export const lockEffectTypes: { [key in LockEffectData["key"]]-?: any } = {
     "random-events-difficulty": "extension-update",
     "guess_timer-min_time-modify": "extension-update",
     "guess_timer-max_time-modify": "extension-update",
+    "extended_wheel-setting": "extension-update"
 } as const;
 
 // TODO add complex typing stuff
@@ -84,5 +93,6 @@ export const effectExtensionSlugs = {
     "random-events-difficulty": "random-events",
     "guess_timer-min_time-modify": "guess-timer",
     "guess_timer-max_time-modify": "guess-timer",
+    "extended_wheel-setting": "extended-wheel-of-fortune"
 } as const;
 export type ExtensionSlug = typeof effectExtensionSlugs[keyof typeof effectExtensionSlugs];
