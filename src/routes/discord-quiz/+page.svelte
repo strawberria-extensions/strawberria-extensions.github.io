@@ -64,7 +64,7 @@
                 and
                 <a class="span-click" href="https://discord.com/channels/1042651214447386704/1130710505598746645">#guide-safety</a>
                 before attempting. Upon completion, you'll receive a unique "password" for verifying using the command 
-                <span class="font-mono" style="background-color: #272533">?verify &#123;password&#125;</span>. Please note these rules in particular:
+                <span class="font-mono" style="background-color: #272533">?verify &#123;password&#125;</span> (without the curly braces). Please note these rules in particular:
                 <br>✦ <span class="underline">Absolutely no minors (&lt;18) allowed whatsoever</span> - staff members reserve the right to age-check when necessary.
                 <br>✦ <span class="underline">Absolutely zero tolerance</span> for misogyny, objectification, patriarchy, and other abusive behavior.
                 <br>✦ Please don't openly solicit yourself as a keyholder (including spamming, random DMs, etc.) without discussion context.
@@ -77,6 +77,7 @@
                 <div class="w-full flex flex-col">
                     <div class="w-full mb-2">
                         <h5 class="mb-0">Question {quizIndex+1}: {quizQuestionData.prompt}</h5>
+                        <p class="caption mb-0">{quizQuestionData.subtext ?? ""}</p>
                         {#if quizQuestionData.note !== undefined}
                             <span class="caption">{quizQuestionData.note}</span>
                         {/if}
