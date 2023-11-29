@@ -3,7 +3,7 @@
     import { onMount } from "svelte";
 
     const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwbmpsYmpwY2ZlYnFwYXFrcGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODg1NDM0NTgsImV4cCI6MjAwNDExOTQ1OH0.CsGySz2c8bIWphE6--T51CsmSeBQajfwvBYfTkjviM4";
-    const chasterOAuthStoreURL = "https://bpnjlbjpcfebqpaqkphy.supabase.co/functions/v1/chaster-oauth-store";
+    const databaseUtilitiesURL = "https://bpnjlbjpcfebqpaqkphy.supabase.co/functions/v1/database_utilities";
 
     let oAuthRedirect: boolean = false;
     onMount(async () => {
@@ -16,9 +16,10 @@
 
             // Valid authorization code, call oauth database store function
             const redirectURI = window.location.href.split("?")[0];
-            await fetch(chasterOAuthStoreURL, {
+            await fetch(databaseUtilitiesURL, {
                 method: "POST", headers: { "Authorization": `Bearer ${anonKey}` },
                 body: JSON.stringify({ 
+                    action: "chaster_access-set",
                     authorizationCode: authorizationCode, 
                     redirectURI: redirectURI,
                     scopes: oAuthRequestedScopes,

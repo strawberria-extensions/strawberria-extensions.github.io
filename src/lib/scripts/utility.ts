@@ -9,9 +9,10 @@ const characterMappings = {
     "upper-alphanumeric": "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
     "lower-alphanumeric": "abcdefghijklmnopqrstuvwxyz0123456789",
     "all-alpha": "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ",
-    "caps-alpha": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    "upper-alpha": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
     "lower-alpha": "abcdefghijklmnopqrstuvwxyz",
     "numeric": "0123456789",
+    "symbols": "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
 } as const;
 export function generateRandomString(length: number, charset: keyof typeof characterMappings = "upper-alphanumeric") {
     let result = "";
@@ -78,8 +79,10 @@ export function generateTimeString(seconds: number, showSeconds: boolean = false
         finalString = reversed.split("").reverse().join("");
     }
 
-    return finalString;
+    return finalString !== ""
+        ? finalString : "0 seconds";
 }
+(window as any)["generate"] = generateTimeString;
 
 export function truncateWords(input: string, maxLen: number) {
     if(input.length <= maxLen) { return input; }
@@ -96,6 +99,52 @@ export const extensionDisplayNames: { [key in ExtensionSlug]-?: string } = {
     "tasks": "Tasks",
     "temporary-opening": "Hygiene Opening",
     "extended-wheel-of-fortune": "Extended Wheel of Fortune"
+}
+
+// Chinese whisper for typing tasks
+// A-Z gets replaced with random A-Z character (same case)
+// 0-9 gets replaced with random number
+// Symbols get replaced by random symbols
+export function chineseWhisper(line: string) {
+    let newLine = "";
+    while(true) {
+        // Get random character and check
+        const randomIndex = Math.floor(Math.random() * line.length);
+        const randomChar = line.charAt(randomIndex);
+        const randomCharCode = randomChar.charCodeAt(0);
+        let newChar: string = "";
+        if(randomCharCode >= 65 && randomCharCode <= 90) {
+            // A-Z, generate random A-Z and replace
+            do {
+                newChar = generateRandomString(1, "upper-alpha");
+            } while(newChar === randomChar)
+        } else if(randomCharCode >= 97 && randomCharCode <= 122) {
+            // a-z, generate random a-z and replace
+            do {
+                newChar = generateRandomString(1, "lower-alpha");
+            } while(newChar === randomChar)
+        } else if(randomCharCode >= 48 && randomCharCode <= 57) {
+            // 0-9, generate random 0-9 and replace
+            do {
+                newChar = generateRandomString(1, "numeric");
+            } while(newChar === randomChar)
+        } else if(randomCharCode >= 33 && randomCharCode <= 126) {
+            // Other symbols (not space), generate random symbol and replace
+            do {
+                newChar = generateRandomString(1, "symbols");
+            } while(newChar === randomChar)
+        }
+
+        // If new char is defined, replace and break
+        if(newChar !== "") {
+            const splitLine = line.split("");
+            splitLine[randomIndex] = newChar;
+            newLine = splitLine.join("");
+            break;
+        }
+    }
+
+    return newLine;
 }
 
 // Generate outcome effect label for extended wheel

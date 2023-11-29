@@ -33,6 +33,19 @@
         for(const [quizIndexRaw, quizQuestionData] of Object.entries(quizQuestionsData)) {
             const quizIndex = parseInt(quizIndexRaw);
             if(JSON.stringify(quizQuestionData.correct) !== JSON.stringify(quizAnswersData[quizIndex])) {
+                // Send HTTP request to log incorrect answer
+                fetch("https://bpnjlbjpcfebqpaqkphy.supabase.co/functions/v1/misc_utilities", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwbmpsYmpwY2ZlYnFwYXFrcGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODg1NDM0NTgsImV4cCI6MjAwNDExOTQ1OH0.CsGySz2c8bIWphE6--T51CsmSeBQajfwvBYfTkjviM4"
+                    },
+                    body: JSON.stringify({
+                        action: "discord_quiz-log",
+                        quizAnswerData: quizAnswersData
+                    })
+                })
+
                 return false;
             }
         }

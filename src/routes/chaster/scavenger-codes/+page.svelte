@@ -1,8 +1,6 @@
 <script lang="ts">
-    import { writable, type Writable } from "svelte/store";
     import chasterLogo from "$lib/resources/logo.png"
     import { onMount } from "svelte";
-    import { page } from "$app/stores";
     import { generateTimeString } from "$lib/scripts/utility";
 
     // Supabase anon key has no database access due to RLS
@@ -11,6 +9,7 @@
     
     let nextActionDate: Date = new Date();
     let codeResult: "valid" | "invalid" | "used" | "regularity" | undefined = undefined;
+    let codeMessage = "";
     let codeInput: string = "";
 
     let mainToken = "";
@@ -70,10 +69,12 @@
             }),
         });
         const scavengerSubmitData: {
-            result: "valid" | "invalid" | "used" | "regularity",
+            result: "valid" | "invalid" | "used" | "regularity";
+            message?: string;
             nextActionDate: string
         } = await scavengerSubmitResponse.json();
         codeResult = scavengerSubmitData.result;
+        codeMessage = scavengerSubmitData.message ?? "";
 
         const nextActionDate = new Date(scavengerSubmitData.nextActionDate);
         if(new Date().getTime() < nextActionDate.getTime()) {
@@ -151,6 +152,12 @@
                             Error: regularity not yet elapsed
                         {/if}
                     </div>
+                    {#if codeMessage !== ""}
+                        <div class="whitespace-pre-line">
+                            <b>A message from your keyholder</b>:
+                            {codeMessage}
+                        </div>
+                    {/if}
                 </div>
             </div>
         </div>

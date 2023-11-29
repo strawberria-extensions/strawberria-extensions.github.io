@@ -87,7 +87,10 @@
             console.error(`Error retrieving config data: ${await configGetResponse.text()}`);
             return;
         }
-        const configData = await configGetResponse.json();
+        const configData: {
+            config:  any;
+            custom?: any;
+        } = await configGetResponse.json();
         handlebarText = configData.handlebar ?? "";
         delete configData.handlebar;
         configDataStore.set(configData);
@@ -121,7 +124,7 @@
             </div>
             <textarea class="form-control resize-none" 
                 class:text-invalid={configJSONInvalid}
-                rows="12"
+                rows="6"
                 bind:value={configText} />
         </div>
         <hr>
@@ -130,7 +133,7 @@
                 Handlebar Text
             </div>
             <textarea class="form-control resize-none" 
-                rows="4"
+                rows="2"
                 bind:value={handlebarText} />
         </div>
     {/if}
