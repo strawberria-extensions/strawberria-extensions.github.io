@@ -77,7 +77,6 @@
                 <div class="w-full flex flex-col">
                     <div class="w-full mb-2">
                         <h5 class="mb-0">Question {quizIndex+1}: {quizQuestionData.prompt}</h5>
-                        <p class="caption mb-0">{quizQuestionData.subtext ?? ""}</p>
                         {#if quizQuestionData.note !== undefined}
                             <span class="caption">{quizQuestionData.note}</span>
                         {/if}
@@ -117,7 +116,7 @@
                                 Unlock complete server access by sending
                                 <span class="text-mono" style="background-color: #272533">?verify {password}</span>
                                 within 
-                                <a class="span-click" href="https://discord.com/channels/1042651214447386704/1125642946016985178">#verify-quiz</a>.
+                                <a class="span-click" href="https://discord.com/channels/1042651214447386704/1125624397991006309">#entrance-quiz</a>.
                             </span>
                             <span class="caption">
                                 Please don't share this password with anyone as it's one-time use - thank you again!
