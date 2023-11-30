@@ -56,8 +56,8 @@
 
 <div class="container-bg min-w-0 min-h-0 p-4 space-y-2 grow">
     <div class="quiz-container card-content flex flex-col items-center w-full space-y-2">
-        <div class="flex flex-col items-center w-full">
-            <h4>FemChaste Server Entrance Quiz</h4>
+        <div class="flex flex-col items-stretch w-full space-y-[0.5em]">
+            <h4 class="text-center">FemChaste Server Entrance Quiz</h4>
             <span class="caption">
                 Screening quiz for gaining complete server access (with unlimited attempts) - please thoroughly read through
                 <a class="span-click" href="https://discord.com/channels/1042651214447386704/1080726771273576468">#server-rules</a>
@@ -65,9 +65,16 @@
                 <a class="span-click" href="https://discord.com/channels/1042651214447386704/1130710505598746645">#guide-safety</a>
                 before attempting. Upon completion, you'll receive a unique "password" for verifying using the command 
                 <span class="font-mono" style="background-color: #272533">?verify &#123;password&#125;</span> (without the curly braces). Please note these rules in particular:
-                <br>✦ <span class="underline">Absolutely no minors (&lt;18) allowed whatsoever</span> - staff members reserve the right to age-check when necessary.
+            </span>
+            <span class="caption">
+                ✦ <span class="underline">Absolutely no minors (&lt;18) allowed whatsoever</span> - staff members reserve the right to age-check when necessary.
                 <br>✦ <span class="underline">Absolutely zero tolerance</span> for misogyny, objectification, patriarchy, and other abusive behavior.
                 <br>✦ Please don't openly solicit yourself as a keyholder (including spamming, random DMs, etc.) without discussion context.
+            </span>
+            <span class="text-center">
+                Please contact 
+                <a class="span-click" href="https://discord.com/channels/@me/777516217216401439">@strawberria</a>
+                through Discord regarding any bugs, suggestions, and incorrect information.
             </span>
         </div>
         {#if stage === "quiz"}
@@ -129,17 +136,14 @@
                     <h5 class="m-0">Sorry, one or more of your answers are incorrect.</h5>
                     <div class="flex flex-col items-center">
                         <span class="caption">
-                            Please read through 
+                            Read through 
                             <a class="span-click" href="https://discord.com/channels/1042651214447386704/1080726771273576468">#server-rules</a>
                             and
                             <a class="span-click" href="https://discord.com/channels/1042651214447386704/1130710505598746645">#guide-safety</a>
-                            again, then reattempt the quiz.</span>
-                        <span class="caption">
-                            Contact 
-                            <a class="span-click" href="https://discord.com/channels/@me/777516217216401439">@strawberria</a>
-                            through Discord for any bugs, feedback, and incorrect information.</span>
+                            again, then reattempt the quiz.
+                        </span>
                     </div>
-                    <button type="button" class="btn btn-primary btn-lg mt-3"
+                    <button type="button" class="btn btn-primary btn-lg"
                         on:click={() => { stage = "quiz" }}>
                         Go Back
                     </button>
