@@ -88,13 +88,13 @@
             return;
         }
         const configData: {
-            config:  any;
-            custom?: any;
+            config:     any;
+            handlebar?: string;
         } = await configGetResponse.json();
         handlebarText = configData.handlebar ?? "";
         delete configData.handlebar;
-        configDataStore.set(configData);
-        configText = JSON.stringify(configData);
+        configDataStore.set(configData.config);
+        configText = JSON.stringify($configDataStore);
 
         initialLoadMessage = "";
     });
