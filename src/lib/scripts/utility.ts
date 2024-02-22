@@ -1,6 +1,5 @@
-import type { ChasterCustomConfig_ExtendedWheel, ExtendedWheelConfig_ActionData } from "./backend";
 import type { ExtendedWheelConfig_User } from "./signature-extended_wheel";
-import type { ExtensionSlug, LockEffectData } from "./signature-lock_effects";
+import type { LockEffectData } from "./signature-lock_effects";
 
 // Generate random string of specified length
 // const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -90,7 +89,7 @@ export function truncateWords(input: string, maxLen: number) {
 }
 
 // Display name for extensions
-export const extensionDisplayNames: { [key in ExtensionSlug]-?: string } = {
+export const extensionDisplayNames: { [key: string]: string } = {
     "dice": "Dice",
     "guess-timer": "Guess the Timer",
     "link": "Share Link",
@@ -148,189 +147,117 @@ export function chineseWhisper(line: string) {
 }
 
 // Generate outcome effect label for extended wheel
-export function generateOutcomeEffectLabel(actionData: LockEffectData, configData: ExtendedWheelConfig_User) {
+export function generateOutcomeEffectLabel(actionData: LockEffectData) {
     let actionText = "";
 
-    // Extension enabling and disabling
-    if(actionData.key === "extension-enable") {
-        const extensionDisplayName = extensionDisplayNames[actionData.params[0]];
-        actionText = `Enable the extension '${extensionDisplayName}'`;
-    } else if(actionData.key === "extension-disable") {
-        const extensionDisplayName = extensionDisplayNames[actionData.params[0]];
-        actionText = `Disable the extension '${extensionDisplayName}'`;
-    }
-
-    // Lock-related
-    else if(actionData.key === "lock-time-modify") {
+    if(actionData.key === "resetLock") {
+        actionText = "[Lock] Reset the lock";
+    } else if(actionData.key === "unlock") {
+        actionText = "[Lock] Unlock the lock";
+    } else if(actionData.key === "freezeAction") {
+        actionText = `[Lock] ${actionData.params[0] === true ? "Freeze"
+            : actionData.params[0] === false ? "Unfreeze" : "Toggle freeze on"} the lock`;
+    } else if(actionData.key === "pillory") {
+        const paramDuration = generateTimeString(Math.abs(actionData.params[0]));
+        actionText = `[Lock] Pillory for ${paramDuration}`;
+    } else if(actionData.key === "hygieneUnlock") {
+        actionText = "[Lock] Perform a hygiene unlock";
+    } else if(actionData.key === "requestVerification") {
+        actionText = "[Verification] Request a verification picture";
+    } else if(actionData.key === "assignTask") {
+        actionText = `[Tasks] Assign the task: ${actionData.params[0].task}`;
+    } else if(actionData.key === "assignTaskRandom") {
+        actionText = actionData.params[0] === undefined
+            ? "[Tasks] Assign a random task"
+            : "[Tasks] Have users vote on a task";
+    } else if(actionData.key === "modifyTasks") {
+        actionText = "[Tasks] Modify the task list (too complex)";
+    } else if(actionData.key === "updateLockDuration") {
         const paramDuration = generateTimeString(Math.abs(actionData.params[1]));
         actionText = actionData.params[0] === "modify"
             ? actionData.params[1] > 0
                 ? `[Lock] Add ${paramDuration} to the remaining time`
-                : `[Lock] Remove ${paramDuration} from the remaining time`
+                : `[Lock] Subtract ${paramDuration} from the remaining time`
             : actionData.params[0] === "multiply"
                 ? `[Lock] Multiply the remaining time by ${actionData.params[1]}`
             : `[Lock] Set the remaining time to ${paramDuration}`;
-    } else if(actionData.key === "lock-show_timer") {
-        actionText = `[Lock] Show remaining time`;
-    } else if(actionData.key === "lock-hide_timer") {
-        actionText = `[Lock] Hide remaining time`;
-    } else if(actionData.key === "lock-show_history") {
-        actionText = `[Lock] Show lock history`;
-    } else if(actionData.key === "lock-hide_history") {
-        actionText = `[Lock] Hide lock history`;
-    } else if(actionData.key === "lock-freeze") {
-        actionText = `[Lock] Freeze the lock`;
-    } else if(actionData.key === "lock-unfreeze") {
-        actionText = `[Lock] Unfreeze the lock`;
-    } else if(actionData.key === "lock-toggle_freeze") {
-        actionText = `[Lock] Toggle the lock freeze status`;
-    } else if(actionData.key === "lock-unlock") {
-        actionText = `[Lock] Unlock the lock`;
-    }
-
-    // Share link
-    else if(actionData.key === "share_link-requirement-modify") {
-        actionText = actionData.params[0] === "modify"
-            ? actionData.params[1] > 0
-                ? `[Share Link] Increase the share link requirement by ${actionData.params[1]}`
-                : `[Share Link] Decrease the share link requirement by ${actionData.params[1]}`
-            : actionData.params[0] === "multiply"
-                ? `[Share Link] Multiply the share link requirement by ${actionData.params[1]}`
-            : `[Share Link] Set the share link requirement to ${actionData.params[1]}`;
-    } else if(actionData.key === "share_link-add_time-modify" || actionData.key === "share_link-remove_time-modify") {
-        const addRemoveText = actionData.key === "share_link-add_time-modify"
-            ? "Add Time" : "Remove Time";
+    } else if(actionData.key === "updateLockSettings") {
+        actionText = `[Lock] `;
+        if(actionData.params[0] !== undefined) {
+            actionText += `${actionData.params[0] ? "Display" : "Hide"} remaining time`;
+            if(actionData.params[1] !== undefined) {
+                actionText += ", ";
+            }
+        }
+        if(actionData.params[1] !== undefined) {
+            actionText += `${actionData.params[0] ? "Hide" : "Show"} time changes.`;
+        }
+    } else if(actionData.key === "disableExtension") {
+        const extensionDisplayName = extensionDisplayNames[actionData.params[0]];
+        actionText = `[Lock] Disable the extension '${extensionDisplayName}'`;
+    } else if(actionData.key === "enableExtension") {
+        const extensionDisplayName = extensionDisplayNames[actionData.params[0]];
+        actionText = `[Lock] Enable the extension '${extensionDisplayName}'`;
+    } else if(actionData.key === "resetTaskPoints") {
+        actionText = "[Tasks] Reset the gained number of task points";
+    } else if(actionData.key === "shareLinkModifyKey") {
+        const value = `${actionData.params[0] !== "nbVisits"
+            ? generateTimeString(Math.abs(actionData.params[2])) : actionData.params[2]}`;
+        const affected = actionData.params[0] === "nbVisits" ? "number of required visits"
+            : actionData.params[0] === "timeToAdd" ? "link add time" : "link remove time";
+        if(actionData.params[1] === "set") {
+            actionText = `[Share Link] Set the ${affected} to ${value}`;
+        } else if(actionData.params[1] === "modify") {
+            actionText = `[Share Link] ${actionData.params[2] > 0 ? "Add" : "Subtract"} ${value} from the ${affected}`;
+        } else { // multiply
+            actionText = `[Share Link] Multiply the ${affected} by ${value}`;
+        }
+    } else if(actionData.key === "shareLinkSetLoggedIn") {
+        actionText = actionData.params[0] === undefined
+            ? "[Share Link] Toggle the logged-in requirement"
+            : `[Share Link] ${actionData.params ? "Enable" : "Disable"} the logged-in requirement`;
+    } else if(actionData.key === "pilloryModifyDuration") {
         const paramDuration = generateTimeString(Math.abs(actionData.params[1]));
         actionText = actionData.params[0] === "modify"
             ? actionData.params[1] > 0
-                ? `[Share Link] Increase the share link '${addRemoveText}' duration by ${paramDuration}`
-                : `[Share Link] Decrease the share link '${addRemoveText}' duration by ${paramDuration}`
+                ? `[Pillory] Add ${paramDuration} to the per-vote duration`
+                : `[Pillory] Subtract ${paramDuration} from the per-vote duration`
             : actionData.params[0] === "multiply"
-                ? `[Share Link] Multiply the share link '${addRemoveText}' duration by ${actionData.params[1]}`
-            : `[Share Link] Set the share link '${addRemoveText}' duration to ${paramDuration}`;
-    } else if(actionData.key === "share_link-logged_in-set") {
-        actionText = actionData.params[0] === true
-            ? `[Share Link] Allow only logged-in users to vote on share links`
-            : `[Share Link] Allow anyone (including users not logged-in) to vote on share links`;
-    }
-
-    // Pillory
-    else if(actionData.key === "pillory-duration-modify") {
+                ? `[Pillory] Multiply the per-vote duration by ${actionData.params[1]}`
+            : `[Pillory] Set the per-vote duration to ${paramDuration}`;
+    } else if(actionData.key === "diceModifyDuration") {
         const paramDuration = generateTimeString(Math.abs(actionData.params[1]));
         actionText = actionData.params[0] === "modify"
             ? actionData.params[1] > 0
-                ? `[Pillory] Increase the pillory per-vote added duration by ${paramDuration}`
-                : `[Pillory] Decrease the pillory per-vote added duration by ${paramDuration}`
+                ? `[Dice] Add ${paramDuration} to the duration multiplier`
+                : `[Dice] Subtract ${paramDuration} from the duration multiplier`
             : actionData.params[0] === "multiply"
-                ? `[Pillory] Multiply the pillory per-vote added duration by ${actionData.params[1]}`
-            : `[Pillory] Set the pillory per-vote added duration to ${paramDuration}`;
-    } else if(actionData.key === "pillory-put") {
-        const paramDuration = generateTimeString(Math.abs(actionData.params[0]));
-        actionText = `[Pillory] Put the wearer into the pillory for ${paramDuration} with the reason '${actionData.params[1]}'`
-    }
-
-    // Hygiene unlock - disallow any modifications
-    else if(actionData.key === "hygiene-unlock") {
-        actionText = `[Hygiene Unlock] Perform a keyholder-initiated hygiene unlock`;
-    }
-
-    // Dice
-    else if(actionData.key === "dice-regularity-set") {
-        const paramDuration = generateTimeString(actionData.params[0][1]);
-        actionText = `[Dice] Set the dice regularity to mode '${actionData.params[0][0]}'`
-            + (actionData.params[0][0] !== "unlimited" ? ` with regularity ${paramDuration}` : "");
-    } else if(actionData.key === "dice-multiplier-modify") {
+                ? `[Dice] Multiply the duration multiplier by ${actionData.params[1]}`
+            : `[Dice] Set the duration multiplier to ${paramDuration}`;
+    } else if(actionData.key === "tasksModifyRequiredPoints") {
         const paramDuration = generateTimeString(Math.abs(actionData.params[1]));
         actionText = actionData.params[0] === "modify"
             ? actionData.params[1] > 0
-                ? `[Dice] Increase the dice multiplier by ${paramDuration}`
-                : `[Dice] Decrease the dice multiplier by ${paramDuration}`
+                ? `[Tasks] Add ${paramDuration} to the required points`
+                : `[Tasks] Subtract ${paramDuration} from the required points`
             : actionData.params[0] === "multiply"
-                ? `[Dice] Multiply the dice multiplier by ${actionData.params[1]}`
-            : `[Dice] Set the dice multiplier to ${paramDuration}`;
+                ? `[Tasks] Multiply the required points by ${actionData.params[1]}`
+            : `[Tasks] Set the required points to ${paramDuration}`;
+    } else if(actionData.key === "randomEventsModifyDifficulty") {
+        const firstUpper = actionData.params[0].charAt(0).toUpperCase() + actionData.params[0].slice(1);
+        actionText = `[Random] Set the difficulty to ${firstUpper}`;
+    } else if(actionData.key === "guessTimerModifyKey") {
+        const affected = actionData.params[0] === "minRandomTime"
+            ? "minimum added duration" : "maximum added duration";
+        const paramDuration = generateTimeString(Math.abs(actionData.params[2]));
+        actionText = actionData.params[1] === "modify"
+            ? actionData.params[2] > 0
+                ? `[Guess] Add ${paramDuration} to the ${affected}`
+                : `[Guess] Subtract ${paramDuration} from the ${affected}`
+            : actionData.params[1] === "multiply"
+                ? `[Guess] Multiply the ${affected} by ${actionData.params[1]}`
+            : `[Guess] Set the ${affected} to ${paramDuration}`;
     }
-
-    // Tasks
-    else if(actionData.key === "tasks-regularity-set") {
-        const paramDuration = generateTimeString(actionData.params[0][1]);
-        actionText = `[Tasks] Set the tasks regularity to mode '${actionData.params[0][0]}'`
-            + (actionData.params[0][0] !== "unlimited" ? ` with regularity ${paramDuration}` : "");
-    } else if(actionData.key === "tasks-task_points-modify") {
-        actionText = actionData.params[0] === "modify"
-            ? actionData.params[1] > 0
-                ? `[Tasks] Increase the task points requirement by ${actionData.params[1]}`
-                : `[Tasks] Decrease the task points requirement by ${actionData.params[1]}`
-            : actionData.params[0] === "multiply"
-                ? `[Tasks] Multiply the task points requirement by ${actionData.params[1]}`
-            : `[Tasks] Set the task points requirement to ${actionData.params[1]}`;
-    } else if(actionData.key === "tasks-task-add") {
-        actionText = `[Tasks] Add the task with text '${actionData.params[0]}' worth ${actionData.params[1]} points`;
-    } else if(actionData.key === "tasks-task-remove") {
-        actionText = `[Tasks] Remove the task with text '${actionData.params[0]}'`;
-    }
-
-    // Random Events
-    else if(actionData.key === "random-events-difficulty") {
-        const capitalized = actionData.params[0].charAt(0).toUpperCase() + actionData.params[0].slice(1);
-        actionText = `[Random Events] Set the random events difficulty to '${capitalized}'`;
-    }
-
-    // Guess the Timer
-    else if(actionData.key === "guess_timer-min_time-modify") {
-        const paramDuration = generateTimeString(Math.abs(actionData.params[1]));
-        actionText = actionData.params[0] === "modify"
-            ? actionData.params[1] > 0
-                ? `[Guess the Timer] Increase the minimum-added duration by ${paramDuration}`
-                : `[Guess the Timer] Decrease the minimum-added duration by ${paramDuration}`
-            : actionData.params[0] === "multiply"
-                ? `[Guess the Timer] Multiply the minimum-added duration by ${actionData.params[1]}`
-            : `[Guess the Timer] Set the minimum-added duration to ${paramDuration}`;
-    } else if(actionData.key === "guess_timer-max_time-modify") {
-        const paramDuration = generateTimeString(Math.abs(actionData.params[1]));
-        actionText = actionData.params[0] === "modify"
-            ? actionData.params[1] > 0
-                ? `[Guess the Timer] Increase the maximum-added duration by ${paramDuration}`
-                : `[Guess the Timer] Decrease the maximum-added duration by ${paramDuration}`
-            : actionData.params[0] === "multiply"
-                ? `[Guess the Timer] Multiply the maximum-added duration by ${actionData.params[1]}`
-            : `[Guess the Timer] Set the maximum-added duration to ${paramDuration}`;
-    }
-
-    // Extended Wheel of Fortune
-    else if(actionData.key === "extended_wheel-setting") {
-        const wheelName = configData.wheels[actionData.params[0]].display;
-        const capitalized = actionData.params[1].charAt(0).toUpperCase() + actionData.params[1].slice(1);
-        actionText = `[Extended Wheel of Fortune] ${capitalized} the setting ${actionData.params[2]} for the wheel '${wheelName}'`;
-    }
-
-    // // Extended Wheel of Fortune
-    // // TODO maybe add different wheel configs to swap between?
-    // else if(actionData.type === "extended_wof-wheel") {
-    //     const wheelName = data.wheels[actionData.params[0]].display;
-    //     actionText = `[Extended Wheel of Fortune] ${actionData.params[1] === true ? "Enable" : "Disable"} the wheel '${wheelName}'`;
-    // } else if(actionData.type === "extended_wof-mode-settings") {
-    //     const wheelName = data.wheels[actionData.params[0]].display;
-    //     const mapping = {
-    //         "disabled": "Disabled",
-    //         "availableSpins": "Count Spins",
-    //         "falsePercentages": "False Percentages",
-    //         "hiddenActions": "Hidden Actions",
-    //         "hiddenOutcomes": "Hidden Outcomes",
-    //     } as any;
-    //     const settingName = mapping[actionData.params[1]];
-    //     actionText = `[Extended Wheel of Fortune] ${actionData.params[2] === true ? "Enable" : "Disable"} the wheel setting '${settingName}' for the wheel '${wheelName}'`;
-    // } else if(actionData.type === "extended_wof-regularity-set") {
-    //     const wheelName = data.wheels[actionData.params[0]].display;
-    //     actionText = `[Extended Wheel of Fortune] Set the regular action for the wheel '${wheelName}' to mode '${actionData.params[1][0]}'`
-    //         + (actionData.params[0][1] !== "unlimited" ? ` with regularity ${generateTimeString(actionData.params[1][1])}` : "")
-    //         + ".";
-    // } else if(actionData.type === "extended_wof-available-set") {
-    //     const wheelName = data.wheels[actionData.params[0]].display;
-    //     actionText = `[Extended Wheel of Fortune] Set the number of available spins to ${actionData.params[1]} for the wheel '${wheelName}'`;
-    // } else if(actionData.type === "extended_wof-available-modify") {
-    //     const wheelName = data.wheels[actionData.params[0]].display;
-    //     actionText = `[Extended Wheel of Fortune] Modify the number of available spins by ${actionData.params[1]} for the wheel '${wheelName}'`;
-    // } 
 
     return actionText;
 }

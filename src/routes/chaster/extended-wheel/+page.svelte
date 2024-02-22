@@ -7,8 +7,8 @@
     import wheelBgOverlayFile from "$lib/resources/wheel-bg-overlay.svg"
     import { Wheel } from '$lib/resources/spin-wheel.js';
     import WheelOutcome from "$lib/components/WheelOutcome.svelte";
-    import { sleep, truncateWords } from "$lib/scripts/utility";
-    import type { ExtendedWheelConfig_User, ExtendedWheelCustom } from '$lib/scripts/signature-extended_wheel';
+    import { generateOutcomeEffectLabel, randomInt, sleep, truncateWords } from "$lib/scripts/utility";
+    import type { ExtendedWheelConfig_OutcomeData_Result, ExtendedWheelConfig_OutcomeData_User, ExtendedWheelConfig_User, ExtendedWheelCustom } from '$lib/scripts/signature-extended_wheel';
     import type { ChasterUserRole } from '$lib/scripts/signature-chaster';
     import type { BackendResponseSignature } from '$lib/scripts/signature-backend';
     
@@ -22,6 +22,12 @@
         "#a7f3d0", "#99f6e4", "#a5f3fc", "#bae6fd", "#bfdbfe", "#c7d2fe",
         "#ddd6fe", "#e9d5ff", "#f5d0fe", "#fbcfe8", "#fecdd3"
     ];
+    const unknownOutcomeData: { label: string; weight: number }[] = [
+        { label: "???        ", weight: 1 }, { label: "???        ", weight: 1 }, { label: "???        ", weight: 1 }, { label: "???        ", weight: 1 }, 
+        { label: "???        ", weight: 1 }, { label: "???        ", weight: 1 }, { label: "???        ", weight: 1 }, { label: "???        ", weight: 1 }, 
+        { label: "???        ", weight: 1 }, { label: "???        ", weight: 1 }, { label: "???        ", weight: 1 }, { label: "???        ", weight: 1 }, 
+        { label: "???        ", weight: 1 }, { label: "???        ", weight: 1 }, { label: "???        ", weight: 1 }, { label: "???        ", weight: 1 }, 
+    ]
     const tickAudios: HTMLAudioElement[] = Array(32).fill(0).map(_ => {
         const audio = new Audio(tickAudioFile);
         audio.volume = 0.3;
@@ -94,55 +100,66 @@
 
     // Wheel-related logic including spinning, etc.
     let wheelContainerStore: Writable<HTMLDivElement | undefined> = writable(undefined);
+    let resultStore: Writable<ExtendedWheelConfig_OutcomeData_Result | undefined> = writable(undefined)
     let spinDisabled = false;
     let spinWheel: any;
     let lastRotation: [string, number] = ["", 0];
     async function spinTheWheel() {
         spinDisabled = true;
+        $resultStore = undefined;
 
         // Spin the wheel first
         const spinResultResponse = await fetch(chasterUtilitiesURL, {
             method: "POST", headers: { "Authorization": `Bearer ${anonKey}` },
             body: JSON.stringify({ 
-                action: "extended-main-spin",
+                action: "extended_wheel-spin",
                 mainToken: mainToken,
                 wheelID: selectedWheelID,
             })
         });
         const spinResultData: BackendResponseSignature["chaster_utilities"]["extended-main-spin"] = await spinResultResponse.json();
         // TODO handle hidden outcome missing index
-        if(spinResultData.index === undefined) { return; }
-
-        // Cache the post-spin data to update after spin
-        const extendedMainPageData = await retrieveWheelConfig();
+        if(spinResultData.index === undefined) { 
+            spinResultData.index = randomInt(0, 16); 
+        }
 
         spinWheel.spinToItem(spinResultData.index, 5000, false, 5, 1, easeSinInOut);
 
         // spinDisabled = false;
         setTimeout(() => { 
+            $resultStore = spinResultData.result;
+
             spinDisabled = false; 
             lastRotation = [selectedWheelID as string, spinWheel.rotation];
-            $extendedWheelConfigStore = extendedMainPageData.config; // Intensive?
 
             // Update the wheel if necessary?
-            hasKeyholderOAuth = extendedMainPageData.hasKeyholder;
+            // hasKeyholderOAuth = extendedMainPageData.hasKeyholder;
             // Somewhat redundant?
-            $extendedWheelCustomStore = extendedMainPageData.customData;
-            selectedWheelID = Object.keys($extendedWheelConfigStore.wheels)[0] ?? undefined;
+            // selectedWheelID = Object.keys($extendedWheelConfigStore.wheels)[0] ?? undefined;
         }, 5100);
+
+        // Cache the post-spin data to update after spin
+        const extendedMainPageData = await retrieveWheelConfig();
+        while(spinDisabled) {
+            await sleep(100);
+        }
+        if(JSON.stringify($extendedWheelConfigStore) !== JSON.stringify(extendedMainPageData.config)) {
+            $extendedWheelConfigStore = extendedMainPageData.config; // Intensive?
+        }
+        $extendedWheelCustomStore = extendedMainPageData.customData;
     }
 
     // Update wheel container with new outcomes from selected wheel
     wheelContainerStore.subscribe(updateWheelContainer);
     extendedWheelConfigStore.subscribe(updateWheelContainer);
-    extendedWheelCustomStore.subscribe(updateWheelContainer);
+    // extendedWheelCustomStore.subscribe(updateWheelContainer);
 
     async function retrieveWheelConfig(): Promise<BackendResponseSignature["chaster_utilities"]["extended-main-page"]> {
         // Retrieve wheel data including keyholder authorization, config, and custom data given main token
         const extendedMainPageResponse = await fetch(chasterUtilitiesURL, {
             method: "POST", headers: { "Authorization": `Bearer ${anonKey}` },
             body: JSON.stringify({ 
-                action: "extended-main-page",
+                action: "extended_wheel-page",
                 mainToken: mainToken,
             })
         });
@@ -165,7 +182,7 @@
 
         const wheelData = $extendedWheelConfigStore.wheels[selectedWheelID];
 
-        const items = JSON.parse(JSON.stringify(wheelData.outcomes.map(
+        let items = JSON.parse(JSON.stringify(wheelData.outcomes.map(
             (outcomeData) => {
                 const label = outcomeData.text ?? "";
                 const truncatedLabel = [truncateWords(label, 24), label.length >= 32 ? "..." : ""].join("");
@@ -173,6 +190,9 @@
                 return { label: truncatedLabel, weight: weight };
             }
         )));
+        if(wheelData.settings.hiddenOutcomes) {
+            items = unknownOutcomeData;
+        }
 
         let rotation: number = 0;
         if(lastRotation[0] == selectedWheelID as string) {
@@ -196,7 +216,7 @@
             rotation: rotation,
         }
 
-        wheelContainer.innerHTML = "";
+        if(wheelContainer) { wheelContainer.innerHTML = ""; }
         spinWheel = new Wheel(wheelContainer, wheelProps);
         (window as any).wheel = spinWheel;
         (window as any).ease = easeSinInOut;
@@ -233,14 +253,14 @@
     let frameHeight: number;
     let wheelWidth: number;
     let pageContainer: HTMLDivElement;
-    let emValue: number = 0;
-    let necessaryWidth: number = 0;
+    // let emValue: number = 0;
+    // let necessaryWidth: number = 0;
     let shouldHorizontal = true;
-    $: { pageContainer; if(pageContainer !== undefined) { 
-        emValue = parseFloat(getComputedStyle(pageContainer).fontSize); 
-        necessaryWidth = (wheelWidth * 2) + (4 * emValue * 4) + (4 * emValue + 4);
-        // shouldHorizontal = frameWidth > necessaryWidth;
-    }}
+    // $: { pageContainer; if(pageContainer !== undefined) { 
+    //     emValue = parseFloat(getComputedStyle(pageContainer).fontSize); 
+    //     // necessaryWidth = (wheelWidth * 2) + (4 * emValue * 4) + (4 * emValue + 4);
+    //     // shouldHorizontal = frameWidth > necessaryWidth;
+    // }}
 
     // When keyholder and not alraedy authorized, redirect to OAuth
     const oAuthClientID = "extensions-318826";
@@ -284,9 +304,32 @@
                         Now supporting additional actions and multiple wheels with individual cooldowns!
                     </div>
                     {#key selectedWheelID}
-                        <div class="grow mt-1 wheel-container" 
-                            bind:this={$wheelContainerStore} bind:clientWidth={wheelWidth} />
-                            <!-- bind:this={wheelContainer} bind:clientWidth={wheelWidth} /> -->
+                        <div class="grow mt-1 wheel-container relative">
+                            <div class="grow wheel-container h-full" 
+                                bind:this={$wheelContainerStore} bind:clientWidth={wheelWidth}>
+                            </div>
+                            <div class="absolute top-0 right-0 h-full w-full z-10
+                                flex align-center justify-center items-center">
+                                {#if $resultStore !== undefined}
+                                    <div class="result" on:click={() => { $resultStore = undefined }}>
+                                        <!-- Basically copied from WheelOutcome -->
+                                        <div class="flex flex-col">
+                                            <div>{$resultStore.text ?? ""}</div>
+                                            {#if $resultStore.effects !== undefined}
+                                                {#each $resultStore.effects as effectData}
+                                                    {@const effectText = generateOutcomeEffectLabel(effectData)}
+                                                    <div class="caption whitespace-pre-wrap text-sm">• {effectText}</div>
+                                                {/each}
+                                            {/if}
+                                        </div>
+
+                                        <div class="text-sm mt-[1em] w-full text-center cursor-default">
+                                            [ Click anywhere to close ]
+                                        </div>
+                                    </div>
+                                {/if}
+                            </div>
+                        </div>
                         <hr>
                     {/key}
                     <div class="w-full flex flex-row items-stretch space-x-4">
@@ -344,13 +387,18 @@
                                         View possible outcomes for the wheel
                                     </div>
                                 </div>
-                                <div>
-                                    {#if wheelData.settings.falsePercentages === true}
-                                        <div class="w-[14em] text-red-600 min-h-[1em]">❗ False Percentages Shown ❗</div>
+                                <div class="text-right">
+                                    {#if wheelData.settings.hiddenOutcomes === true}
+                                        <div class="w-[14em] min-h-[1em]">❗ Outcomes Hidden ❗</div>
+                                    {:else}
+                                        {#if wheelData.settings.hiddenEffects === true}
+                                            <div class="w-[14em] min-h-[1em]">❗ Effects Hidden ❗</div>
+                                        {/if}
+                                        {#if wheelData.settings.hiddenPercentages === true}
+                                            <div class="w-[14em] min-h-[1em]">❗ Percentages Hidden ❗</div>
+                                        {/if}
                                     {/if}
-                                    {#if wheelData.settings.hiddenEffects === true}
-                                        <div class="w-[14em] text-red-600 min-h-[1em]">❗ Outcome Effects Hidden ❗</div>
-                                    {/if}
+                                    
                                 </div>
                             </div>
                             {#if wheelData.outcomes.length > 0}
@@ -361,7 +409,8 @@
                                                 {@const colorIndex = index - Math.floor(index / wheelColors.length) * wheelColors.length}
                                                 {@const outcomeColor = wheelColors[colorIndex]}
                                                 <WheelOutcome outcomeData={outcomeData} 
-                                                    configData={$extendedWheelConfigStore}
+                                                    settings={wheelData.settings}
+                                                    userRole={userRole}
                                                     totalPercentage={totalPercentage}
                                                     color={outcomeColor} />
                                                 {#if index !== wheelData.outcomes.length - 1}
@@ -408,5 +457,13 @@
         background-color: #3d3b4d;
         border-radius: 16px;
         overflow-y: auto;
+    }
+
+    .result {
+        background-color: #3d3b4d;
+        padding: 1em;
+        border-radius: 16px;
+        box-shadow: 0 4px 8px rgba(0,0,0,.2);
+        border: 2px solid #64748b;
     }
 </style>
