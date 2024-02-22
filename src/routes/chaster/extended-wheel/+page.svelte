@@ -11,6 +11,7 @@
     import type { ExtendedWheelConfig_OutcomeData_Result, ExtendedWheelConfig_OutcomeData_User, ExtendedWheelConfig_User, ExtendedWheelCustom } from '$lib/scripts/signature-extended_wheel';
     import type { ChasterUserRole } from '$lib/scripts/signature-chaster';
     import type { BackendResponseSignature } from '$lib/scripts/signature-backend';
+    import { generateTimeString } from "$lib/scripts/utility";
     
     // Supabase anon key has no database access due to RLS
     const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwbmpsYmpwY2ZlYnFwYXFrcGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODg1NDM0NTgsImV4cCI6MjAwNDExOTQ1OH0.CsGySz2c8bIWphE6--T51CsmSeBQajfwvBYfTkjviM4";
@@ -41,7 +42,7 @@
     let userRole: ChasterUserRole = "keyholder";
     let hasKeyholderOAuth = false;
     let extendedWheelConfigStore: Writable<ExtendedWheelConfig_User> = writable({ "wheels": {} });
-    let extendedWheelCustomStore: Writable<ExtendedWheelCustom> = writable({});
+    let extendedWheelCustomStore: Writable<ExtendedWheelCustom> = writable({ wheels: {} });
 
     let hash: string = "";
     onMount(async () => {
@@ -91,12 +92,39 @@
 
         const extendedMainPageData = await retrieveWheelConfig();
         hasKeyholderOAuth = extendedMainPageData.hasKeyholder;
+        userRole = extendedMainPageData.userRole;
         $extendedWheelConfigStore = extendedMainPageData.config;
         $extendedWheelCustomStore = extendedMainPageData.customData;
         selectedWheelID = Object.keys($extendedWheelConfigStore.wheels)[0] ?? undefined;
 
         initialLoadMessage = "";
     });
+
+    let nextSpinTimestampStore: Writable<string> = writable("");
+    function updateNextSpinTimestamp() {
+        if(selectedWheelID === undefined) {
+            return;
+        }
+        const wheelCustomData = $extendedWheelCustomStore.wheels[selectedWheelID];
+        if(wheelCustomData === undefined) {
+            $nextSpinTimestampStore = "";
+        } else {
+            const wheelConfigData = $extendedWheelConfigStore.wheels[selectedWheelID];
+            if(wheelConfigData.regularity.mode === "unlimited") {
+                $nextSpinTimestampStore = "";
+            } else {
+                const currentTimeMS = new Date().getTime();
+                const nextSpinMS = wheelCustomData.lastActionTime + wheelConfigData.regularity.interval * 1000;
+                $nextSpinTimestampStore = currentTimeMS > nextSpinMS
+                    ? "" : generateTimeString(Math.floor((nextSpinMS - currentTimeMS) / 1000));
+            }
+        }
+    }
+
+    setInterval(updateNextSpinTimestamp, 200);
+    extendedWheelConfigStore.subscribe(() => { updateNextSpinTimestamp(); });
+    extendedWheelCustomStore.subscribe(() => { updateNextSpinTimestamp(); });
+    $: { selectedWheelID; updateNextSpinTimestamp(); }
 
     // Wheel-related logic including spinning, etc.
     let wheelContainerStore: Writable<HTMLDivElement | undefined> = writable(undefined);
@@ -292,6 +320,8 @@
         </div>
     {:else if selectedWheelID !== undefined}
         {@const wheelData = $extendedWheelConfigStore.wheels[selectedWheelID]}
+        {@const buttonDisabled = spinDisabled || wheelData.settings.disabled === true}
+        {@const allowedSpin = ($nextSpinTimestampStore === "" || userRole === "keyholder")}
         <div class="card-content grow" class:card-wrapper-desktop={shouldHorizontal}>
             <div class="w-full h-full flex flex-row">
                 <div class="h-full flex flex-col" class:card-horizontal={shouldHorizontal}>
@@ -330,12 +360,17 @@
                                 {/if}
                             </div>
                         </div>
+                        <div class="min-h-[1em] text-center">
+                            {#if !allowedSpin}
+                                Next spin available in {$nextSpinTimestampStore}
+                            {/if}
+                        </div>
                         <hr>
                     {/key}
                     <div class="w-full flex flex-row items-stretch space-x-4">
                         <div class="grow">
                             <div>Select</div>
-                            <div class="caption mb-2">Choose which wheel to spin with</div>
+                            <div class="caption mb-[0.5em]">Choose which wheel to spin with</div>
                             <div class="w-full">
                                 <select class="form-control" bind:value={selectedWheelID}>
                                     {#each Object.entries($extendedWheelConfigStore.wheels) as [wheelKey, wheelData]}
@@ -346,9 +381,10 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="flex flex-col justify-center ml-4 mr-4">
+                        <div class="flex flex-col justify-center ml-4 mr-4 space-y-[0.5em]
+                            max-w-[12em]">
                             <button type="button" class="btn btn-primary btn-lg"
-                                disabled={spinDisabled || wheelData.settings.disabled === true}
+                                disabled={buttonDisabled || !allowedSpin}
                                 on:click={spinTheWheel}>
                                 <span>Spin the wheel!</span>
                             </button>

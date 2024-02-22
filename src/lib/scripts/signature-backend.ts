@@ -27,6 +27,7 @@ export interface BackendResponseSignature {
         };
         "extended-main-page": {
             hasKeyholder: boolean, // Whether user has keyholder (false = not allowed)
+            userRole:     "keyholder" | "wearer";
             config:       ExtendedWheelConfig_User, 
             customData:   ExtendedWheelCustom, // Available spins for each wheel
         }; 

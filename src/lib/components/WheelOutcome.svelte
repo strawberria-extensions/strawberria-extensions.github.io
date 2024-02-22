@@ -18,23 +18,32 @@
 
 </script>
 
-<div class="flex flex-row justify-between">
-    <div class="flex flex-col outcome-left pl-2" style={`border-left: 8px solid ${color}`}>
-        <div>{outcomeData.text ?? ""}</div>
+<div class="flex flex-row justify-between space-x-[1em]">
+    <div class="flex flex-col outcome-left pl-[0.75em]" style={`border-left: 8px solid ${color}`}>
+        <div class="mb-[0.125em]">{outcomeData.text ?? ""}</div>
         {#if outcomeData.effects !== undefined}
+            <ul class="list">
             {#each outcomeData.effects as effectData}
                 {@const effectText = generateOutcomeEffectLabel(effectData)}
-                <div class="caption whitespace-pre-wrap text-sm">• {effectText}</div>
+                <li class="caption whitespace-pre-wrap text-sm">{effectText}</li>
             {/each}
+            </ul>
         {/if}
     </div>
-    <div class="flex flex-col justify-center">
-        <div class="caption">{actualPercentage}%</div>
+    <div class="flex flex-col justify-center w-[5em] text-right">
+        <div class="caption font-bold">{actualPercentage}%</div>
     </div>  
 </div>
 
 <style>
     .outcome-left {
         max-width: calc(100% - 4em);
+    }
+
+    .list {
+        list-style: inside;
+        list-style-position: outside;
+        margin-left: 1em;
+        margin-bottom: 0;
     }
 </style>

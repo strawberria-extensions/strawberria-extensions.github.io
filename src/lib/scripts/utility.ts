@@ -165,7 +165,7 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
     } else if(actionData.key === "requestVerification") {
         actionText = "[Verification] Request a verification picture";
     } else if(actionData.key === "assignTask") {
-        actionText = `[Tasks] Assign the task: ${actionData.params[0].task}`;
+        actionText = `[Tasks] Assign the task "${actionData.params[0].task}"`;
     } else if(actionData.key === "assignTaskRandom") {
         actionText = actionData.params[0] === undefined
             ? "[Tasks] Assign a random task"
@@ -173,14 +173,20 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
     } else if(actionData.key === "modifyTasks") {
         actionText = "[Tasks] Modify the task list (too complex)";
     } else if(actionData.key === "updateLockDuration") {
-        const paramDuration = generateTimeString(Math.abs(actionData.params[1]));
+        const value = `${actionData.params[0] !== "multiply"
+            ? generateTimeString(Math.abs(actionData.params[1])) : actionData.params[1]}`;
+        const value2 = actionData.params[2] !== undefined 
+            ? `${actionData.params[0] !== "multiply"
+                ? generateTimeString(Math.abs(actionData.params[2])) : actionData.params[2]}`
+            : undefined;
+        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
         actionText = actionData.params[0] === "modify"
             ? actionData.params[1] > 0
-                ? `[Lock] Add ${paramDuration} to the remaining time`
-                : `[Lock] Subtract ${paramDuration} from the remaining time`
+                ? `[Lock] Add ${valueStr} to the remaining time`
+                : `[Lock] Subtract ${valueStr} from the remaining time`
             : actionData.params[0] === "multiply"
-                ? `[Lock] Multiply the remaining time by ${actionData.params[1]}`
-            : `[Lock] Set the remaining time to ${paramDuration}`;
+                ? `[Lock] Multiply the remaining time by ${valueStr}`
+            : `[Lock] Set the remaining time to ${valueStr}`;
     } else if(actionData.key === "updateLockSettings") {
         actionText = `[Lock] `;
         if(actionData.params[0] !== undefined) {
@@ -201,62 +207,91 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
     } else if(actionData.key === "resetTaskPoints") {
         actionText = "[Tasks] Reset the gained number of task points";
     } else if(actionData.key === "shareLinkModifyKey") {
-        const value = `${actionData.params[0] !== "nbVisits"
+        const value = `${actionData.params[0] !== "nbVisits" && actionData.params[1] !== "multiply"
             ? generateTimeString(Math.abs(actionData.params[2])) : actionData.params[2]}`;
+        const value2 = actionData.params[3] !== undefined 
+            ? `${actionData.params[0] !== "nbVisits" && actionData.params[1] !== "multiply"
+                ? generateTimeString(Math.abs(actionData.params[3])) : actionData.params[3]}`
+            : undefined;
+        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
         const affected = actionData.params[0] === "nbVisits" ? "number of required visits"
             : actionData.params[0] === "timeToAdd" ? "link add time" : "link remove time";
         if(actionData.params[1] === "set") {
-            actionText = `[Share Link] Set the ${affected} to ${value}`;
+            actionText = `[Share Link] Set the ${affected} to ${valueStr}`;
         } else if(actionData.params[1] === "modify") {
-            actionText = `[Share Link] ${actionData.params[2] > 0 ? "Add" : "Subtract"} ${value} from the ${affected}`;
+            actionText = `[Share Link] ${actionData.params[2] > 0 ? "Increase" : "Decrease"} the ${affected} by ${valueStr}`;
         } else { // multiply
-            actionText = `[Share Link] Multiply the ${affected} by ${value}`;
+            actionText = `[Share Link] Multiply the ${affected} by ${valueStr}`;
         }
     } else if(actionData.key === "shareLinkSetLoggedIn") {
         actionText = actionData.params[0] === undefined
             ? "[Share Link] Toggle the logged-in requirement"
             : `[Share Link] ${actionData.params ? "Enable" : "Disable"} the logged-in requirement`;
     } else if(actionData.key === "pilloryModifyDuration") {
-        const paramDuration = generateTimeString(Math.abs(actionData.params[1]));
+        const value = `${actionData.params[0] !== "multiply"
+            ? generateTimeString(Math.abs(actionData.params[1])) : actionData.params[1]}`;
+        const value2 = actionData.params[2] !== undefined 
+            ? `${actionData.params[0] !== "multiply"
+                ? generateTimeString(Math.abs(actionData.params[2])) : actionData.params[2]}`
+            : undefined;
+        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
         actionText = actionData.params[0] === "modify"
             ? actionData.params[1] > 0
-                ? `[Pillory] Add ${paramDuration} to the per-vote duration`
-                : `[Pillory] Subtract ${paramDuration} from the per-vote duration`
+                ? `[Pillory] Add ${valueStr} to the per-vote duration`
+                : `[Pillory] Subtract ${valueStr} from the per-vote duration`
             : actionData.params[0] === "multiply"
-                ? `[Pillory] Multiply the per-vote duration by ${actionData.params[1]}`
-            : `[Pillory] Set the per-vote duration to ${paramDuration}`;
+                ? `[Pillory] Multiply the per-vote duration by ${valueStr}`
+            : `[Pillory] Set the per-vote duration to ${valueStr}`;
     } else if(actionData.key === "diceModifyDuration") {
-        const paramDuration = generateTimeString(Math.abs(actionData.params[1]));
+        const value = `${actionData.params[0] !== "multiply"
+            ? generateTimeString(Math.abs(actionData.params[1])) : actionData.params[1]}`;
+        const value2 = actionData.params[2] !== undefined 
+            ? `${actionData.params[0] !== "multiply"
+                ? generateTimeString(Math.abs(actionData.params[2])) : actionData.params[2]}`
+            : undefined;
+        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
         actionText = actionData.params[0] === "modify"
             ? actionData.params[1] > 0
-                ? `[Dice] Add ${paramDuration} to the duration multiplier`
-                : `[Dice] Subtract ${paramDuration} from the duration multiplier`
+                ? `[Dice] Add ${valueStr} to the duration multiplier`
+                : `[Dice] Subtract ${valueStr} from the duration multiplier`
             : actionData.params[0] === "multiply"
-                ? `[Dice] Multiply the duration multiplier by ${actionData.params[1]}`
-            : `[Dice] Set the duration multiplier to ${paramDuration}`;
+                ? `[Dice] Multiply the duration multiplier by ${valueStr}`
+            : `[Dice] Set the duration multiplier to ${valueStr}`;
     } else if(actionData.key === "tasksModifyRequiredPoints") {
-        const paramDuration = generateTimeString(Math.abs(actionData.params[1]));
+        const value = `${actionData.params[0] !== "multiply"
+            ? generateTimeString(Math.abs(actionData.params[1])) : actionData.params[1]}`;
+        const value2 = actionData.params[2] !== undefined 
+            ? `${actionData.params[0] !== "multiply"
+                ? generateTimeString(Math.abs(actionData.params[2])) : actionData.params[2]}`
+            : undefined;
+        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
         actionText = actionData.params[0] === "modify"
             ? actionData.params[1] > 0
-                ? `[Tasks] Add ${paramDuration} to the required points`
-                : `[Tasks] Subtract ${paramDuration} from the required points`
+                ? `[Tasks] Add ${valueStr} to the required points`
+                : `[Tasks] Subtract ${valueStr} from the required points`
             : actionData.params[0] === "multiply"
                 ? `[Tasks] Multiply the required points by ${actionData.params[1]}`
-            : `[Tasks] Set the required points to ${paramDuration}`;
+            : `[Tasks] Set the required points to ${valueStr}`;
     } else if(actionData.key === "randomEventsModifyDifficulty") {
         const firstUpper = actionData.params[0].charAt(0).toUpperCase() + actionData.params[0].slice(1);
         actionText = `[Random] Set the difficulty to ${firstUpper}`;
     } else if(actionData.key === "guessTimerModifyKey") {
         const affected = actionData.params[0] === "minRandomTime"
             ? "minimum added duration" : "maximum added duration";
-        const paramDuration = generateTimeString(Math.abs(actionData.params[2]));
+        const value = `${actionData.params[1] !== "multiply"
+            ? generateTimeString(Math.abs(actionData.params[2])) : actionData.params[2]}`;
+        const value2 = actionData.params[3] !== undefined 
+            ? `${actionData.params[1] !== "multiply"
+                ? generateTimeString(Math.abs(actionData.params[3])) : actionData.params[3]}`
+            : undefined;
+        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
         actionText = actionData.params[1] === "modify"
             ? actionData.params[2] > 0
-                ? `[Guess] Add ${paramDuration} to the ${affected}`
-                : `[Guess] Subtract ${paramDuration} from the ${affected}`
+                ? `[Guess] Add ${valueStr} to the ${affected}`
+                : `[Guess] Subtract ${valueStr} from the ${affected}`
             : actionData.params[1] === "multiply"
-                ? `[Guess] Multiply the ${affected} by ${actionData.params[1]}`
-            : `[Guess] Set the ${affected} to ${paramDuration}`;
+                ? `[Guess] Multiply the ${affected} by ${valueStr}`
+            : `[Guess] Set the ${affected} to ${valueStr}`;
     }
 
     return actionText;

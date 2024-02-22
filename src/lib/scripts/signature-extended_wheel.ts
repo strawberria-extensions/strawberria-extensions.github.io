@@ -28,11 +28,12 @@ export interface ExtendedWheelConfig_OutcomeData extends ExtendedWheelConfig_Out
 }
 
 export interface ExtendedWheelCustom {
-    [wheelID: string]: {
-        lastActionTime: number;
-    };
+    wheels: { [wheelID: string]: 
+        {
+            lastActionTime: number;
+        };
+    }
 }
-
 /****************************************
  * Extended Wheel Config (User Redacted)
  ***************************************/

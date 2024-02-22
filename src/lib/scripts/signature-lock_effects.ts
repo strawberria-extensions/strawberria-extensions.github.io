@@ -27,7 +27,7 @@ export type LockEffectData = {
     "params": [{ task: string; points: number }[], boolean]
 } | {
     "key": "updateLockDuration",
-    "params": ["set" | "modify" | "multiply", number]
+    "params": ["set" | "modify" | "multiply", number, number | undefined]
 } | {
     "key": "updateLockSettings",
     "params": [boolean | undefined, boolean | undefined]
@@ -42,23 +42,23 @@ export type LockEffectData = {
     "params": []
 } | {
     "key": "shareLinkModifyKey",
-    "params": ["nbVisits" | "timeToAdd" | "timeToRemove", "set" | "modify" | "multiply", number]
+    "params": ["nbVisits" | "timeToAdd" | "timeToRemove", "set" | "modify" | "multiply", number, number | undefined]
 } | {
     "key": "shareLinkSetLoggedIn",
     "params": [boolean | undefined]
 } | {
     "key": "pilloryModifyDuration",
-    "params": ["set" | "modify" | "multiply", number]
+    "params": ["set" | "modify" | "multiply", number, number | undefined]
 } | {
     "key": "diceModifyDuration",
-    "params": ["set" | "modify" | "multiply", number]
+    "params": ["set" | "modify" | "multiply", number, number | undefined]
 } | {
     "key": "tasksModifyRequiredPoints",
-    "params": ["set" | "modify" | "multiply", number]
+    "params": ["set" | "modify" | "multiply", number, number | undefined]
 } | {
     "key": "randomEventsModifyDifficulty",
     "params": ["easy" | "normal" | "hard" | "expert"]
 } | {
     "key": "guessTimerModifyKey",
-    "params": ["minRandomTime" | "maxRandomTime", "set" | "modify" | "multiply", number]
+    "params": ["minRandomTime" | "maxRandomTime", "set" | "modify" | "multiply", number, number | undefined]
 };
