@@ -1,0 +1,376 @@
+{
+    "extended_wheel": {
+        "config": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "$id": "https://example.com/product.schema.json",
+            "type": "object",
+            "properties": {
+                "wheels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "display": { 
+                                "type": "string"
+                            },
+                            "settings": {
+                                "type": "object",
+                                "properties": {
+                                    "disabled": {
+                                        "type": "boolean"
+                                    },
+                                    "hiddenEffects": {
+                                        "type": "boolean"
+                                    },
+                                    "hiddenOutcomes": {
+                                        "type": "boolean"
+                                    },
+                                    "hiddenPercentages": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "required": ["disabled", "hiddenEffects", "hiddenOutcomes", "hiddenPercentages"]
+                            },
+                            "regularity": {
+                                "type": "object",
+                                "properties": {
+                                    "interval": {
+                                        "type": "integer",
+                                        "exclusiveMinimum": 0
+                                    },
+                                    "mode": {
+                                        "type": "string",
+                                        "enum": ["cumulative", "non_cumulative", "unlimited"]
+                                    }
+                                },
+                                "required": ["interval", "mode"]
+                            },
+                            "outcomes": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "percentage": {
+                                            "type": "string",
+                                            "pattern": "^\\d+(\\.\\d+)?$"
+                                        },
+                                        "text": {
+                                            "type": "string"
+                                        },
+                                        "effects": {
+                                            "type": "array",
+                                            "items": {
+                                                "oneOf": [
+                                                    { 
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "key": {
+                                                                "type": "string",
+                                                                "enum": ["resetLock", "unlock", "hygieneUnlock", "requestVerification", "resetTaskPoints"]
+                                                            },
+                                                            "params": {
+                                                                "type": "array",
+                                                                "prefixItems": []
+                                                            }
+                                                        },
+                                                        "required": ["key", "params"]
+                                                    },
+                                                    { 
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "key": {
+                                                                "type": "string",
+                                                                "enum": ["pilloryModifyDuration", "diceModifyDuration", "tasksModifyRequiredPoints", "updateLockDuration"]
+                                                            },
+                                                            "params": {
+                                                                "type": "array",
+                                                                "prefixItems": [
+                                                                    {
+                                                                        "type": "string",
+                                                                        "enum": ["set", "modify", "multiply"]
+                                                                    },
+                                                                    {
+                                                                        "type": "number"
+                                                                    },
+                                                                    {
+                                                                        "type": ["number", "null"]
+                                                                    }
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": ["key", "params"]
+                                                    },
+                                                    { 
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "key": {
+                                                                "type": "string",
+                                                                "enum": ["freezeAction", "shareLinkSetLoggedIn"]
+                                                            },
+                                                            "params": {
+                                                                "type": "array",
+                                                                "prefixItems": [
+                                                                    {
+                                                                        "type": ["boolean", "null"]
+                                                                    }
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": ["key", "params"]
+                                                    },
+                                                    { 
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "key": {
+                                                                "type": "string",
+                                                                "enum": ["pillory"]
+                                                            },
+                                                            "params": {
+                                                                "type": "array",
+                                                                "prefixItems": [
+                                                                    {
+                                                                        "type": "number"
+                                                                    },
+                                                                    {
+                                                                        "type": "string"
+                                                                    }
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": ["key", "params"]
+                                                    },
+                                                    { 
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "key": {
+                                                                "type": "string",
+                                                                "enum": ["assignTask"]
+                                                            },
+                                                            "params": {
+                                                                "type": "array",
+                                                                "prefixItems": [
+                                                                    {
+                                                                        "type": "object",
+                                                                        "properties": {
+                                                                            "task": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "points": {
+                                                                                "type": "integer",
+                                                                                "exclusiveMinimum": 0
+                                                                            }
+                                                                        },
+                                                                        "required": ["task", "points"]
+                                                                    }
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": ["key", "params"]
+                                                    },
+                                                    { 
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "key": {
+                                                                "type": "string",
+                                                                "enum": ["assignTaskRandom"]
+                                                            },
+                                                            "params": {
+                                                                "type": "array",
+                                                                "prefixItems": [
+                                                                    { 
+                                                                        "type": ["number", "null"]
+                                                                    }
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": ["key", "params"]
+                                                    },
+                                                    { 
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "key": {
+                                                                "type": "string",
+                                                                "enum": ["modifyTasks"]
+                                                            },
+                                                            "params": {
+                                                                "type": "array",
+                                                                "prefixItems": [
+                                                                    {
+                                                                        "type": "object",
+                                                                        "properties": {
+                                                                            "task": {
+                                                                                "type": "string"
+                                                                            },
+                                                                            "points": {
+                                                                                "type": "integer",
+                                                                                "exclusiveMinimum": 0
+                                                                            }
+                                                                        },
+                                                                        "required": ["task", "points"]
+                                                                    },
+                                                                    {
+                                                                        "type": "boolean"
+                                                                    }
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": ["key", "params"]
+                                                    },
+                                                    { 
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "key": {
+                                                                "type": "string",
+                                                                "enum": ["disableExtension"]
+                                                            },
+                                                            "params": {
+                                                                "type": "array",
+                                                                "prefixItems": [
+                                                                    {
+                                                                        "type": "string"
+                                                                    }
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": ["key", "params"]
+                                                    },
+                                                    { 
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "key": {
+                                                                "type": "string",
+                                                                "enum": ["enableExtension"]
+                                                            },
+                                                            "params": {
+                                                                "type": "array",
+                                                                "prefixItems": [
+                                                                    {
+                                                                        "type": "string"
+                                                                    },
+                                                                    {
+                                                                        "type": "object"
+                                                                    },
+                                                                    {
+                                                                        "type": "string",
+                                                                        "enum": ["cumulative", "non_cumulative", "unlimited"]
+                                                                    },
+                                                                    {
+                                                                        "type": "integer",
+                                                                        "exclusiveMinimum": 0
+                                                                    }
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": ["key", "params"]
+                                                    },
+                                                    { 
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "key": {
+                                                                "type": "string",
+                                                                "enum": ["updateLockSettings"]
+                                                            },
+                                                            "params": {
+                                                                "type": "array",
+                                                                "prefixItems": [
+                                                                    {
+                                                                        "type": ["number", "null"]
+                                                                    }
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": ["key", "params"]
+                                                    },
+                                                    { 
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "key": {
+                                                                "type": "string",
+                                                                "enum": ["shareLinkModifyKey"]
+                                                            },
+                                                            "params": {
+                                                                "type": "array",
+                                                                "prefixItems": [
+                                                                    {
+                                                                        "type": "string",
+                                                                        "enum": ["nbVisits", "timeToAdd", "timeToRemove"]
+                                                                    },
+                                                                    {
+                                                                        "type": "string",
+                                                                        "enum": ["set", "modify", "multiply"]
+                                                                    },
+                                                                    {
+                                                                        "type": "number"
+                                                                    },
+                                                                    {
+                                                                        "type": ["number", "null"]
+                                                                    }
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": ["key", "params"]
+                                                    },
+                                                    { 
+                                                        "type": "object",
+                                                        "properties": {
+                                                            "key": {
+                                                                "type": "string",
+                                                                "enum": ["guessTimerModifyKey"]
+                                                            },
+                                                            "params": {
+                                                                "type": "array",
+                                                                "prefixItems": [
+                                                                    {
+                                                                        "type": "string",
+                                                                        "enum": ["minRandomTime", "maxRandomTime"]
+                                                                    },
+                                                                    {
+                                                                        "type": "string",
+                                                                        "enum": ["set", "modify", "multiply"]
+                                                                    },
+                                                                    {
+                                                                        "type": "number"
+                                                                    },
+                                                                    {
+                                                                        "type": ["number", "null"]
+                                                                    }
+                                                                ]
+                                                            }
+                                                        },
+                                                        "required": ["key", "params"]
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    },
+                                    "required": ["percentage", "text", "effects"]
+                                }
+                            }
+                        },
+                        "required": ["display", "settings", "regularity", "outcomes"]
+                    }
+                }
+            },
+            "required": ["wheels"]
+        },
+        "custom": {
+            "type": "object",
+            "properties": {
+                "wheels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "lastActionTime": {
+                                "type": "integer",
+                                "exclusiveMinimum": 0
+                            }
+                        },
+                        "required": ["lastActionTime"]
+                    }
+                }
+            },
+            "required": ["wheels"]
+        }
+    }
+}

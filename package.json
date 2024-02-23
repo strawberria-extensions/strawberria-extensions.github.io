@@ -39,12 +39,14 @@
 		"d3-ease": "^3.0.1",
 		"flowbite-svelte": "^0.44.4",
 		"js-big-decimal": "^1.4.1",
+		"jsonschema": "^1.4.1",
 		"openapi-fetch": "^0.9.2",
 		"sha.js": "^2.4.11",
 		"svelte-canvas": "^1.0.2",
 		"svelte-fa": "^3.0.4",
 		"svelte-select": "^5.6.1",
 		"svrollbar": "^0.12.0",
-		"two.js": "^0.8.12"
+		"two.js": "^0.8.12",
+		"url": "^0.11.3"
 	}
 }
