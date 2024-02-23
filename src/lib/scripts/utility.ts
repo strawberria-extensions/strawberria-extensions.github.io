@@ -1,4 +1,3 @@
-import type { ExtendedWheelConfig_User } from "./signature-extended_wheel";
 import type { LockEffectData } from "./signature-lock_effects";
 
 // Generate random string of specified length
@@ -182,15 +181,15 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
         const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
         actionText = actionData.params[0] === "modify"
             ? actionData.params[1] > 0
-                ? `[Lock] Add ${valueStr} to the remaining time`
-                : `[Lock] Subtract ${valueStr} from the remaining time`
+                ? `[Lock] Add ${valueStr} to the remaining lock time`
+                : `[Lock] Subtract ${valueStr} from the remaining lock time`
             : actionData.params[0] === "multiply"
-                ? `[Lock] Multiply the remaining time by ${valueStr}`
-            : `[Lock] Set the remaining time to ${valueStr}`;
+                ? `[Lock] Multiply the remaining lock time by ${valueStr}`
+            : `[Lock] Set the remaining lock time to ${valueStr}`;
     } else if(actionData.key === "updateLockSettings") {
         actionText = `[Lock] `;
         if(actionData.params[0] !== undefined) {
-            actionText += `${actionData.params[0] ? "Display" : "Hide"} remaining time`;
+            actionText += `${actionData.params[0] ? "Display" : "Hide"} remaining lock time`;
             if(actionData.params[1] !== undefined) {
                 actionText += ", ";
             }

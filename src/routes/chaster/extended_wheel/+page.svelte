@@ -8,7 +8,7 @@
     import { Wheel } from '$lib/resources/spin-wheel.js';
     import WheelOutcome from "$lib/components/WheelOutcome.svelte";
     import { generateOutcomeEffectLabel, randomInt, sleep, truncateWords } from "$lib/scripts/utility";
-    import type { ExtendedWheelConfig_OutcomeData_Result, ExtendedWheelConfig_OutcomeData_User, ExtendedWheelConfig_User, ExtendedWheelCustom } from '$lib/scripts/signature-extended_wheel';
+    import type { ExtendedWheelConfig_OutcomeData_Result, ExtendedWheelConfig_User, ExtendedWheelCustom } from '$lib/scripts/signature-extended_wheel';
     import type { ChasterUserRole } from '$lib/scripts/signature-chaster';
     import type { BackendResponseSignature } from '$lib/scripts/signature-backend';
     import { generateTimeString } from "$lib/scripts/utility";
