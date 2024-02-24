@@ -114,7 +114,7 @@
                 $nextSpinTimestampStore = "";
             } else {
                 const currentTimeMS = new Date().getTime();
-                const nextSpinMS = wheelCustomData.lastActionTime + wheelConfigData.regularity.interval * 1000;
+                const nextSpinMS = wheelCustomData.lastActionTimeMS + wheelConfigData.regularity.interval * 1000;
                 $nextSpinTimestampStore = currentTimeMS > nextSpinMS
                     ? "" : generateTimeString(Math.floor((nextSpinMS - currentTimeMS) / 1000));
             }
