@@ -1,0 +1,133 @@
+{
+    "wheels": {
+      "test_wheel": {
+        "display": "Demonstration Wheel",
+        "settings": {
+          "disabled": false,
+          "hiddenEffects": false,
+          "hiddenOutcomes": false,
+          "hiddenPercentages": false
+        },
+        "regularity": {
+          "interval": 3600000,
+          "mode": "non_cumulative"
+        },
+        "penalty": {
+          "required": 0,
+          "interval": 300000,
+          "effects": []
+        },
+        "outcomes": [
+          {
+            "percentage": "20",
+            "text": "Prolonging your torment~",
+            "effects": [
+              {
+                "key": "updateLockDuration",
+                "params": [
+                  "multiply",
+                  1.5,
+                  2
+                ]
+              },
+              {
+                "key": "shareLinkModifyKey",
+                "params": [
+                  "nbVisits",
+                  "modify",
+                  8,
+                  16
+                ]
+              },
+              {
+                "key": "tasksModifyRequiredPoints",
+                "params": [
+                  "multiply",
+                  1.2
+                ]
+              }
+            ]
+          },
+          {
+            "percentage": "10",
+            "text": "Proof of your predicament...",
+            "effects": [
+              {
+                "key": "requestVerification",
+                "params": []
+              }
+            ]
+          },
+          {
+            "percentage": "10",
+            "text": "Edging yourself for my pleasure~",
+            "effects": [
+              {
+                "key": "hygieneUnlock",
+                "params": []
+              },
+              {
+                "key": "assignTask",
+                "params": [
+                  {
+                    "task": "Gag and edge yourself for 15 minutes, no cumming!",
+                    "points": 0
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "percentage": "10",
+            "text": "Blindness, DARKNESS, Despair.",
+            "effects": [
+              {
+                "key": "enableExtension",
+                "params": [
+                  "guess-timer"
+                ]
+              },
+              {
+                "key": "updateLockSettings",
+                "params": [
+                  false,
+                  true
+                ]
+              },
+              {
+                "key": "pillory",
+                "params": [
+                  36000,
+                  "Darkness and DESPAIR."
+                ]
+              }
+            ]
+          },
+          {
+            "percentage": "25",
+            "text": "'Comparative' respite.",
+            "effects": [
+              {
+                "key": "updateLockDuration",
+                "params": [
+                  "multiply",
+                  2,
+                  3
+                ]
+              }
+            ]
+          },
+          {
+            "percentage": "25",
+            "text": "Right back where you started~",
+            "effects": [
+              {
+                "key": "resetLock",
+                "params": []
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }

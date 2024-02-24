@@ -1,9 +1,10 @@
 <script lang="ts">
     import { writable, type Writable } from "svelte/store";
     import { onMount } from "svelte";
-    import { validate } from "jsonschema";
+    import { Validator } from "jsonschema";
     import chasterLogo from "$lib/resources/logo.png"
-    import schemaData from "$lib/resources/schema.json";
+    import schemaLockEffects from "$lib/resources/schema-lockEffects.json";
+    import schemaConfigs from "$lib/resources/schema-configs.json";
 
     export let data: { slug: "extended_wheel" };
 
@@ -108,14 +109,18 @@
         initialLoadMessage = "";
     });
 
+    const validator = new Validator();
+    validator.addSchema(schemaLockEffects, "/lockEffects")
+
     let configJSONInvalid = false;
     $: {
         configText;
         configJSONInvalid = true;
         try {
             $configDataStore = JSON.parse(configText);
-            const result = validate($configDataStore, schemaData[data.slug]["config"]);
+            const result = validator.validate($configDataStore, schemaConfigs[data.slug]["config"]);
             configJSONInvalid = !result.valid;
+            if(result.errors.length > 0) { console.log(result.errors) } 
         } catch(_) {}
     }
 
@@ -125,8 +130,9 @@
         customJSONInvalid = true;
         try {
             $customDataStore = JSON.parse(customText);
-            const result = validate($customDataStore, schemaData[data.slug]["custom"]);
+            const result = validator.validate($customDataStore, schemaConfigs[data.slug]["custom"]);
             customJSONInvalid = !result.valid;
+            if(result.errors.length > 0) { console.log(result.errors) } 
         } catch(_) {}
     }
 </script>

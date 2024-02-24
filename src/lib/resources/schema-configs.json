@@ -1,0 +1,111 @@
+{
+    "extended_wheel": {
+        "config": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+                "wheels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "display": { 
+                                "type": "string"
+                            },
+                            "settings": {
+                                "type": "object",
+                                "properties": {
+                                    "disabled": {
+                                        "type": "boolean"
+                                    },
+                                    "hiddenEffects": {
+                                        "type": "boolean"
+                                    },
+                                    "hiddenOutcomes": {
+                                        "type": "boolean"
+                                    },
+                                    "hiddenPercentages": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "required": ["disabled", "hiddenEffects", "hiddenOutcomes", "hiddenPercentages"]
+                            },
+                            "regularity": {
+                                "type": "object",
+                                "properties": {
+                                    "interval": {
+                                        "type": "integer",
+                                        "minimum": 60000
+                                    },
+                                    "mode": {
+                                        "type": "string",
+                                        "enum": ["cumulative", "non_cumulative", "unlimited"]
+                                    }
+                                },
+                                "required": ["interval", "mode"]
+                            },
+                            "penalty": {
+                                "type": "object",
+                                "properties": {
+                                    "required": {
+                                        "type": "integer",
+                                        "minimum": 0
+                                    },
+                                    "interval": {
+                                        "type": "integer",
+                                        "minimum": 300000,
+                                        "maximum": 604800000
+                                    },
+                                    "effects": {
+                                        "$ref": "/lockEffects"
+                                    }
+                                },
+                                "required": ["required", "interval", "effects"]
+                            },
+                            "outcomes": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "percentage": {
+                                            "type": "string",
+                                            "pattern": "^\\d+(\\.\\d+)?$"
+                                        },
+                                        "text": {
+                                            "type": "string"
+                                        },
+                                        "effects": {
+                                            "$ref": "/lockEffects"
+                                        }
+                                    },
+                                    "required": ["percentage", "text", "effects"]
+                                }
+                            }
+                        },
+                        "required": ["display", "settings", "regularity", "outcomes", "penalty"]
+                    }
+                }
+            },
+            "required": ["wheels"]
+        },
+        "custom": {
+            "type": "object",
+            "properties": {
+                "wheels": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "lastActionTimeMS": {
+                                "type": "integer",
+                                "exclusiveMinimum": 0
+                            }
+                        },
+                        "required": ["lastActionTimeMS"]
+                    }
+                }
+            },
+            "required": ["wheels"]
+        }
+    }
+}
