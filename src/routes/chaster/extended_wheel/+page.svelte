@@ -283,7 +283,7 @@
     let pageContainer: HTMLDivElement;
     // let emValue: number = 0;
     // let necessaryWidth: number = 0;
-    let shouldHorizontal = /Mobi/i.test(window.navigator.userAgent);
+    let shouldHorizontal = !/Mobi/i.test(window.navigator.userAgent);
     // $: { pageContainer; if(pageContainer !== undefined) { 
     //     emValue = parseFloat(getComputedStyle(pageContainer).fontSize); 
     //     // necessaryWidth = (wheelWidth * 2) + (4 * emValue * 4) + (4 * emValue + 4);
@@ -366,11 +366,11 @@
                                 {/if}
                             </div>
                         </div>
-                        <div class="min-h-[1em] text-center">
+                        <p class="min-h-[1em] text-center">
                             {#if !allowedSpin}
                                 Next spin available in {$nextSpinTimestampStore}
                             {/if}
-                        </div>
+                        </p>
                         <hr>
                     {/key}
                     <div class="w-full flex flex-row items-stretch space-x-4">

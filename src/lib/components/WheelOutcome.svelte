@@ -30,7 +30,7 @@
             </ul>
         {/if}
     </div>
-    <div class="flex flex-col justify-center w-[5em] text-right">
+    <div class="flex flex-col justify-center w-[5.5em] text-right">
         <div class="caption">{actualPercentage}%</div>
     </div>  
 </div>
