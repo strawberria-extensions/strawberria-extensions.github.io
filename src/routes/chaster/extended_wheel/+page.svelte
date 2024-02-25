@@ -283,7 +283,7 @@
     let pageContainer: HTMLDivElement;
     // let emValue: number = 0;
     // let necessaryWidth: number = 0;
-    let shouldHorizontal = true;
+    let shouldHorizontal = !(navigator as any).userAgentData.mobile;
     // $: { pageContainer; if(pageContainer !== undefined) { 
     //     emValue = parseFloat(getComputedStyle(pageContainer).fontSize); 
     //     // necessaryWidth = (wheelWidth * 2) + (4 * emValue * 4) + (4 * emValue + 4);
@@ -310,7 +310,7 @@
 </script>
 
 <svelte:window bind:innerWidth={frameWidth} bind:innerHeight={frameHeight} />
-<div class="container-bg min-w-0 min-h-0 p-4 space-y-2 grow" 
+<div class="container-bg min-w-0 min-h-0 p-4 space-y-2 grow"
     bind:this={pageContainer}>
     {#if initialLoadMessage !== ""}
         <!-- While extension data is loading, show Chaster logo -->
@@ -325,7 +325,11 @@
         <div class="card-content grow" class:card-wrapper-desktop={shouldHorizontal}>
             <div class="w-full h-full flex flex-row">
                 <div class="h-full flex flex-col" class:card-horizontal={shouldHorizontal}>
-                    <div class="flex flex-row items-end justify-between space-x-1 mb-2">
+                    <div class="flex items-end justify-between mb-2"
+                        class:flex-row={shouldHorizontal}
+                        class:flex-col={!shouldHorizontal}
+                        class:space-x-1={shouldHorizontal}
+                        class:items-end={shouldHorizontal}>
                         <h4 class="mb-0">Extended Wheel of Fortune</h4>
                         <span class="caption">Developer: @strawberria</span>
                     </div>
@@ -336,10 +340,12 @@
                     {#key selectedWheelID}
                         <div class="grow mt-1 wheel-container relative">
                             <div class="grow wheel-container h-full" 
+                                class:aspect-square={!shouldHorizontal}
                                 bind:this={$wheelContainerStore} bind:clientWidth={wheelWidth}>
                             </div>
                             <div class="absolute top-0 right-0 h-full w-full z-10
-                                flex align-center justify-center items-center">
+                                flex align-center justify-center items-center"
+                                class:aspect-square={!shouldHorizontal}>
                                 {#if $resultStore !== undefined}
                                     <div class="result" on:click={() => { $resultStore = undefined }}>
                                         <!-- Basically copied from WheelOutcome -->
@@ -381,24 +387,71 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="flex flex-col justify-center ml-4 mr-4 space-y-[0.5em]
-                            max-w-[12em]">
+                        <div class="flex flex-col justify-center space-y-[0.5em] max-w-[12em]"
+                            class:mx-4={shouldHorizontal}
+                            class:mx-2={!shouldHorizontal}>
                             <button type="button" class="btn btn-primary btn-lg"
                                 disabled={buttonDisabled || !allowedSpin}
                                 on:click={spinTheWheel}>
-                                <span>Spin the wheel!</span>
+                                <span>Spin{shouldHorizontal ? " the wheel" : ""}!</span>
                             </button>
                         </div>
                     </div>
                     {#if !shouldHorizontal}
-                        <!-- Temporarily no horizontal support -->
+                        {@const totalPercentage = wheelData.outcomes.reduce((sum, data) => sum += parseFloat(data.percentage), 0)}
+                        <hr>
+                        <div class="h-full flex flex-col">
+                            {#key selectedWheelID}
+                                <div class="flex flex-row justify-between">
+                                    <div>
+                                        <div>Outcomes</div>
+                                        <div class="caption mb-2">
+                                            View possible outcomes for the wheel
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        {#if wheelData.settings.hiddenOutcomes === true}
+                                            <div class="w-[14em] min-h-[1em]">❗ Outcomes Hidden ❗</div>
+                                        {:else}
+                                            {#if wheelData.settings.hiddenEffects === true}
+                                                <div class="w-[14em] min-h-[1em]">❗ Effects Hidden ❗</div>
+                                            {/if}
+                                            {#if wheelData.settings.hiddenPercentages === true}
+                                                <div class="w-[14em] min-h-[1em]">❗ Percentages Hidden ❗</div>
+                                            {/if}
+                                        {/if}
+                                        
+                                    </div>
+                                </div>
+                                {#if wheelData.outcomes.length > 0}
+                                    <div class="card-content outcomes-list">
+                                        <div class="flex flex-col space-y-1 items-stretch">
+                                            {#key $extendedWheelConfigStore}
+                                                {#each wheelData.outcomes as outcomeData, index}
+                                                    {@const colorIndex = index - Math.floor(index / wheelColors.length) * wheelColors.length}
+                                                    {@const outcomeColor = wheelColors[colorIndex]}
+                                                    <WheelOutcome outcomeData={outcomeData} 
+                                                        settings={wheelData.settings}
+                                                        userRole={userRole}
+                                                        totalPercentage={totalPercentage}
+                                                        color={outcomeColor} />
+                                                    {#if index !== wheelData.outcomes.length - 1}
+                                                        <hr class="mt-0.5 mb-0.5">
+                                                    {/if}
+                                                {/each}
+                                            {/key}
+                                        </div>
+                                    </div>
+                                {/if}
+                            {/key}
+                        </div>
                     {/if}
                 </div>
                 {#if shouldHorizontal}
                     {@const totalPercentage = wheelData.outcomes.reduce((sum, data) => sum += parseFloat(data.percentage), 0)}
                     {@const renderOAuth = !hasKeyholderOAuth && userRole === "keyholder"}
-                    <div class="h-full flex flex-col ml-4 something" style={`width: calc(${wheelWidth}px * 1.0)`}>
-                        <div class={`flex flex-row flex-start items-center ${renderOAuth ? "justify-between" : "justify-start"}`}>
+                    <div class="h-full flex flex-col ml-4" style={`width: calc(${wheelWidth}px * 1.0)`}>
+                        <!-- <div class={`flex flex-row flex-start items-center ${renderOAuth ? "justify-between" : "justify-start"}`}>
                             <div>
                                 <div>Keyholder OAuth Status:</div>
                                 {#if hasKeyholderOAuth === true}
@@ -414,7 +467,7 @@
                                 </button>
                             {/if}
                         </div>
-                        <hr>
+                        <hr> -->
                         {#key selectedWheelID}
                             <div class="flex flex-row justify-between">
                                 <div>
