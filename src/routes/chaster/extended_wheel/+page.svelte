@@ -283,7 +283,7 @@
     let pageContainer: HTMLDivElement;
     // let emValue: number = 0;
     // let necessaryWidth: number = 0;
-    let shouldHorizontal = !(navigator as any).userAgentData.mobile;
+    let shouldHorizontal = /Mobi/i.test(window.navigator.userAgent);
     // $: { pageContainer; if(pageContainer !== undefined) { 
     //     emValue = parseFloat(getComputedStyle(pageContainer).fontSize); 
     //     // necessaryWidth = (wheelWidth * 2) + (4 * emValue * 4) + (4 * emValue + 4);
