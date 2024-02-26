@@ -145,6 +145,10 @@
                 wheelID: selectedWheelID,
             })
         });
+        if(spinResultResponse.status > 200) {
+            alert(`Error spinning wheel, please contact @strawberria: ${await spinResultResponse.text()}`);
+            return;
+        }
         const spinResultData: BackendResponseSignature["chaster_utilities"]["extended-main-spin"] = await spinResultResponse.json();
         // TODO handle hidden outcome missing index
         if(spinResultData.index === undefined) { 
