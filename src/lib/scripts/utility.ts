@@ -178,7 +178,7 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
             ? `${actionData.params[0] !== "multiply"
                 ? generateTimeString(Math.abs(actionData.params[2])) : actionData.params[2]}`
             : undefined;
-        const valueStr = `${value2 ? "between " : ""}${actionData.params[1] < 0 ? "-" : ""}${value}${value2 ? " and " : ""}${(actionData.params[2] ?? 0) < 0 ? "-" : ""}${value2}`;
+        const valueStr = `${value2 ? "between " : ""}${actionData.params[1] < 0 ? "-" : ""}${value}${value2 ? ", and " : ""}${(actionData.params[2] ?? 0) < 0 ? "-" : ""}${value2}`;
         actionText = actionData.params[0] === "modify"
             ? `[Lock] Modify the remaining lock time by ${valueStr}`
             : actionData.params[0] === "multiply"
