@@ -5,7 +5,7 @@ export type LockEffectData = {
     "key": "unlock",
     "params": []
 } | {
-    "key": "freezeAction",
+    "key": "freeze",
     "params": [boolean | undefined]
 } | {
     "key": "pillory",

@@ -153,7 +153,7 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
         actionText = "[Lock] Reset the lock";
     } else if(actionData.key === "unlock") {
         actionText = "[Lock] Unlock the lock";
-    } else if(actionData.key === "freezeAction") {
+    } else if(actionData.key === "freeze") {
         actionText = `[Lock] ${actionData.params[0] === true ? "Freeze"
             : actionData.params[0] === false ? "Unfreeze" : "Toggle freeze on"} the lock`;
     } else if(actionData.key === "pillory") {
@@ -178,11 +178,9 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
             ? `${actionData.params[0] !== "multiply"
                 ? generateTimeString(Math.abs(actionData.params[2])) : actionData.params[2]}`
             : undefined;
-        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
+        const valueStr = `${value2 ? "between " : ""}${actionData.params[1] < 0 ? "-" : ""}${value}${value2 ? " and " : ""}${(actionData.params[2] ?? 0) < 0 ? "-" : ""}${value2}`;
         actionText = actionData.params[0] === "modify"
-            ? actionData.params[1] > 0
-                ? `[Lock] Add ${valueStr} to the remaining lock time`
-                : `[Lock] Subtract ${valueStr} from the remaining lock time`
+            ? `[Lock] Modify the remaining lock time by ${valueStr}`
             : actionData.params[0] === "multiply"
                 ? `[Lock] Multiply the remaining lock time by ${valueStr}`
             : `[Lock] Set the remaining lock time to ${valueStr}`;
