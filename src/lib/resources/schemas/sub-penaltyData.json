@@ -1,0 +1,19 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+        "required": {
+            "type": "integer",
+            "minimum": 0
+        },
+        "interval": {
+            "type": "integer",
+            "minimum": 300000,
+            "maximum": 604800000
+        },
+        "effects": {
+            "$ref": "/lockEffects"
+        }
+    },
+    "required": ["required", "interval", "effects"]
+}

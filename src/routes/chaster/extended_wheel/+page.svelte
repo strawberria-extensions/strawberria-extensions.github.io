@@ -16,7 +16,6 @@
     // Supabase anon key has no database access due to RLS
     const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwbmpsYmpwY2ZlYnFwYXFrcGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODg1NDM0NTgsImV4cCI6MjAwNDExOTQ1OH0.CsGySz2c8bIWphE6--T51CsmSeBQajfwvBYfTkjviM4";
     const chasterUtilitiesURL = "https://bpnjlbjpcfebqpaqkphy.supabase.co/functions/v1/chaster_utilities";
-    const databaseUtilitiesURL = "https://bpnjlbjpcfebqpaqkphy.supabase.co/functions/v1/database_utilities";
     const wheelColors: string[] = [ 
         // 200-darkness wheel colors from Tailwind CSS (for convenience)
         "#fecaca", "#fed7aa", "#fde68a", "#d9f99d", "#bbf7d0", // "#fef08a"
@@ -60,32 +59,6 @@
                 const stateParams = JSON.parse(decodeURIComponent(stateTokenData));
                 mainToken = stateParams.mainToken;
             }
-        }
-
-        // Asynchronously check whether page loaded from OAuth response 
-        const authorizationCode = urlParams.get("code");
-        if(authorizationCode !== null) {
-            // Valid authorization code, call oauth database store function
-            const redirectURI = window.location.href.split("?")[0];
-            await fetch(databaseUtilitiesURL, {
-                method: "POST", headers: { "Authorization": `Bearer ${anonKey}` },
-                body: JSON.stringify({ 
-                    action: "chaster_access-set",
-                    authorizationCode: authorizationCode, 
-                    redirectURI: redirectURI,
-                    scopes: oAuthRequestedScopes,
-                }),
-            });
-
-            // Afterwards, set URI back to normal hash style
-            const url = new URL(window.location.href);
-            const state = url.searchParams.get("state") as string;
-            url.searchParams.delete("state");
-            url.searchParams.delete("session_state");
-            url.searchParams.delete("code");
-            url.hash = encodeURIComponent(state);
-            // window.location.href = url.toString();
-            history.pushState(null, "", url.toString());
         }
 
         initialLoadMessage = "Retrieving extended wheel data...";
@@ -163,11 +136,6 @@
 
             spinDisabled = false; 
             lastRotation = [selectedWheelID as string, spinWheel.rotation];
-
-            // Update the wheel if necessary?
-            // hasKeyholderOAuth = extendedMainPageData.hasKeyholder;
-            // Somewhat redundant?
-            // selectedWheelID = Object.keys($extendedWheelConfigStore.wheels)[0] ?? undefined;
         }, 5100);
 
         // Cache the post-spin data to update after spin
@@ -281,41 +249,12 @@
     }
 
     // Store widths and heights for determining layout
-    let frameWidth: number; 
-    let frameHeight: number;
     let wheelWidth: number;
-    let pageContainer: HTMLDivElement;
-    // let emValue: number = 0;
-    // let necessaryWidth: number = 0;
     let shouldHorizontal = !/Mobi/i.test(window.navigator.userAgent);
-    // $: { pageContainer; if(pageContainer !== undefined) { 
-    //     emValue = parseFloat(getComputedStyle(pageContainer).fontSize); 
-    //     // necessaryWidth = (wheelWidth * 2) + (4 * emValue * 4) + (4 * emValue + 4);
-    //     // shouldHorizontal = frameWidth > necessaryWidth;
-    // }}
-
-    // When keyholder and not alraedy authorized, redirect to OAuth
-    const oAuthClientID = "extensions-318826";
-    const oAuthRequestedScopes = "profile locks shared_locks keyholder";
-    function redirectOAuth() {
-        // Construct redirect URL from current URL, manually add main token
-        // NOTE: scopes should be separated by space
-        let currentURL = encodeURIComponent(window.location.href.split("#")[0]);
-        const urlChunks = [
-            "https://sso.chaster.app/auth/realms/app/protocol/openid-connect/auth?",
-            `client_id=${oAuthClientID}&`,
-            `redirect_uri=${currentURL}&`,
-            `response_type=code&scope=${oAuthRequestedScopes}&state=${hash}`,
-        ];
-        const redirectURL = urlChunks.join("");
-        window.location.href = redirectURL;
-        // window.open(redirectURL);
-    }
 </script>
 
-<svelte:window bind:innerWidth={frameWidth} bind:innerHeight={frameHeight} />
-<div class="container-bg min-w-0 min-h-0 p-4 space-y-2 grow"
-    bind:this={pageContainer}>
+<svelte:window />
+<div class="container-bg min-w-0 min-h-0 p-4 space-y-2 grow">
     {#if initialLoadMessage !== ""}
         <!-- While extension data is loading, show Chaster logo -->
         <div class="w-full h-screen flex flex-col items-center justify-center">
@@ -520,9 +459,6 @@
             </div>
         </div>
     {/if}
-    <!-- <div class="card-wrapper card-content m-0" style={`width: ${cardWidth}px`}>
-        <div>Wheel Outcomes</div>
-    </div> -->
 </div>
 
 <style>

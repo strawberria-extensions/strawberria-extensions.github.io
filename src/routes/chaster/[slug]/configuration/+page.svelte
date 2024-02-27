@@ -3,10 +3,11 @@
     import { onMount } from "svelte";
     import { Validator } from "jsonschema";
     import chasterLogo from "$lib/resources/logo.png"
-    import schemaLockEffects from "$lib/resources/schema-lockEffects.json";
-    import schemaConfigs from "$lib/resources/schema-configs.json";
+    import subLockEffects from "$lib/resources/schemas/sub-lockEffects.json";
+    import subPenaltyData from "$lib/resources/schemas/sub-penaltyData.json";
+    import schemaConfigs from "$lib/resources/schemas/schema-configs.json";
 
-    export let data: { slug: "extended_wheel" };
+    export let data: { slug: "extended_wheel" | "penalties" };
 
     // Supabase anon key has no database access due to RLS
     const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwbmpsYmpwY2ZlYnFwYXFrcGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODg1NDM0NTgsImV4cCI6MjAwNDExOTQ1OH0.CsGySz2c8bIWphE6--T51CsmSeBQajfwvBYfTkjviM4";
@@ -110,7 +111,8 @@
     });
 
     const validator = new Validator();
-    validator.addSchema(schemaLockEffects, "/lockEffects")
+    validator.addSchema(subLockEffects, "/lockEffects")
+    validator.addSchema(subPenaltyData, "/penaltyData")
 
     let configJSONInvalid = false;
     $: {
@@ -137,7 +139,7 @@
     }
 </script>
 
-<div class="container-bg w-full h-screen pl-3 pr-3">
+<div class="container-bg w-full h-screen pl-3 pr-3 mt-2">
     {#if initialLoadMessage !== ""}
         <!-- While extension data is loading, show Chaster logo -->
         <div class="w-full h-screen flex flex-col items-center justify-center">
@@ -155,16 +157,18 @@
                 bind:value={configText} />
         </div>
         <hr>
-        <div class="space-y-[0.5em]">
-            <div>
-                Database Custom Data
+        {#if data.slug !== "penalties"}
+            <div class="space-y-[0.5em]">
+                <div>
+                    Database Custom Data
+                </div>
+                <textarea class="form-control resize-none" 
+                    class:text-invalid={customJSONInvalid}
+                    rows="2"
+                    bind:value={customText} />
             </div>
-            <textarea class="form-control resize-none" 
-                class:text-invalid={customJSONInvalid}
-                rows="2"
-                bind:value={customText} />
-        </div>
-        <hr>
+            <hr>
+        {/if}
         <div class="space-y-[0.5em]">
             <div>
                 Handlebar Text

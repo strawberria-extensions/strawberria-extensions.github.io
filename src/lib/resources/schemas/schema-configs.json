@@ -107,5 +107,21 @@
             },
             "required": ["wheels"]
         }
+    },
+    "penalties": {
+        "config": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+                "extended_wheel": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "/penaltyData"
+                    }
+                }
+            },
+            "required": []
+        },
+        "custom": {}
     }
 }
