@@ -7,6 +7,6 @@ export const load = ({ params }) => {
 export function entries() {
 	return [
 		{ slug: "extended_wheel" },
-		{ slug: "penalties" }
+		{ slug: "strawberria_penalties" }
 	];
 }

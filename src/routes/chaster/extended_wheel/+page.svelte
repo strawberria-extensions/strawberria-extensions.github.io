@@ -273,8 +273,8 @@
                         class:flex-col={!shouldHorizontal}
                         class:space-x-1={shouldHorizontal}
                         class:items-end={shouldHorizontal}>
-                        <h4 class="mb-0">Extended Wheel of Fortune</h4>
-                        <span class="caption">Developer: @strawberria</span>
+                        <h4 class="mb-0">[🍓] Extended Wheel of Fortune</h4>
+                        <span class="caption">Developer: <a href="https://chaster.app/user/strawberria" target="_blank">@strawberria</a></span>
                     </div>
                     <div class="caption mb-2">
                         Try your luck and spin the <b>extended</b> wheel of fortune! <br>

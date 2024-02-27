@@ -7,7 +7,7 @@
     import subPenaltyData from "$lib/resources/schemas/sub-penaltyData.json";
     import schemaConfigs from "$lib/resources/schemas/schema-configs.json";
 
-    export let data: { slug: "extended_wheel" | "penalties" };
+    export let data: { slug: "extended_wheel" | "strawberria_penalties" };
 
     // Supabase anon key has no database access due to RLS
     const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwbmpsYmpwY2ZlYnFwYXFrcGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODg1NDM0NTgsImV4cCI6MjAwNDExOTQ1OH0.CsGySz2c8bIWphE6--T51CsmSeBQajfwvBYfTkjviM4";
@@ -157,7 +157,7 @@
                 bind:value={configText} />
         </div>
         <hr>
-        {#if data.slug !== "penalties"}
+        {#if data.slug !== "strawberria_penalties"}
             <div class="space-y-[0.5em]">
                 <div>
                     Database Custom Data

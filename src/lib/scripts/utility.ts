@@ -36,6 +36,25 @@ export async function sleep(duration: number) {
     })
 }
 
+// Creates display string for penalties:
+// >1 month = More than a month
+// >1 day = X days
+// >1 hour = X hours
+// X minutes and X seconds
+export function generateTimeStringPenalties(seconds: number) {
+    if(seconds > 2678400) {
+        return "More than a month";
+    } else if(seconds > 86400) {
+        const days = Math.floor(seconds / 86400);
+        return `${days} days`;
+    } else if(seconds > 3600) {
+        const hours = Math.floor(seconds / 3600);
+        return `${hours} hours`;
+    } else {
+        return generateTimeString(seconds, true);
+    }
+}
+
 // Creates string from given number of seconds
 export function generateTimeString(seconds: number, showSeconds: boolean = false) {
     // Generate second multipliers for counting each

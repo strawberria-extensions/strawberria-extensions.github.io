@@ -1,4 +1,5 @@
 import type { ExtendedWheelConfig, ExtendedWheelConfig_OutcomeData_Result, ExtendedWheelConfig_User, ExtendedWheelCustom } from "./signature-extended_wheel";
+import type { LockEffectData } from "./signature-lock_effects";
 
 export interface BackendRequestSignature {
     "chaster_utilities": {
@@ -36,10 +37,31 @@ export interface BackendResponseSignature {
             result:     ExtendedWheelConfig_OutcomeData_Result, 
             customData: ExtendedWheelCustom, // Return for all wheels?
         }; 
+        "strawberria_penalties-page": {
+            lockID: string;
+            data:   IndividualPenaltyData[];
+        }
     };
     "database_utilities": {
         "chaster_custom-get": {
             exists: boolean;
         };
     };
+}
+
+export interface IndividualPenaltyData {
+    extensionData: { 
+        _id:     string; 
+        slug:    string; 
+        display: string;
+    };
+    penaltyConfig: { 
+        action:   string;
+        subkey:   string;
+        display:  string; 
+        required: number; 
+        interval: number; 
+        effects: LockEffectData[];
+    };
+    penaltyData: { lastPenaltyMS: number; current: number };
 }
