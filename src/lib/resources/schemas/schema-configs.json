@@ -44,24 +44,6 @@
                                 },
                                 "required": ["interval", "mode"]
                             },
-                            "penalty": {
-                                "type": "object",
-                                "properties": {
-                                    "required": {
-                                        "type": "integer",
-                                        "minimum": 0
-                                    },
-                                    "interval": {
-                                        "type": "integer",
-                                        "minimum": 300000,
-                                        "maximum": 604800000
-                                    },
-                                    "effects": {
-                                        "$ref": "/lockEffects"
-                                    }
-                                },
-                                "required": ["required", "interval", "effects"]
-                            },
                             "outcomes": {
                                 "type": "array",
                                 "items": {
