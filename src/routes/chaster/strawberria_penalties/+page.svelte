@@ -86,7 +86,7 @@
             <div class="mt-4 caption text-lg">{initialLoadMessage}</div>
         </div>
     {:else}
-        <div class="flex flex-col space-y-[1.5em] w-[65.5em]">
+        <div class={`flex flex-col space-y-[1.5em] ${shouldHorizontal ? "w-[65.5em]" : "w-full"}`}>
             <div class="card-content" class:card-wrapper-desktop={shouldHorizontal}>
                 <div class="flex items-end justify-between mb-2"
                         class:flex-row={shouldHorizontal}
@@ -109,10 +109,13 @@
                         style={`width: ${widthPercentage}%;`} />
                 </div>
             </div>
-            <div class="grid grid-cols-2 gap-[1.5em]">
+            <div class="grid gap-[1.5em]"
+                class:grid-cols-2={shouldHorizontal}
+                class:grid-cols-1={!shouldHorizontal}>
                 {#each $individualPenaltiesStore as individualPenaltyData}
                     {@const extensionLookup = extensionLookupData[individualPenaltyData.extensionData.slug]}
-                    <PenaltyDisplay lockID={lockID} 
+                    <PenaltyDisplay shouldHorizontal={shouldHorizontal}
+                        lockID={lockID} 
                         extensionLookup={extensionLookup} 
                         individualPenaltyData={individualPenaltyData} />
                 {/each}
@@ -143,12 +146,5 @@
 
     .penalties-select:hover {
         background-color: #2a263a;
-    }
-
-    .effect-list {
-        list-style: inside;
-        list-style-position: outside;
-        margin-left: 1em;
-        margin-bottom: 0;
     }
 </style>

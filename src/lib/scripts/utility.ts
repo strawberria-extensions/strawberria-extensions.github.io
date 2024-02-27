@@ -191,15 +191,16 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
     } else if(actionData.key === "modifyTasks") {
         actionText = "[Tasks] Modify the task list (too complex)";
     } else if(actionData.key === "updateLockDuration") {
-        const value = `${actionData.params[0] !== "multiply"
-            ? `${generateTimeString(Math.abs(actionData.params[1]))}${actionData.params[2] !== undefined ? "," : ""}`    
-            : actionData.params[1]}`;
-        const value2 = actionData.params[2] !== undefined 
-            ? `${actionData.params[0] !== "multiply"
-                ? generateTimeString(Math.abs(actionData.params[2])) : actionData.params[2]}`
+        const value = `${actionData.params[0] !== "multiply" 
+            ? actionData.params[1] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
+            ? generateTimeString(Math.abs(actionData.params[1])) : `${actionData.params[1]}`);
+        const value2 = actionData.params[2]
+            ? `${actionData.params[0] !== "multiply" 
+                ? actionData.params[2] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
+                ? generateTimeString(Math.abs(actionData.params[2])) : `${actionData.params[2]}`)
             : "";
-        const valueStr = `${value2 ? "between " : ""}${actionData.params[1] < 0 ? "-" : "+"}${value}${value2 ? " and " : ""}`
-            + `${(actionData.params[2] ?? 0) === 0 ? "" : (actionData.params[2] ?? 0) ? "-" : "+"}${value2}`;
+        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}`
+            + value2;
         actionText = actionData.params[0] === "modify"
             ? `[Lock] Modify the remaining lock time by ${valueStr}`
             : actionData.params[0] === "multiply"
@@ -225,13 +226,16 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
     } else if(actionData.key === "resetTaskPoints") {
         actionText = "[Tasks] Reset the gained number of task points";
     } else if(actionData.key === "shareLinkModifyKey") {
-        const value = `${actionData.params[0] !== "nbVisits" && actionData.params[1] !== "multiply"
-            ? generateTimeString(Math.abs(actionData.params[2])) : actionData.params[2]}`;
-        const value2 = actionData.params[3] !== undefined 
-            ? `${actionData.params[0] !== "nbVisits" && actionData.params[1] !== "multiply"
-                ? generateTimeString(Math.abs(actionData.params[3])) : actionData.params[3]}`
-            : undefined;
-        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
+        const value = `${actionData.params[0] !== "nbVisits" && actionData.params[1] !== "multiply" 
+            ? actionData.params[2] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "nbVisits" && actionData.params[1] !== "multiply"
+            ? generateTimeString(Math.abs(actionData.params[2])) : `${actionData.params[2]}`);
+        const value2 = actionData.params[3]
+            ? `${actionData.params[0] !== "nbVisits" && actionData.params[1] !== "multiply" 
+                ? actionData.params[3] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "nbVisits" && actionData.params[1] !== "multiply"
+                ? generateTimeString(Math.abs(actionData.params[3])) : `${actionData.params[3]}`)
+            : "";
+        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}`
+            + value2;
         const affected = actionData.params[0] === "nbVisits" ? "number of required visits"
             : actionData.params[0] === "timeToAdd" ? "link add time" : "link remove time";
         if(actionData.params[1] === "set") {
@@ -246,13 +250,16 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
             ? "[Share Link] Toggle the logged-in requirement"
             : `[Share Link] ${actionData.params ? "Enable" : "Disable"} the logged-in requirement`;
     } else if(actionData.key === "pilloryModifyDuration") {
-        const value = `${actionData.params[0] !== "multiply"
-            ? generateTimeString(Math.abs(actionData.params[1])) : actionData.params[1]}`;
-        const value2 = actionData.params[2] !== undefined 
-            ? `${actionData.params[0] !== "multiply"
-                ? generateTimeString(Math.abs(actionData.params[2])) : actionData.params[2]}`
-            : undefined;
-        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
+        const value = `${actionData.params[0] !== "multiply" 
+            ? actionData.params[1] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
+            ? generateTimeString(Math.abs(actionData.params[1])) : `${actionData.params[1]}`);
+        const value2 = actionData.params[2]
+            ? `${actionData.params[0] !== "multiply" 
+                ? actionData.params[2] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
+                ? generateTimeString(Math.abs(actionData.params[2])) : `${actionData.params[2]}`)
+            : "";
+        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}`
+            + value2;
         actionText = actionData.params[0] === "modify"
             ? actionData.params[1] > 0
                 ? `[Pillory] Add ${valueStr} to the per-vote duration`
@@ -261,13 +268,16 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
                 ? `[Pillory] Multiply the per-vote duration by ${valueStr}`
             : `[Pillory] Set the per-vote duration to ${valueStr}`;
     } else if(actionData.key === "diceModifyDuration") {
-        const value = `${actionData.params[0] !== "multiply"
-            ? generateTimeString(Math.abs(actionData.params[1])) : actionData.params[1]}`;
-        const value2 = actionData.params[2] !== undefined 
-            ? `${actionData.params[0] !== "multiply"
-                ? generateTimeString(Math.abs(actionData.params[2])) : actionData.params[2]}`
-            : undefined;
-        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
+        const value = `${actionData.params[0] !== "multiply" 
+            ? actionData.params[1] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
+            ? generateTimeString(Math.abs(actionData.params[1])) : `${actionData.params[1]}`);
+        const value2 = actionData.params[2]
+            ? `${actionData.params[0] !== "multiply" 
+                ? actionData.params[2] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
+                ? generateTimeString(Math.abs(actionData.params[2])) : `${actionData.params[2]}`)
+            : "";
+        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}`
+            + value2;
         actionText = actionData.params[0] === "modify"
             ? actionData.params[1] > 0
                 ? `[Dice] Add ${valueStr} to the duration multiplier`
@@ -276,13 +286,16 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
                 ? `[Dice] Multiply the duration multiplier by ${valueStr}`
             : `[Dice] Set the duration multiplier to ${valueStr}`;
     } else if(actionData.key === "tasksModifyRequiredPoints") {
-        const value = `${actionData.params[0] !== "multiply"
-            ? generateTimeString(Math.abs(actionData.params[1])) : actionData.params[1]}`;
-        const value2 = actionData.params[2] !== undefined 
-            ? `${actionData.params[0] !== "multiply"
-                ? generateTimeString(Math.abs(actionData.params[2])) : actionData.params[2]}`
-            : undefined;
-        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
+        const value = `${actionData.params[0] !== "multiply" 
+            ? actionData.params[1] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
+            ? generateTimeString(Math.abs(actionData.params[1])) : `${actionData.params[1]}`);
+        const value2 = actionData.params[2]
+            ? `${actionData.params[0] !== "multiply" 
+                ? actionData.params[2] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
+                ? generateTimeString(Math.abs(actionData.params[2])) : `${actionData.params[2]}`)
+            : "";
+        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}`
+            + value2;
         actionText = actionData.params[0] === "modify"
             ? actionData.params[1] > 0
                 ? `[Tasks] Add ${valueStr} to the required points`
@@ -296,13 +309,16 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
     } else if(actionData.key === "guessTimerModifyKey") {
         const affected = actionData.params[0] === "minRandomTime"
             ? "minimum added duration" : "maximum added duration";
-        const value = `${actionData.params[1] !== "multiply"
-            ? generateTimeString(Math.abs(actionData.params[2])) : actionData.params[2]}`;
-        const value2 = actionData.params[3] !== undefined 
-            ? `${actionData.params[1] !== "multiply"
-                ? generateTimeString(Math.abs(actionData.params[3])) : actionData.params[3]}`
-            : undefined;
-        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
+        const value = `${actionData.params[1] !== "multiply" 
+            ? actionData.params[2] < 0 ? "-" : "+" : "x"}` + (actionData.params[1] !== "multiply"
+            ? generateTimeString(Math.abs(actionData.params[2])) : `${actionData.params[2]}`);
+        const value2 = actionData.params[3]
+            ? `${actionData.params[1] !== "multiply" 
+                ? actionData.params[3] < 0 ? "-" : "+" : "x"}` + (actionData.params[1] !== "multiply"
+                ? generateTimeString(Math.abs(actionData.params[3])) : `${actionData.params[3]}`)
+            : "";
+        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}`
+            + value2;
         actionText = actionData.params[1] === "modify"
             ? actionData.params[2] > 0
                 ? `[Guess] Add ${valueStr} to the ${affected}`
