@@ -393,7 +393,7 @@
                 {#if shouldHorizontal}
                     {@const totalPercentage = wheelData.outcomes.reduce((sum, data) => sum += parseFloat(data.percentage), 0)}
                     {@const renderOAuth = !hasKeyholderOAuth && userRole === "keyholder"}
-                    <div class="h-full flex flex-col ml-4" style={`width: calc(${wheelWidth}px * 1.0)`}>
+                    <div class="h-full flex flex-col ml-4" style={`width: calc(${wheelWidth * 1.2}px * 1.0)`}>
                         <!-- <div class={`flex flex-row flex-start items-center ${renderOAuth ? "justify-between" : "justify-start"}`}>
                             <div>
                                 <div>Keyholder OAuth Status:</div>

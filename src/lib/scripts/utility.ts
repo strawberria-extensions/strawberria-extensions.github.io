@@ -68,7 +68,7 @@ export function generateTimeString(seconds: number, showSeconds: boolean = false
         multipliers["second"] = 1;
     }
 
-    // Generate day, hour, minute, and optionally second values
+    // Generate day, hour, minute and optionally second values
     const values: { [key: string]: number } = {};
     let currentSeconds = seconds;
     for(const [key, multiplier] of Object.entries(multipliers)) {
@@ -168,7 +168,9 @@ export function chineseWhisper(line: string) {
 export function generateOutcomeEffectLabel(actionData: LockEffectData) {
     let actionText = "";
 
-    if(actionData.key === "resetLock") {
+    if(actionData.key === "customText") {
+        actionText = actionData.params[0];
+    } else if(actionData.key === "resetLock") {
         actionText = "[Lock] Reset the lock";
     } else if(actionData.key === "unlock") {
         actionText = "[Lock] Unlock the lock";
@@ -199,8 +201,7 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
                 ? actionData.params[2] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
                 ? generateTimeString(Math.abs(actionData.params[2])) : `${actionData.params[2]}`)
             : "";
-        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}`
-            + value2;
+        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
         actionText = actionData.params[0] === "modify"
             ? `[Lock] Modify the remaining lock time by ${valueStr}`
             : actionData.params[0] === "multiply"
@@ -211,7 +212,7 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
         if(actionData.params[0] !== undefined) {
             actionText += `${actionData.params[0] ? "Display" : "Hide"} remaining lock time`;
             if(actionData.params[1] !== undefined) {
-                actionText += ", ";
+                actionText += " | ";
             }
         }
         if(actionData.params[1] !== undefined) {
@@ -234,8 +235,7 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
                 ? actionData.params[3] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "nbVisits" && actionData.params[1] !== "multiply"
                 ? generateTimeString(Math.abs(actionData.params[3])) : `${actionData.params[3]}`)
             : "";
-        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}`
-            + value2;
+        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
         const affected = actionData.params[0] === "nbVisits" ? "number of required visits"
             : actionData.params[0] === "timeToAdd" ? "link add time" : "link remove time";
         if(actionData.params[1] === "set") {
@@ -258,8 +258,7 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
                 ? actionData.params[2] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
                 ? generateTimeString(Math.abs(actionData.params[2])) : `${actionData.params[2]}`)
             : "";
-        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}`
-            + value2;
+        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
         actionText = actionData.params[0] === "modify"
             ? actionData.params[1] > 0
                 ? `[Pillory] Add ${valueStr} to the per-vote duration`
@@ -276,8 +275,7 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
                 ? actionData.params[2] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
                 ? generateTimeString(Math.abs(actionData.params[2])) : `${actionData.params[2]}`)
             : "";
-        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}`
-            + value2;
+        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
         actionText = actionData.params[0] === "modify"
             ? actionData.params[1] > 0
                 ? `[Dice] Add ${valueStr} to the duration multiplier`
@@ -294,8 +292,7 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
                 ? actionData.params[2] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
                 ? generateTimeString(Math.abs(actionData.params[2])) : `${actionData.params[2]}`)
             : "";
-        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}`
-            + value2;
+        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
         actionText = actionData.params[0] === "modify"
             ? actionData.params[1] > 0
                 ? `[Tasks] Add ${valueStr} to the required points`
@@ -317,8 +314,7 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
                 ? actionData.params[3] < 0 ? "-" : "+" : "x"}` + (actionData.params[1] !== "multiply"
                 ? generateTimeString(Math.abs(actionData.params[3])) : `${actionData.params[3]}`)
             : "";
-        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}`
-            + value2;
+        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
         actionText = actionData.params[1] === "modify"
             ? actionData.params[2] > 0
                 ? `[Guess] Add ${valueStr} to the ${affected}`

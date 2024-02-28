@@ -1,4 +1,7 @@
 export type LockEffectData = {
+    "key": "customText",
+    "params": [string];
+} | {
     "key": "resetLock",
     "params": []
 } | {
