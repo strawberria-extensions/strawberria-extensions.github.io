@@ -6,6 +6,7 @@
     import subLockEffects from "$lib/resources/schemas/sub-lockEffects.json";
     import subPenaltyData from "$lib/resources/schemas/sub-penaltyData.json";
     import schemaConfigs from "$lib/resources/schemas/schema-configs.json";
+    import { sleep } from "$lib/scripts/utility";
 
     export let data: { slug: "extended_wheel" | "strawberria_penalties" };
 
@@ -81,7 +82,7 @@
             }
         });
 
-        initialLoadMessage = "Retrieving extension config...";
+        initialLoadMessage = "Retrieving sss extension config...";
 
         // Retrieve current extension config using token
         const configGetResponse = await fetch(chasterUtilitiesURL, 
