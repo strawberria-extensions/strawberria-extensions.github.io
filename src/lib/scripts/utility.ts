@@ -322,6 +322,13 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
             : actionData.params[1] === "multiply"
                 ? `[Guess] Multiply the ${affected} by ${valueStr}`
             : `[Guess] Set the ${affected} to ${valueStr}`;
+    } else if(actionData.key === "delayLockEffects") {
+        // Currently only output first delayed lock effect
+        const delayedEffectS = Math.floor(actionData.params[1] / 1000);
+        const delayedTimeString = generateTimeString(delayedEffectS, true);
+        const restEffectLabel = generateOutcomeEffectLabel(actionData.params[0][0]);
+
+        actionText = `[Delay ${delayedTimeString}] ${restEffectLabel}`;
     }
 
     return actionText;

@@ -3,10 +3,10 @@
     import { onMount } from "svelte";
     import { Validator } from "jsonschema";
     import chasterLogo from "$lib/resources/logo.png"
+    import subLockEffect from "$lib/resources/schemas/sub-lockEffect.json";
     import subLockEffects from "$lib/resources/schemas/sub-lockEffects.json";
     import subPenaltyData from "$lib/resources/schemas/sub-penaltyData.json";
     import schemaConfigs from "$lib/resources/schemas/schema-configs.json";
-    import { sleep } from "$lib/scripts/utility";
 
     export let data: { slug: "extended_wheel" | "strawberria_penalties" };
 
@@ -82,7 +82,7 @@
             }
         });
 
-        initialLoadMessage = "Retrieving sss extension config...";
+        initialLoadMessage = "Retrieving extension config...";
 
         // Retrieve current extension config using token
         const configGetResponse = await fetch(chasterUtilitiesURL, 
@@ -112,6 +112,7 @@
     });
 
     const validator = new Validator();
+    validator.addSchema(subLockEffect, "/lockEffect")
     validator.addSchema(subLockEffects, "/lockEffects")
     validator.addSchema(subPenaltyData, "/penaltyData")
 
