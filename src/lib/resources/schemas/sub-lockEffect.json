@@ -423,7 +423,7 @@
                 "key": {
                     "type": "string",
                     "enum": [
-                        "delayLockEffects"
+                        "delayLockEffect"
                     ]
                 },
                 "params": {
@@ -434,7 +434,7 @@
                         },
                         {
                             "type": "number",
-                            "exclusiveMinimum": 0
+                            "exclusiveMinimum": 60000
                         }
                     ]
                 }
