@@ -65,6 +65,6 @@ export type LockEffectData = {
     "key": "guessTimerModifyKey",
     "params": ["minRandomTime" | "maxRandomTime", "set" | "modify" | "multiply", number, number | undefined]
 } | {
-    "key": "delayLockEffects",
-    "params": [LockEffectData[], number];
+    "key": "delayLockEffect",
+    "params": [LockEffectData, number];
 };
