@@ -39,7 +39,7 @@
 
     let mainToken = "";
     let userRole: ChasterUserRole = "keyholder";
-    let hasKeyholderOAuth = false;
+    let keyholder: string | undefined = undefined;
     let extendedWheelConfigStore: Writable<ExtendedWheelConfig_User> = writable({ "wheels": {} });
     let extendedWheelCustomStore: Writable<ExtendedWheelCustom> = writable({ wheels: {} });
 
@@ -64,7 +64,7 @@
         initialLoadMessage = "Retrieving extended wheel data...";
 
         const extendedMainPageData = await retrieveWheelConfig();
-        hasKeyholderOAuth = extendedMainPageData.hasKeyholder;
+        keyholder = extendedMainPageData.keyholder;
         userRole = extendedMainPageData.userRole;
         $extendedWheelConfigStore = extendedMainPageData.config;
         $extendedWheelCustomStore = extendedMainPageData.customData;
@@ -346,9 +346,12 @@
                         <div class="h-full flex flex-col">
                             {#key selectedWheelID}
                                 {#if wheelData.note !== undefined}
-                                    <div class="flex flex-col">
-                                        <div>A note from your keyholder?</div>
-                                        <div class="caption">{wheelData.note}</div>
+                                    {@const lines = wheelData.note.split("\n")}
+                                    <div class="space-y-[0.375em]">
+                                        {#each lines as line}
+                                            <div class="caption leading-5">{line}</div>
+                                        {/each}
+                                        <div class="text-right">Signed, {keyholder}~</div>
                                     </div>
                                     <hr>
                                 {/if}
@@ -399,7 +402,6 @@
                 </div>
                 {#if shouldHorizontal}
                     {@const totalPercentage = wheelData.outcomes.reduce((sum, data) => sum += parseFloat(data.percentage), 0)}
-                    {@const renderOAuth = !hasKeyholderOAuth && userRole === "keyholder"}
                     <div class="h-full flex flex-col ml-4" style={`width: calc(${wheelWidth * 1.2}px * 1.0)`}>
                         <!-- <div class={`flex flex-row flex-start items-center ${renderOAuth ? "justify-between" : "justify-start"}`}>
                             <div>
@@ -420,9 +422,12 @@
                         <hr> -->
                         {#key selectedWheelID}
                             {#if wheelData.note !== undefined}
-                                <div class="flex flex-col">
-                                    <div>A note from your keyholder?</div>
-                                    <div class="caption">{wheelData.note}</div>
+                                {@const lines = wheelData.note.split("\n")}
+                                <div class="space-y-[0.375em]">
+                                    {#each lines as line}
+                                        <div class="caption leading-5">{line}</div>
+                                    {/each}
+                                    <div class="text-right">Signed, {keyholder}~</div>
                                 </div>
                                 <hr>
                             {/if}
