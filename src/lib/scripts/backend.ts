@@ -42,6 +42,7 @@ export interface ChasterCustomData_ExtendedWheel {
 
 export interface ExtendedWheelConfig_WheelData {
     display:     string;
+    note?:       string;
     settings:    {
         disabled:         boolean;
         availableSpins:   boolean;

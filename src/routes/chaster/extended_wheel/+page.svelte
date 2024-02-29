@@ -345,6 +345,13 @@
                         <hr>
                         <div class="h-full flex flex-col">
                             {#key selectedWheelID}
+                                {#if wheelData.note !== undefined}
+                                    <div class="flex flex-col">
+                                        <div>A note from your keyholder?</div>
+                                        <div class="caption">{wheelData.note}</div>
+                                    </div>
+                                    <hr>
+                                {/if}
                                 <div class="flex flex-row justify-between">
                                     <div>
                                         <div>Outcomes</div>
@@ -412,6 +419,13 @@
                         </div>
                         <hr> -->
                         {#key selectedWheelID}
+                            {#if wheelData.note !== undefined}
+                                <div class="flex flex-col">
+                                    <div>A note from your keyholder?</div>
+                                    <div class="caption">{wheelData.note}</div>
+                                </div>
+                                <hr>
+                            {/if}
                             <div class="flex flex-row justify-between">
                                 <div>
                                     <div>Outcomes</div>

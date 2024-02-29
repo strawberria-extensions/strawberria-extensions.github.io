@@ -12,6 +12,9 @@
                             "display": { 
                                 "type": "string"
                             },
+                            "note": {
+                                "type": "string"
+                            },
                             "settings": {
                                 "type": "object",
                                 "properties": {

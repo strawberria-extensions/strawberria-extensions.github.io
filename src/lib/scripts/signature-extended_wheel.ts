@@ -7,6 +7,7 @@ export type ExtendedWheelConfig_Payload = ExtendedWheelConfig;
 
 export interface ExtendedWheelConfig_WheelData {
     display:  string;
+    note?:    string;
     settings: {
         disabled:          boolean;
         hiddenPercentages: boolean;

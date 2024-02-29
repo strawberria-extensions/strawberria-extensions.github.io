@@ -30,9 +30,9 @@
                 "key": {
                     "type": "string",
                     "enum": [
-                        "pilloryModifyDuration",
-                        "diceModifyDuration",
-                        "tasksModifyRequiredPoints",
+                        "pilloryUpdateDuration",
+                        "diceUpdateDuration",
+                        "tasksUpdateRequiredPoints",
                         "updateLockDuration"
                     ]
                 },
@@ -311,7 +311,7 @@
                 "key": {
                     "type": "string",
                     "enum": [
-                        "shareLinkModifyKey"
+                        "shareLinkUpdateKey"
                     ]
                 },
                 "params": {
@@ -356,7 +356,7 @@
                 "key": {
                     "type": "string",
                     "enum": [
-                        "guessTimerModifyKey"
+                        "guessTimerUpdateKey"
                     ]
                 },
                 "params": {
@@ -435,6 +435,114 @@
                         {
                             "type": "number",
                             "exclusiveMinimum": 60000
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "key",
+                "params"
+            ]
+        },
+        {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string",
+                    "enum": [
+                        "extendedAddOutcome"
+                    ]
+                },
+                "params": {
+                    "type": "array",
+                    "prefixItems": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "object",
+                            "properties": {
+                                "percentage": {
+                                    "type": "string",
+                                    "pattern": "^\\d+(\\.\\d+)?$"
+                                },
+                                "text": {
+                                    "type": "string"
+                                },
+                                "effects": {
+                                    "$ref": "/lockEffects"
+                                }
+                            },
+                            "required": ["percentage", "text", "effects"]
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "key",
+                "params"
+            ]
+        },
+        {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string",
+                    "enum": [
+                        "extendedRemoveOutcome"
+                    ]
+                },
+                "params": {
+                    "type": "array",
+                    "prefixItems": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "key",
+                "params"
+            ]
+        },
+        {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string",
+                    "enum": [
+                        "extendedUpdatePercentage"
+                    ]
+                },
+                "params": {
+                    "type": "array",
+                    "prefixItems": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "set",
+                                "modify",
+                                "multiply"
+                            ]
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": [
+                                "number",
+                                "null"
+                            ]
                         }
                     ]
                 }

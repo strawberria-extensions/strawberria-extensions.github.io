@@ -1,3 +1,5 @@
+import type { ExtendedWheelConfig_OutcomeData } from "./signature-extended_wheel";
+
 export type LockEffectData = {
     "key": "customText",
     "params": [string];
@@ -44,27 +46,36 @@ export type LockEffectData = {
     "key": "resetTaskPoints",
     "params": []
 } | {
-    "key": "shareLinkModifyKey",
+    "key": "shareLinkUpdateKey",
     "params": ["nbVisits" | "timeToAdd" | "timeToRemove", "set" | "modify" | "multiply", number, number | undefined]
 } | {
     "key": "shareLinkSetLoggedIn",
     "params": [boolean | undefined]
 } | {
-    "key": "pilloryModifyDuration",
+    "key": "pilloryUpdateDuration",
     "params": ["set" | "modify" | "multiply", number, number | undefined]
 } | {
-    "key": "diceModifyDuration",
+    "key": "diceUpdateDuration",
     "params": ["set" | "modify" | "multiply", number, number | undefined]
 } | {
-    "key": "tasksModifyRequiredPoints",
+    "key": "tasksUpdateRequiredPoints",
     "params": ["set" | "modify" | "multiply", number, number | undefined]
 } | {
     "key": "randomEventsModifyDifficulty",
     "params": ["easy" | "normal" | "hard" | "expert"]
 } | {
-    "key": "guessTimerModifyKey",
+    "key": "guessTimerUpdateKey",
     "params": ["minRandomTime" | "maxRandomTime", "set" | "modify" | "multiply", number, number | undefined]
 } | {
     "key": "delayLockEffect",
     "params": [LockEffectData, number];
+} | {
+    "key": "extendedAddOutcome",
+    "params": [string, ExtendedWheelConfig_OutcomeData];
+} | {
+    "key": "extendedRemoveOutcome",
+    "params": [string, string];
+} | {
+    "key": "extendedUpdatePercentage",
+    "params": [string, string, "set" | "modify" | "multiply", number, number | undefined];
 };

@@ -226,7 +226,7 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
         actionText = `[Lock] Enable the extension '${extensionDisplayName}'`;
     } else if(actionData.key === "resetTaskPoints") {
         actionText = "[Tasks] Reset the gained number of task points";
-    } else if(actionData.key === "shareLinkModifyKey") {
+    } else if(actionData.key === "shareLinkUpdateKey") {
         const value = `${actionData.params[0] !== "nbVisits" && actionData.params[1] !== "multiply" 
             ? actionData.params[2] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "nbVisits" && actionData.params[1] !== "multiply"
             ? generateTimeString(Math.abs(actionData.params[2])) : `${actionData.params[2]}`);
@@ -249,7 +249,7 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
         actionText = actionData.params[0] === undefined
             ? "[Share Link] Toggle the logged-in requirement"
             : `[Share Link] ${actionData.params ? "Enable" : "Disable"} the logged-in requirement`;
-    } else if(actionData.key === "pilloryModifyDuration") {
+    } else if(actionData.key === "pilloryUpdateDuration") {
         const value = `${actionData.params[0] !== "multiply" 
             ? actionData.params[1] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
             ? generateTimeString(Math.abs(actionData.params[1])) : `${actionData.params[1]}`);
@@ -266,7 +266,7 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
             : actionData.params[0] === "multiply"
                 ? `[Pillory] Multiply the per-vote duration by ${valueStr}`
             : `[Pillory] Set the per-vote duration to ${valueStr}`;
-    } else if(actionData.key === "diceModifyDuration") {
+    } else if(actionData.key === "diceUpdateDuration") {
         const value = `${actionData.params[0] !== "multiply" 
             ? actionData.params[1] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
             ? generateTimeString(Math.abs(actionData.params[1])) : `${actionData.params[1]}`);
@@ -283,7 +283,7 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
             : actionData.params[0] === "multiply"
                 ? `[Dice] Multiply the duration multiplier by ${valueStr}`
             : `[Dice] Set the duration multiplier to ${valueStr}`;
-    } else if(actionData.key === "tasksModifyRequiredPoints") {
+    } else if(actionData.key === "tasksUpdateRequiredPoints") {
         const value = `${actionData.params[0] !== "multiply" 
             ? actionData.params[1] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
             ? generateTimeString(Math.abs(actionData.params[1])) : `${actionData.params[1]}`);
@@ -298,12 +298,12 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
                 ? `[Tasks] Add ${valueStr} to the required points`
                 : `[Tasks] Subtract ${valueStr} from the required points`
             : actionData.params[0] === "multiply"
-                ? `[Tasks] Multiply the required points by ${actionData.params[1]}`
+                ? `[Tasks] Multiply the required points by ${valueStr}`
             : `[Tasks] Set the required points to ${valueStr}`;
     } else if(actionData.key === "randomEventsModifyDifficulty") {
         const firstUpper = actionData.params[0].charAt(0).toUpperCase() + actionData.params[0].slice(1);
         actionText = `[Random] Set the difficulty to ${firstUpper}`;
-    } else if(actionData.key === "guessTimerModifyKey") {
+    } else if(actionData.key === "guessTimerUpdateKey") {
         const affected = actionData.params[0] === "minRandomTime"
             ? "minimum added duration" : "maximum added duration";
         const value = `${actionData.params[1] !== "multiply" 
@@ -329,6 +329,27 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData) {
         const restEffectLabel = generateOutcomeEffectLabel(actionData.params[0]);
 
         actionText = `[Delay ${delayedTimeString}] ➜ ${restEffectLabel}`;
+    } else if(actionData.key === "extendedAddOutcome") {
+        actionText = `[Extended Wheel] Add outcome titled '${actionData.params[1].text}'`;
+    } else if(actionData.key === "extendedRemoveOutcome") {
+        actionText = `[Extended Wheel] Remove outcome titled '${actionData.params[1]}'`;
+    } else if(actionData.key === "extendedUpdatePercentage") {
+        const value = `${actionData.params[2] !== "multiply" 
+            ? actionData.params[3] < 0 ? "-" : "+" : "x"}` + (actionData.params[2] !== "multiply"
+            ? generateTimeString(Math.abs(actionData.params[3])) : `${actionData.params[3]}`);
+        const value2 = actionData.params[4]
+            ? `${actionData.params[2] !== "multiply" 
+                ? actionData.params[4] < 0 ? "-" : "+" : "x"}` + (actionData.params[2] !== "multiply"
+                ? generateTimeString(Math.abs(actionData.params[4])) : `${actionData.params[4]}`)
+            : "";
+        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
+        actionText = actionData.params[2] === "modify"
+            ? actionData.params[3] > 0
+                ? `[Tasks] Add ${valueStr} to the required points`
+                : `[Tasks] Subtract ${valueStr} from the required points`
+            : actionData.params[2] === "multiply"
+                ? `[Tasks] Multiply the required points by ${valueStr}`
+            : `[Tasks] Set the required points to ${valueStr}`;
     }
 
     return actionText;
