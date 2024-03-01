@@ -328,7 +328,12 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData): string {
         const delayedTimeString = generateTimeString(delayedEffectS, true);
         const restEffectLabel = generateOutcomeEffectLabel(actionData.params[0]);
 
-        actionText = `**[Delay ${delayedTimeString}]** ➜ ${restEffectLabel}`;
+        actionText = `**Delay activation by ${delayedTimeString}:**\n➜ ${restEffectLabel}`;
+    } else if(actionData.key === "partnerAddRemoveReason") {
+        const display = actionData.params[0] === "extended-wheel-of-fortune"
+            ? "Extended Wheel" : "";
+        actionText = `**[${display}]** ${actionData.params[1] === "add" 
+            ? "Add" : "Remove"} reason preventing unlocking:\n➜ ${actionData.params[2]}`;
     } else if(actionData.key === "extendedSetDisabled") {
         actionText = `**[Extended Wheel]** ${actionData.params[2] === true ? "Disable"
             : actionData.params[2] === false ? "Enable" : "Toggle access to"} the wheel named ${actionData.params[1]}`;  

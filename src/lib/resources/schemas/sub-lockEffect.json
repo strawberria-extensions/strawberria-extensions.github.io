@@ -450,6 +450,39 @@
                 "key": {
                     "type": "string",
                     "enum": [
+                        "partnerAddRemoveReason"
+                    ]
+                },
+                "params": {
+                    "type": "array",
+                    "prefixItems": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "string",
+                            "enum": [
+                                "add",
+                                "remove"
+                            ]
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "key",
+                "params"
+            ]
+        },
+        {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string",
+                    "enum": [
                         "extendedSetDisabled"
                     ]
                 },

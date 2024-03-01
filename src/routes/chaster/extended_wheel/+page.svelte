@@ -297,12 +297,14 @@
                                         <div class="flex flex-col">
                                             <div>{$resultStore.text ?? ""}</div>
                                             {#if $resultStore.effects !== undefined}
-                                                {#each $resultStore.effects as effectData}
-                                                    {@const effectText = generateOutcomeEffectLabel(effectData)}
-                                                    <div class="caption whitespace-pre-wrap text-sm">
-                                                        • <SvelteMarkdown source={effectText} isInline />
-                                                    </div>
-                                                {/each}
+                                                <ul class="list">
+                                                    {#each $resultStore.effects as effectData}
+                                                        {@const effectText = generateOutcomeEffectLabel(effectData)}
+                                                        <li class="caption whitespace-pre-wrap text-sm">
+                                                            <SvelteMarkdown source={effectText} isInline />   
+                                                        </li>
+                                                    {/each}
+                                                </ul>
                                             {/if}
                                         </div>
 
@@ -521,5 +523,12 @@
         border-radius: 16px;
         box-shadow: 0 4px 8px rgba(0,0,0,.2);
         border: 2px solid #64748b;
+    }
+    
+    .list {
+        list-style: inside;
+        list-style-position: outside;
+        margin-left: 1em;
+        margin-bottom: 0;
     }
 </style>

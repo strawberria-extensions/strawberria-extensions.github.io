@@ -70,6 +70,9 @@ export type LockEffectData = {
     "key": "delayLockEffect",
     "params": [LockEffectData, number];
 } | {
+    "key": "partnerAddRemoveReason",
+    "params": [string, "add" | "remove", string];
+} | {
     "key": "extendedSetDisabled",
     "params": [string, string, boolean | undefined];
 } | {
