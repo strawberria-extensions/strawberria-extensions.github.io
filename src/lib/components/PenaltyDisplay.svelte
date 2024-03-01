@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onDestroy } from "svelte";
+    import SvelteMarkdown from "svelte-markdown";
     import type { IndividualPenaltyData } from "$lib/scripts/signature-backend";
     import { generateOutcomeEffectLabel, generateTimeStringPenalties } from "$lib/scripts/utility";
 
@@ -47,7 +48,7 @@
                 <ul class="flex flex-col list effect-list caption pl-[0.25em] mt-[0.125em]">
                     {#each individualPenaltyData.penaltyConfig.effects as effectData}
                         {@const effectText = generateOutcomeEffectLabel(effectData)}
-                        <li>{effectText}</li>
+                        <li><SvelteMarkdown source={effectText} isInline /></li>
                     {/each}
                 </ul>
             {/if}
