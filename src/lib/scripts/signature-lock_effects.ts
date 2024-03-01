@@ -70,6 +70,9 @@ export type LockEffectData = {
     "key": "delayLockEffect",
     "params": [LockEffectData, number];
 } | {
+    "key": "extendedSetDisabled",
+    "params": [string, string, boolean | undefined];
+} | {
     "key": "extendedAddOutcome",
     "params": [string, ExtendedWheelConfig_OutcomeData];
 } | {

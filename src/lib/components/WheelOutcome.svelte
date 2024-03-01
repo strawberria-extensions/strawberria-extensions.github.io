@@ -1,8 +1,10 @@
 <script lang="ts">
-    import { generateOutcomeEffectLabel } from "$lib/scripts/utility";
     import bigDecimal from "js-big-decimal";
+    import SvelteMarkdown from "svelte-markdown";
+    import { generateOutcomeEffectLabel } from "$lib/scripts/utility";
     import type { ExtendedWheelConfig_OutcomeData_User, ExtendedWheelConfig_User } from "../scripts/signature-extended_wheel";
 
+    export let lookups: { [key: string]: (arg1: string) => string };
     export let outcomeData: ExtendedWheelConfig_OutcomeData_User;
     export let settings: ExtendedWheelConfig_User["wheels"][string]["settings"];
     export let userRole: "keyholder" | "wearer";
@@ -15,18 +17,19 @@
             .multiply(new bigDecimal(100))
             .round(3).getValue()
             .replace(/\.0+$|([^\.])0+$/, "$1");
-
 </script>
 
 <div class="flex flex-row justify-between space-x-[1em]">
-    <div class="flex flex-col outcome-left pl-[0.75em]" style={`border-left: 8px solid ${color}`}>
+    <div class="flex flex-col l outcome-left pl-[0.75em]" style={`border-left: 8px solid ${color}`}>
         <div class="mb-[0.25em] leading-5">{outcomeData.text ?? ""}</div>
         {#if outcomeData.effects !== undefined}
-            <ul class="list space-y-[0.25em]">
-            {#each outcomeData.effects as effectData}
-                {@const effectText = generateOutcomeEffectLabel(effectData)}
-                <li class="caption whitespace-pre-wrap text-sm !leading-4">{effectText}</li>
-            {/each}
+            <ul class="list">
+                {#each outcomeData.effects as effectData}
+                    {@const effectText = generateOutcomeEffectLabel(effectData, lookups)}
+                    <li class="caption whitespace-pre-wrap text-sm">
+                        <SvelteMarkdown source={effectText} isInline />   
+                    </li>
+                {/each}
             </ul>
         {/if}
     </div>

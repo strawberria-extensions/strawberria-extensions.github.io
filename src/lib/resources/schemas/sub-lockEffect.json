@@ -450,6 +450,38 @@
                 "key": {
                     "type": "string",
                     "enum": [
+                        "extendedSetDisabled"
+                    ]
+                },
+                "params": {
+                    "type": "array",
+                    "prefixItems": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": [
+                                "boolean",
+                                "null"
+                            ]
+                        }
+                    ]
+                }
+            },
+            "required": [
+                "key",
+                "params"
+            ]
+        },
+        {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string",
+                    "enum": [
                         "extendedAddOutcome"
                     ]
                 },

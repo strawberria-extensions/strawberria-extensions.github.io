@@ -2,6 +2,7 @@
     import { easeSinInOut } from 'd3-ease';
     import { onMount } from 'svelte';
     import { writable, type Writable } from 'svelte/store';
+    import SvelteMarkdown from "svelte-markdown";
     import chasterLogo from "$lib/resources/logo.png"
     import tickAudioFile from "$lib/resources/tick.mp3";
     import wheelBgOverlayFile from "$lib/resources/wheel-bg-overlay.svg"
@@ -141,9 +142,10 @@
         // Cache the post-spin data to update after spin
         const extendedMainPageData = await retrieveWheelConfig();
         while(spinDisabled) {
-            await sleep(100);
+            await sleep(10);
         }
         if(JSON.stringify($extendedWheelConfigStore) !== JSON.stringify(extendedMainPageData.config)) {
+            selectedWheelID = Object.keys(extendedMainPageData.config.wheels)[0] ?? undefined;
             $extendedWheelConfigStore = extendedMainPageData.config; // Intensive?
         }
         $extendedWheelCustomStore = extendedMainPageData.customData;
@@ -263,7 +265,7 @@
         </div>
     {:else if selectedWheelID !== undefined}
         {@const wheelData = $extendedWheelConfigStore.wheels[selectedWheelID]}
-        {@const buttonDisabled = spinDisabled || wheelData.settings.disabled === true}
+        {@const buttonDisabled = spinDisabled || (wheelData.settings.disabled === true && userRole !== "keyholder")}
         {@const allowedSpin = ($nextSpinTimestampStore === "" || userRole === "keyholder")}
         <div class="card-content grow" class:card-wrapper-desktop={shouldHorizontal}>
             <div class="w-full h-full flex flex-row">
@@ -297,7 +299,9 @@
                                             {#if $resultStore.effects !== undefined}
                                                 {#each $resultStore.effects as effectData}
                                                     {@const effectText = generateOutcomeEffectLabel(effectData)}
-                                                    <div class="caption whitespace-pre-wrap text-sm">• {effectText}</div>
+                                                    <div class="caption whitespace-pre-wrap text-sm">
+                                                        • <SvelteMarkdown source={effectText} isInline />
+                                                    </div>
                                                 {/each}
                                             {/if}
                                         </div>
@@ -349,7 +353,9 @@
                                     {@const lines = wheelData.note.split("\n")}
                                     <div class="space-y-[0.375em]">
                                         {#each lines as line}
-                                            <div class="caption leading-5">{line}</div>
+                                            <div class="caption leading-5">
+                                                <SvelteMarkdown source={line} isInline />   
+                                            </div>
                                         {/each}
                                         <div class="text-right">Signed, {keyholder}~</div>
                                     </div>
@@ -425,7 +431,9 @@
                                 {@const lines = wheelData.note.split("\n")}
                                 <div class="space-y-[0.375em]">
                                     {#each lines as line}
-                                        <div class="caption leading-5">{line}</div>
+                                        <div class="caption leading-5">
+                                            <SvelteMarkdown source={line} isInline />   
+                                        </div>
                                     {/each}
                                     <div class="text-right">Signed, {keyholder}~</div>
                                 </div>
