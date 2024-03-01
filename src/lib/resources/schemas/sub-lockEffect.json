@@ -17,6 +17,9 @@
                 "params": {
                     "type": "array",
                     "prefixItems": []
+                },
+                "hidden": {
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -57,6 +60,9 @@
                             ]
                         }
                     ]
+                },
+                "hidden": {
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -84,6 +90,9 @@
                             ]
                         }
                     ]
+                },
+                "hidden": {
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -110,6 +119,9 @@
                             "type": "string"
                         }
                     ]
+                },
+                "hidden": {
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -146,6 +158,9 @@
                             ]
                         }
                     ]
+                },
+                "hidden": {
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -172,6 +187,9 @@
                             ]
                         }
                     ]
+                },
+                "hidden": {
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -211,6 +229,9 @@
                             "type": "boolean"
                         }
                     ]
+                },
+                "hidden": {
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -234,6 +255,9 @@
                             "type": "string"
                         }
                     ]
+                },
+                "hidden": {
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -272,6 +296,9 @@
                             "minimum": 0
                         }
                     ]
+                },
+                "hidden": {
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -298,6 +325,9 @@
                             ]
                         }
                     ]
+                },
+                "hidden": {
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -343,6 +373,9 @@
                             ]
                         }
                     ]
+                },
+                "hidden": {
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -387,6 +420,9 @@
                             ]
                         }
                     ]
+                },
+                "hidden": {
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -410,6 +446,9 @@
                             "type": "string"
                         }
                     ]
+                },
+                "hidden": {
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -437,6 +476,9 @@
                             "exclusiveMinimum": 60000
                         }
                     ]
+                },
+                "hidden": {
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -470,6 +512,9 @@
                             "type": "string"
                         }
                     ]
+                },
+                "hidden": {
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -502,6 +547,9 @@
                             ]
                         }
                     ]
+                },
+                "hidden": {
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -541,6 +589,9 @@
                             "required": ["percentage", "text", "effects"]
                         }
                     ]
+                },
+                "hidden": {
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -567,6 +618,9 @@
                             "type": "string"
                         }
                     ]
+                },
+                "hidden": {
+                    "type": "boolean"
                 }
             },
             "required": [
@@ -610,6 +664,9 @@
                             ]
                         }
                     ]
+                },
+                "hidden": {
+                    "type": "boolean"
                 }
             },
             "required": [

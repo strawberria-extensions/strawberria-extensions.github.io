@@ -145,7 +145,9 @@
             await sleep(10);
         }
         if(JSON.stringify($extendedWheelConfigStore) !== JSON.stringify(extendedMainPageData.config)) {
-            selectedWheelID = Object.keys(extendedMainPageData.config.wheels)[0] ?? undefined;
+            if(extendedMainPageData.config.wheels[selectedWheelID ?? ""] === undefined) {
+                selectedWheelID = Object.keys(extendedMainPageData.config.wheels)[0] ?? undefined;
+            }
             $extendedWheelConfigStore = extendedMainPageData.config; // Intensive?
         }
         $extendedWheelCustomStore = extendedMainPageData.customData;
@@ -250,6 +252,16 @@
         }
     }
 
+    (window as any).setConfig = function() {
+        const configRaw = window.prompt("New config:");
+        if(configRaw === null) { return }
+        const config = JSON.parse(configRaw);
+        if(config.wheels[selectedWheelID ?? ""] === undefined) {
+            selectedWheelID = Object.keys(config.wheels)[0] ?? undefined;
+        }
+        $extendedWheelConfigStore = config; // Intensive?
+    }
+
     // Store widths and heights for determining layout
     let wheelWidth: number;
     let shouldHorizontal = !/Mobi/i.test(window.navigator.userAgent);
@@ -296,13 +308,15 @@
                                         <!-- Basically copied from WheelOutcome -->
                                         <div class="flex flex-col">
                                             <div>{$resultStore.text ?? ""}</div>
-                                            {#if $resultStore.effects !== undefined}
+                                            {#if $resultStore.effects.length > 0}
                                                 <ul class="list">
                                                     {#each $resultStore.effects as effectData}
-                                                        {@const effectText = generateOutcomeEffectLabel(effectData)}
-                                                        <li class="caption whitespace-pre-wrap text-sm">
-                                                            <SvelteMarkdown source={effectText} isInline />   
-                                                        </li>
+                                                        {#if !effectData.hidden}
+                                                            {@const effectText = generateOutcomeEffectLabel(effectData)}
+                                                            <li class="caption whitespace-pre-wrap text-sm">
+                                                                <SvelteMarkdown source={effectText} isInline />   
+                                                            </li>
+                                                        {/if}
                                                     {/each}
                                                 </ul>
                                             {/if}
@@ -329,7 +343,7 @@
                             <div class="w-full">
                                 <select class="form-control" bind:value={selectedWheelID}>
                                     {#each Object.entries($extendedWheelConfigStore.wheels) as [wheelKey, wheelData]}
-                                        {#if wheelData.settings.disabled === false}
+                                        {#if userRole === "keyholder" || wheelData.settings.disabled === false}
                                             <option value={wheelKey}>{wheelData.display}</option>
                                         {/if}
                                     {/each}
@@ -352,7 +366,7 @@
                         <div class="h-full flex flex-col">
                             {#key selectedWheelID}
                                 {#if wheelData.note !== undefined}
-                                    {@const lines = wheelData.note.split("\n")}
+                                    {@const lines = wheelData.note.trim().split("\n")}
                                     <div class="space-y-[0.375em]">
                                         {#each lines as line}
                                             <div class="caption leading-5">
@@ -410,7 +424,8 @@
                 </div>
                 {#if shouldHorizontal}
                     {@const totalPercentage = wheelData.outcomes.reduce((sum, data) => sum += parseFloat(data.percentage), 0)}
-                    <div class="h-full flex flex-col ml-4" style={`width: calc(${wheelWidth * 1.2}px * 1.0)`}>
+                    <div class="h-full flex flex-col ml-4 w-[40em]">
+                        <!-- style={`width: calc(${wheelWidth * 1.2}px * 1.0)`} -->
                         <!-- <div class={`flex flex-row flex-start items-center ${renderOAuth ? "justify-between" : "justify-start"}`}>
                             <div>
                                 <div>Keyholder OAuth Status:</div>
@@ -429,15 +444,19 @@
                         </div>
                         <hr> -->
                         {#key selectedWheelID}
+                            {#if userRole == "keyholder"}
+                                <button on:click={window.setConfig}>[ Debug - Simulate Config ]</button>
+                                <hr>
+                            {/if}
                             {#if wheelData.note !== undefined}
                                 {@const lines = wheelData.note.split("\n")}
-                                <div class="space-y-[0.375em]">
+                                <div class="space-y-[0.5em]">
                                     {#each lines as line}
                                         <div class="caption leading-5">
                                             <SvelteMarkdown source={line} isInline />   
                                         </div>
                                     {/each}
-                                    <div class="text-right">Signed, {keyholder}~</div>
+                                    <!-- <div class="text-right">Signed, {keyholder}~</div> -->
                                 </div>
                                 <hr>
                             {/if}

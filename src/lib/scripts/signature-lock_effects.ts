@@ -1,6 +1,6 @@
 import type { ExtendedWheelConfig_OutcomeData } from "./signature-extended_wheel";
 
-export type LockEffectData = {
+export type LockEffectDataBase = {
     "key": "customText",
     "params": [string];
 } | {
@@ -85,3 +85,6 @@ export type LockEffectData = {
     "key": "extendedUpdatePercentage",
     "params": [string, string, "set" | "modify" | "multiply", number, number | undefined];
 };
+export type LockEffectData = LockEffectDataBase & {
+    hidden?: boolean;
+}

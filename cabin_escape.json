@@ -1,0 +1,181 @@
+{
+    "wheels": {
+        "0_introduction_disclaimer": {
+            "display": "Initial Agreement Wheel",
+            "settings": {
+                "disabled": false,
+                "hiddenEffects": false,
+                "hiddenOutcomes": false,
+                "hiddenPercentages": false
+            },
+            "note": "**[Experimental automated scenario, always available for roleplaying~]**\nPlease note that this extension and scenario are currently under active development, meaning there *will* be bugs and other unexpected behavior floating around - I'm always open for feedback and also expect **reasonable amounts of communication during this testing phase**, thank you and have fun!\n**TODO**: Automatically reset the lock if the wearer hasn't escaped by the time the timer has counted down.",
+            "regularity": {
+                "interval": 300000,
+                "mode": "unlimited"
+            },
+            "outcomes": [
+                {
+                    "percentage": "100",
+                    "text": "You slowly rouse from your slumber...",
+                    "effects": [
+                        {
+                            "key": "customText",
+                            "params": [
+                                "Expect a choose-your-own-adventure styled scenario, except the wheel chooses your decisions for you- and in some cases, can even handicap your progress! Are you feeling lucky?"
+                            ]
+                        },
+                        {
+                            "key": "partnerAddRemoveReason",
+                            "hidden": true,
+                            "params": [
+                                "extended-wheel-of-fortune",
+                                "add",
+                                "You haven't escaped yet!"
+                            ]
+                        },
+                        {
+                            "key": "extendedSetDisabled",
+                            "hidden": true,
+                            "params": [
+                                "0_introduction_disclaimer",
+                                "",
+                                true
+                            ]
+                        },
+                        {
+                            "key": "extendedSetDisabled",
+                            "hidden": true,
+                            "params": [
+                                "1_awakening_stored_away",
+                                "",
+                                false
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        "1_awakening_stored_away": {
+            "display": "[1] Awakening, Stored Away",
+            "settings": {
+                "disabled": true,
+                "hiddenEffects": false,
+                "hiddenOutcomes": false,
+                "hiddenPercentages": true
+            },
+            "note": "You slowly rouse from your slumber, head absolutely ***pounding*** and struggling to string your thoughts together- but something seems... off? Trying to rub the grogginess away from your eyes, your mind suddenly snaps to alertness as your arms encounter soft resistance. And squirming around some more, you realize the reality of your situation...\nA narrow confined with barely any room to move - your arms and legs restrained with locked leather cuffs into a loose hogtie, mouth stuffed with cloth and forced open with a harness ball gag, a snug blindfold fastened underneath and blocking your vision...",
+            "regularity": {
+                "interval": 300000,
+                "mode": "unlimited"
+            },
+            "outcomes": [
+                {
+                    "percentage": "40",
+                    "text": "You futilely rub and struggle against your restraints...",
+                    "effects": [
+                        {
+                            "key": "customText",
+                            "params": [
+                                "The leather cuffs remain securely fastened around your arms and legs, the gag forcing your mouth open and completely out of reach... but with enough effort, maybe you'll get lucky somewhere..."
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "percentage": "20",
+                    "text": "You bang against the walls, making muffled shouts for help...",
+                    "effects": [
+                        {
+                            "key": "customText",
+                            "params": [
+                                "Your numerous attempts at attracting someone's attention unfortunately fail, your surroundings remaining completely silent like before... where even *are* you anyway?"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "percentage": "20",
+                    "text": "After countless attempts at rubbing away your blindfold, it shifts slightly- allowing you to barely peek from underneath!",
+                    "effects": [
+                        {
+                            "key": "customText",
+                            "params": [
+                                "Peeking through the small gap underneath your blindfold, you examine your surroundings - a dimly-lit wardrobe barely containing your figure, faintly illuminated through a crack between the doors, and a latch- presumably keeping the doors closed, yet unreachable from your current position."
+                            ]
+                        },
+                        {
+                            "key": "extendedRemoveOutcome",
+                            "hidden": true,
+                            "params": [
+                                "1_awakening_stored_away",
+                                "After countless attempts at rubbing away your blindfold, it shifts slightly- allowing you to barely peek from underneath!"
+                            ]
+                        },
+                        {
+                            "key": "extendedAddOutcome",
+                            "hidden": true,
+                            "params": [
+                                "1_awakening_stored_away",
+                                {
+                                    "percentage": "40",
+                                    "text": "You shift around and attempt to reach the latch with your bound arms...",
+                                    "effects": [
+                                        {
+                                            "key": "customText",
+                                            "params": [
+                                                "Despite strenuous attempts, you're once again thwarted by the tight confines of the wardrobe... leaving you nowhere near enough room to maneuver your bound arms toward the latch..."
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "key": "extendedAddOutcome",
+                            "hidden": true,
+                            "params": [
+                                "1_awakening_stored_away",
+                                {
+                                    "percentage": "20",
+                                    "text": "With some effort, you're able to nudge the wardrobe latch with your nose-",
+                                    "effects": [
+                                        {
+                                            "key": "extendedSetDisabled",
+                                            "params": [
+                                                "1_awakening_stored_away",
+                                                true
+                                            ]
+                                        },
+                                        {
+                                            "key": "extendedSetDisabled",
+                                            "params": [
+                                                "2_dimly_lit_cabin",
+                                                false
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        "2_dimly_lit_cabin": {
+            "display": "[2] A Dimly-lit Cabin",
+            "settings": {
+                "disabled": true,
+                "hiddenEffects": false,
+                "hiddenOutcomes": false,
+                "hiddenPercentages": true
+            },
+            "note": "During your attempts at manipulating the wardrobe latch, you leaned your entire weight against the doors- only to have them abruptly swing open once the latch was nudged away! Abruptly losing your balance and with a muffled squeal, you find yourself tipping over... and dumped onto a woolen rug with a loud ***THUD***.\nExamining your surroundings with your extremely limited vision and limited mobility, you find yourself within a log cabin, almost completely vacant save for some furniture, miscellaneous belongings, and a singular door.\nAnd given how you're now hearing the chirping of birds and rustling of leaves with the distinct absence of any human presence, you reckon you're *far, far away* from any civilization...",
+            "regularity": {
+                "interval": 300000,
+                "mode": "unlimited"
+            },
+            "outcomes": [
+            ]
+        }
+    }
+}

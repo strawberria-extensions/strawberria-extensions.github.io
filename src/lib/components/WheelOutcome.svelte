@@ -20,14 +20,16 @@
 
 <div class="flex flex-row justify-between space-x-[1em]">
     <div class="flex flex-col l outcome-left pl-[0.75em]" style={`border-left: 8px solid ${color}`}>
-        <div class="mb-[0.25em] leading-5">{outcomeData.text ?? ""}</div>
-        {#if outcomeData.effects !== undefined}
-            <ul class="list">
+        <div class="leading-5">{outcomeData.text ?? ""}</div>
+        {#if outcomeData.effects.length > 0}
+            <ul class="list mt-[0.25em]">
                 {#each outcomeData.effects as effectData}
-                    {@const effectText = generateOutcomeEffectLabel(effectData)}
-                    <li class="caption whitespace-pre-wrap text-sm">
-                        <SvelteMarkdown source={effectText} isInline />   
-                    </li>
+                    {#if !effectData.hidden}
+                        {@const effectText = generateOutcomeEffectLabel(effectData)}
+                        <li class="caption whitespace-pre-wrap text-sm">
+                            <SvelteMarkdown source={effectText} isInline />   
+                        </li>
+                    {/if}
                 {/each}
             </ul>
         {/if}

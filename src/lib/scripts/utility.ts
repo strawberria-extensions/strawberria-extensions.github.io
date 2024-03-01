@@ -220,10 +220,10 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData): string {
         }
     } else if(actionData.key === "disableExtension") {
         const extensionDisplayName = extensionDisplayNames[actionData.params[0]];
-        actionText = `**[Lock]** Disable the extension '${extensionDisplayName}'`;
+        actionText = `**[Lock]** Disable the extension "${extensionDisplayName}"`;
     } else if(actionData.key === "enableExtension") {
         const extensionDisplayName = extensionDisplayNames[actionData.params[0]];
-        actionText = `**[Lock]** Enable the extension '${extensionDisplayName}'`;
+        actionText = `**[Lock]** Enable the extension "${extensionDisplayName}"`;
     } else if(actionData.key === "resetTaskPoints") {
         actionText = "**[Tasks]** Reset the gained number of task points";
     } else if(actionData.key === "shareLinkUpdateKey") {
@@ -336,11 +336,11 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData): string {
             ? "Add" : "Remove"} reason preventing unlocking:\n➜ ${actionData.params[2]}`;
     } else if(actionData.key === "extendedSetDisabled") {
         actionText = `**[Extended Wheel]** ${actionData.params[2] === true ? "Disable"
-            : actionData.params[2] === false ? "Enable" : "Toggle access to"} the wheel named ${actionData.params[1]}`;  
+            : actionData.params[2] === false ? "Enable" : "Toggle access to"} the wheel named "${actionData.params[1]}"`;  
     } else if(actionData.key === "extendedAddOutcome") {
-        actionText = `**[Extended Wheel]** Add outcome named '${actionData.params[1].text}'`;
+        actionText = `**[Extended Wheel]** Add outcome named "${actionData.params[1].text}"`;
     } else if(actionData.key === "extendedRemoveOutcome") {
-        actionText = `**[Extended Wheel]** Remove outcome named '${actionData.params[1]}'`;
+        actionText = `**[Extended Wheel]** Remove outcome named "${actionData.params[1]}"`;
     } else if(actionData.key === "extendedUpdatePercentage") {
         const value = `${actionData.params[2] !== "multiply" 
             ? actionData.params[3] < 0 ? "-" : "+" : "x"}` + (actionData.params[2] !== "multiply"
@@ -353,11 +353,11 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData): string {
         const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
         actionText = actionData.params[2] === "modify"
             ? actionData.params[3] > 0
-                ? `**[Extended Wheel]** Add ${valueStr} to the weight of outcome '${actionData.params[1]}`
-                : `**[Extended Wheel]** Subtract ${valueStr} from the weight of outcome '${actionData.params[1]}`
+                ? `**[Extended Wheel]** Add ${valueStr} to the weight of outcome "${actionData.params[1]}`
+                : `**[Extended Wheel]** Subtract ${valueStr} from the weight of outcome "${actionData.params[1]}`
             : actionData.params[2] === "multiply"
-                ? `**[Extended Wheel]** Multiply the weight of outcome '${actionData.params[1]} by ${valueStr}`
-            : `**[Extended Wheel]** Set the weight of outcome '${actionData.params[1]} to ${valueStr}`;
+                ? `**[Extended Wheel]** Multiply the weight of outcome "${actionData.params[1]} by ${valueStr}`
+            : `**[Extended Wheel]** Set the weight of outcome "${actionData.params[1]} to ${valueStr}`;
     }
 
     return actionText;
