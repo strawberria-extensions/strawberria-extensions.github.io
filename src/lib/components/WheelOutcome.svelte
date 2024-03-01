@@ -4,7 +4,6 @@
     import { generateOutcomeEffectLabel } from "$lib/scripts/utility";
     import type { ExtendedWheelConfig_OutcomeData_User, ExtendedWheelConfig_User } from "../scripts/signature-extended_wheel";
 
-    export let lookups: { [key: string]: (arg1: string) => string };
     export let outcomeData: ExtendedWheelConfig_OutcomeData_User;
     export let settings: ExtendedWheelConfig_User["wheels"][string]["settings"];
     export let userRole: "keyholder" | "wearer";
@@ -25,7 +24,7 @@
         {#if outcomeData.effects !== undefined}
             <ul class="list">
                 {#each outcomeData.effects as effectData}
-                    {@const effectText = generateOutcomeEffectLabel(effectData, lookups)}
+                    {@const effectText = generateOutcomeEffectLabel(effectData)}
                     <li class="caption whitespace-pre-wrap text-sm">
                         <SvelteMarkdown source={effectText} isInline />   
                     </li>
