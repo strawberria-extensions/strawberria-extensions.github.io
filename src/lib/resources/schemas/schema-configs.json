@@ -108,5 +108,67 @@
             "required": []
         },
         "custom": {}
+    },
+    "typing_tasks": {
+        "config": {
+            "$schema": "https://json-schema.org/draft/2020-12/schema",
+            "type": "object",
+            "properties": {
+                "tasks": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "display": { 
+                                "type": "string"
+                            },
+                            "note": {
+                                "type": "string"
+                            },
+                            "feedback": {
+                                "type": "string"
+                            },
+                            "settings": {
+                                "type": "object",
+                                "properties": {
+                                    "times": {
+                                        "type": "number",
+                                        "exclusiveMinimum": 0
+                                    },
+                                    "extra": {
+                                        "type": "number",
+                                        "minimum": 0
+                                    },
+                                    "delayMS": {
+                                        "type": "number",
+                                        "minimum": 0
+                                    },
+                                    "delayExtra": {
+                                        "type": "number",
+                                        "exclusiveMinimum": 0
+                                    },
+                                    "hidden": {
+                                        "type": "boolean"
+                                    },
+                                    "chinese": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "required": ["times", "extra", "delayMS", "delayExtra", "hidden", "chinese"]
+                            },
+                            "phrases": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        },
+                        "required": ["display", "settings", "phrases"]
+                    }
+                }
+            },
+            "required": ["tasks"]
+        },
+        "custom": {}
     }
 }

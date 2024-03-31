@@ -47,7 +47,7 @@
         });
         if(penaltiesMainResponse.status !== 200) {
             console.error(`Error retrieving session data: ${await penaltiesMainResponse.text()}`);
-            throw new Error("error retrieving session data")
+            throw new Error("error retrieving session data");
         }
         const penaltiesMainData: BackendResponseSignature["chaster_utilities"]["strawberria_penalties-page"] 
             = await penaltiesMainResponse.json();

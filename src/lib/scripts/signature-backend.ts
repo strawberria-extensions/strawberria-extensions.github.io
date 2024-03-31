@@ -1,5 +1,6 @@
-import type { ExtendedWheelConfig, ExtendedWheelConfig_OutcomeData_Result, ExtendedWheelConfig_User, ExtendedWheelCustom } from "./signature-extended_wheel";
 import type { LockEffectData } from "./signature-lock_effects";
+import type { ExtendedWheelConfig, ExtendedWheelConfig_OutcomeData_Result, ExtendedWheelConfig_User, ExtendedWheelCustom } from "./signature-extended_wheel";
+import { TypingTasksConfig_User } from "./signature-typing_tasks";
 
 export interface BackendRequestSignature {
     "chaster_utilities": {
@@ -40,6 +41,9 @@ export interface BackendResponseSignature {
         "strawberria_penalties-page": {
             lockID: string;
             data:   IndividualPenaltyData[];
+        };
+        "typing_tasks-page": {
+            config: TypingTasksConfig_User;
         }
     };
     "database_utilities": {
