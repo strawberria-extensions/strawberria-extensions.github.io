@@ -69,7 +69,9 @@
         userRole = extendedMainPageData.userRole;
         $extendedWheelConfigStore = extendedMainPageData.config;
         $extendedWheelCustomStore = extendedMainPageData.customData;
-        selectedWheelID = Object.keys($extendedWheelConfigStore.wheels)[0] ?? undefined;
+        selectedWheelID = Object.keys($extendedWheelConfigStore.wheels)
+            .filter(key => keyholder || !$extendedWheelConfigStore.wheels[key].settings.disabled)[0]
+            ?? undefined;
 
         initialLoadMessage = "";
     });
