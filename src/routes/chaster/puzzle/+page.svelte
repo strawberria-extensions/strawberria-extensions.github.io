@@ -1,58 +1,50 @@
 <script lang="ts">
-    import TestImage from "$lib/resources/test.png";
+    import TestImage from "$lib/resources/test.png"
     import { onMount } from "svelte";
-    
+    import seedrandom from "seedrandom";
+    import { Coordinate, transformCoordinateSet, workCoordinateSet, generateJigsawPieces } from "$lib/scripts/puzzle";
+
+    const random = seedrandom("abc");
+    // import { Stage, Layer, Rect } from 'svelte-konva';
+
+    function generateBasePoints(): Coordinate[] {
+        return [
+            ...[new Coordinate(200, 200)],
+            ...[
+                new Coordinate(35, 8),
+                new Coordinate(38, -2),
+                new Coordinate(30, -12),
+                new Coordinate(40, -20),
+                new Coordinate(60, -20),
+                new Coordinate(70, -12),
+                new Coordinate(64, -2),
+                new Coordinate(67, 8),
+                new Coordinate(100, 0)
+            ].map(v => new Coordinate(v.x * 5 + 200 + (Math.random() * 20 - 40), v.y * 5 + 200 + (Math.random() * 20 - 40)))
+        ];
+    }
+
     let canvas: HTMLCanvasElement;
     onMount(() => {
-        const ctx = canvas.getContext("2d");
-        if(!ctx) { return; }
         const image = new Image();
         image.src = TestImage;
         image.crossOrigin = "anonymous";
+        const ctx = canvas.getContext("2d");
+        if(ctx === null) { return; }
 
         image.onload = () => {
-            // ctx.drawImage(image, 0, 0);
-            const rows = 7;
-            const cols = 7;
-            for(let row = 1; row < rows; row++) {
-                const yCoord = canvas.height / rows * row;
-                const iter = canvas.width / (cols + 1);
-                const vertexes = Array.from({ length: cols }, (_, i) => i)
-                    .map(index => {
-                        const vertexX = iter * (index + 1) + (iter / 8 - Math.random() * iter / 4);
-                        const vertexY = yCoord + (iter / 4 - Math.random() * iter / 2);
-                        return [vertexX, vertexY];
-                    });
-                ctx.strokeStyle = "green";
-                ctx.beginPath();
-                ctx.moveTo(0, yCoord);
-                ctx.lineTo(canvas.width, yCoord);
-                ctx.stroke();
-                ctx.strokeStyle = "blue";
-                const tempVertexes = [[0, yCoord], ...vertexes, [canvas.width, yCoord]];
-                tempVertexes.forEach(([x, y]) => {
-                    ctx.beginPath();
-                    ctx.arc(x, y, 5, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.stroke();
-                });
-                ctx.strokeStyle = "red";
-                ctx.beginPath();
-                ctx.moveTo(0, yCoord);
-                for(let index = 0; index < tempVertexes.length - 1; index++) {
-                    const currentVertex = tempVertexes[index + 1];
-                    const previousVertex = tempVertexes[index];
-                    const xc = (currentVertex[0] + previousVertex[0]) / 2;
-                    const yc = (currentVertex[1] + previousVertex[1]) / 2;
-                    ctx.quadraticCurveTo(previousVertex[0], previousVertex[1], xc, yc);
-                }
-                ctx.lineTo(tempVertexes[tempVertexes.length - 1][0], tempVertexes[tempVertexes.length - 1][1])
-                ctx.stroke();
-            }
+            generateJigsawPieces(image, 200, canvas)
         }
-    });
+        
+    })
 </script>
-
-<div class="container-bg w-full h-screen p-4">
-    <canvas id="canvas" width=700 height=700 class="bg-slate-200 border-2 border-gray-400" bind:this={canvas}></canvas>
+  
+<div>
+    <canvas bind:this={canvas} height={1290*2} width={1290*2} class="border-green-50"/>
 </div>
+
+<!-- <Stage config={{ width: 1000, height: 1000 }}>
+    <Layer>
+        <Rect config={{ x: 100, y: 100, width: 400, height: 200, fill: 'blue', draggable: true }} />
+    </Layer>
+</Stage> -->

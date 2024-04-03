@@ -106,6 +106,17 @@ export function truncateWords(input: string, maxLen: number) {
     return input.substr(0, input.lastIndexOf(" ", maxLen));
 }
 
+// https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest
+export async function hashSHA256(text: string) {
+    const msgUint8 = new TextEncoder().encode(text);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", msgUint8); 
+    const hashArray = Array.from(new Uint8Array(hashBuffer)); 
+    const hashHex = hashArray
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join(""); 
+    return hashHex;
+}
+
 // Display name for extensions
 export const extensionDisplayNames: { [key: string]: string } = {
     "dice": "Dice",

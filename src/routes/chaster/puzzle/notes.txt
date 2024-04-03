@@ -1,0 +1,4 @@
+function eY -> a.u.Y = bezier
+"a = a.j[c].Fc();" -> a.h slice points
+"gy(a.u, q);" -> draws bezier for each piece from a
+"function YE(a) {" -> generate jigsaw bezier mask
