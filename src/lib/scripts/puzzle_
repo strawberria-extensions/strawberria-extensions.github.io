@@ -1,19 +1,6 @@
-import SnapSound from "$lib/resources/snap.mp3";
-import CompleteSound from "$lib/resources/upgrade.mp3";
 import seedrandom from "seedrandom";
 import * as PIXI from "pixi.js"
 import * as XXH from "xxhashjs";
-import { writable, type Writable } from "svelte/store";
-import { generateTimeString } from "./utility";
-
-let startTimeMS = -1;
-// let startTimeMS = -1;
-export let elapsedTimestampStore: Writable<string> = writable("");
-setInterval(() => {
-    if(startTimeMS === -1) { return; }
-    const diffMS = new Date().getTime() - startTimeMS;
-    elapsedTimestampStore.set(new Date(diffMS).toISOString().slice(11,19))
-}, 100);
 
 // Constants for fine-tuning
 const maxRowCols = 30;
@@ -21,7 +8,6 @@ const weightAspectRatio = 10; // WIP ratios
 const weightPieces = 0.05;    // WIP ratios
 const vertexVarianceMultiplier = 0.1;
 const jigsawSizeRatio = 0.9;
-const jigsawPlaceErrorRatio = 0.05;
 const jigsawBezierData: [PIXI.Point, [number, number], [number, number]][] = [
     // Bezier point, X variance, Y variance
     [new PIXI.Point(0, 0), [0, 0], [0, 0]],
@@ -37,14 +23,23 @@ const jigsawBezierData: [PIXI.Point, [number, number], [number, number]][] = [
 ]; 
 const reflectedJigsawBezierData: typeof jigsawBezierData = jigsawBezierData
     .map(data => [new PIXI.Point(data[0].x, -data[0].y), data[1], data[2]]);
+// Lookup data for jigsaw connections - which vertexes to check
+const jigsawPlaceErrorRatio = 0.005;
+const jigsawVertexCheck = [
+    [[0, 1], [3, 2]], // Top 
+    [[1, 2], [0, 3]], // Right
+    [[2, 3], [0, 1]], // Bottom
+    [[3, 0], [2, 1]], // Left
+];
 
 interface JigsawPieceData {
     center:       PIXI.Point;
     texture:      PIXI.Texture;
 };
 class JigsawSprite extends PIXI.Sprite {
-    row: number = -1;
-    col: number = -1;
+    row:     number = -1;
+    col:     number = -1;
+    network: Set<JigsawSprite> = new Set();
 }
 
 // Setup and render jigsaw puzzle pieces from image using invisible or provided canvas
@@ -58,15 +53,28 @@ export async function generateRenderJigsaw(containerDiv: HTMLDivElement, imageSr
     imageTexture.source.antialias = true;
     const jigsawApplication = new PIXI.Application();
     await jigsawApplication.init({ width: containerDiv.clientWidth, height: containerDiv.clientHeight });
-    const jigsawBackground = new PIXI.BackgroundSystem();
-    jigsawBackground.color = "#1f2937";
-    jigsawApplication.renderer.background = jigsawBackground;
-
     containerDiv.appendChild(jigsawApplication.canvas);
     // jigsawApplication.canvas.width = "100%"
     const imageB64 = await jigsawApplication.renderer.extract.base64({ target: imageTexture, format: "jpg", quality: 0.5 });
     const imageHash = await XXH.h64(imageB64, 0); // For seeding random number generator
     const imageRandom = await seedrandom(`seed=${seed}-${imageHash}`);
+
+    const container = new PIXI.Container();
+    const container2 = new PIXI.Container();
+    jigsawApplication.stage.addChild(container);
+    jigsawApplication.stage.addChild(container2);
+    const graphic1 = new PIXI.Sprite(imageTexture);
+    graphic1.scale = 0.05
+    const graphic2 = new PIXI.Sprite(imageTexture);
+    container2.addChild(graphic1);
+    container2.addChild(graphic2);
+    graphic2.scale = 0.1
+    graphic1.x += 100
+    graphic2.y += 100
+    container.addChild(graphic1)
+    container.addChild(graphic2)
+
+    return;
 
     // Brute-force and find optimal jigsaw rows and columns given target aspect ratio and number of pieces
     const imageAspectRatio = imageTexture.width / imageTexture.height;
@@ -124,9 +132,9 @@ export async function generateRenderJigsaw(containerDiv: HTMLDivElement, imageSr
 
     // Generate image sprite and scale?
     const imageSprite = new PIXI.Sprite(imageTexture);
-    const upDownscale = jigsawDimensions.height / imageTexture.height;
-    // imageSprite.scale = jigsawDimensions.height / imageTexture.height;
+    imageSprite.scale = jigsawDimensions.height / imageTexture.height;
     if(debugDraw) { jigsawApplication.stage.addChild(imageSprite); }
+    // jigsawApplication.render();
 
     // Generate individual jigsaw pieces using the following algorithm:
     // - Retrieve the ratio coordinate for the top-left vertex of each jigsaw > convert to pixel-based and move
@@ -145,16 +153,7 @@ export async function generateRenderJigsaw(containerDiv: HTMLDivElement, imageSr
                 jigsawVertexes[col][row + 1]
             ];
             const pixelVertexes = ratioVertexes.map( // Did I screw this up or something? Whatever.
-                // vertexData => new PIXI.Point(vertexData.x * imageSprite.width, vertexData.y * imageSprite.height));
-                vertexData => new PIXI.Point(vertexData.x * imageTexture.width, vertexData.y * imageTexture.height));
-            
-            // DEBUG drawing circles
-            // for(const pixelVertex of pixelVertexes) {
-            //     const graphics = new PIXI.Graphics();
-            //     graphics.circle(pixelVertex.x, pixelVertex.y, 4);
-            //     graphics.fill("yellow");
-            //     jigsawApplication.stage.addChild(graphics);
-            // }
+                vertexData => new PIXI.Point(vertexData.x * imageSprite.width, vertexData.y * imageSprite.height));
 
             // Preliminary information for generating jigsaw edges
             const edgesShouldStraight = [row === 0, col === jigsawCols - 1, row === jigsawRows - 1, col === 0];
@@ -251,7 +250,6 @@ export async function generateRenderJigsaw(containerDiv: HTMLDivElement, imageSr
                 imageSprite.addChild(maskGraphic); // Don't care about deprecation really
                 imageSprite.addChild(strokeGraphic); // Don't care about deprecation really
                 const pieceTexture = await jigsawApplication.renderer.extract.texture({ target: imageSprite });
-                // await jigsawApplication.renderer.extract.base64({ target: imageSprite });
                 pieceTexture.source.autoGenerateMipmaps = true;
                 pieceTexture.source.antialias = true;
                 jigsawPiecesData[row][col] = { center: graphicCenter, texture: pieceTexture };
@@ -263,42 +261,31 @@ export async function generateRenderJigsaw(containerDiv: HTMLDivElement, imageSr
     if(debugDraw) { throw Error("done with debug rendering"); }
 
     // Generate the sprites using the given textures and add them to the canvas
-    // Throw to random areas of the stage within 20-80% range
-    let currentDragData: [PIXI.Container, number, number] | undefined;
-    const sprites: PIXI.Sprite[][] = [];
-    const jigsawPieceWidth = imageSprite.width / jigsawRows;
-    const jigsawPieceHeight = imageSprite.height / jigsawCols;
-    const randomXMin = jigsawPieceWidth * upDownscale;
-    const randomYMin = jigsawPieceHeight * upDownscale;
-    const randomXOffset = containerDiv.clientWidth - 2 * randomXMin;
-    const randomYOffset = containerDiv.clientHeight - 2 * randomYMin;
+    let currentDragData: [JigsawSprite, number, number] | undefined;
+    const sprites: JigsawSprite[][] = [];
     for(let row = 0; row < jigsawRows; row++) {
         sprites[row] = [];
         for(let col = 0; col < jigsawCols; col++) {
             const jigsawPieceData = jigsawPiecesData[row][col];
             const sprite = new JigsawSprite(jigsawPieceData.texture);
             sprite.anchor.set(0.5, 0.5);
-            sprite.scale.set(upDownscale);
+            sprite.scale.set(1);
             // Store row and col in custom sprite
             sprite.row = row;
             sprite.col = col;
-            const container = new PIXI.Container();
-            container.addChild(sprite);
-            jigsawApplication.stage.addChild(container)
+            jigsawApplication.stage.addChild(sprite)
 
-            // Throw the container somewhere random on the screen
-            const randomX = randomXMin + randomXOffset * imageRandom();
-            const randomY = randomYMin + randomYOffset * imageRandom();
-            container.x = randomX; container.y = randomY;
+            // sprite.addChild(new PIXI.Graphics().arc(0, 0, 5, 0, 2 * Math.PI).stroke("orange"))
 
-            container.eventMode = "static"; // ???
-            container.cursor = "pointer";
-            container.on('pointerdown', (event: PIXI.FederatedPointerEvent) => {
-                container.children.forEach(sprite => { sprite.alpha = 0.5 });
-                const position = event.data.getLocalPosition(container);
-                container.pivot.set(position.x, position.y);
-                currentDragData = [container, row, col];
-                container.parent.toLocal(event.global, undefined, container.position);
+            sprite.eventMode = "static"; // ???
+            sprite.cursor = "pointer";
+            sprite.on('pointerdown', (event: PIXI.FederatedPointerEvent) => {
+                sprite.alpha = 0.5;
+                sprite.network.forEach(nSprite => { nSprite.alpha = 0.5; });
+                const position = event.data.getLocalPosition(sprite);
+                sprite.pivot.set(position.x, position.y);
+                currentDragData = [sprite, row, col];
+                sprite.parent.toLocal(event.global, undefined, sprite.position); // ???
                 jigsawApplication.stage.on('pointermove', onDragMove);
             });
 
@@ -312,59 +299,51 @@ export async function generateRenderJigsaw(containerDiv: HTMLDivElement, imageSr
     jigsawApplication.stage.on('pointerupoutside', onDragEnd);
 
     // Calculate the allowed error in pixels based on bigger of container width or height
-    let pixelErrorAllowed = Math.max(jigsawPieceWidth, jigsawPieceHeight) * jigsawPlaceErrorRatio * upDownscale;
-    const compareImageValue = Math.max(imageTexture.height, imageTexture.width) * 0.0025 * upDownscale;
-    if(pixelErrorAllowed < compareImageValue) { pixelErrorAllowed = compareImageValue }
-
+    const pixelErrorAllowed = Math.max(containerDiv.clientWidth, containerDiv.clientHeight) * jigsawPlaceErrorRatio;
     function onDragMove(event: PIXI.FederatedPointerEvent) {
-        const now = new Date().getTime();
-        if(startTimeMS === -1) { startTimeMS = now }
         if (currentDragData !== undefined) {
-            currentDragData[0].parent.toLocal(event.global, undefined, currentDragData[0].position);
+            const sprite = currentDragData[0];
+            const pointDiff = new PIXI.Point(event.global.x - sprite.x, event.global.y - sprite.y);
+            sprite.parent.toLocal(event.global, undefined, sprite.position);
+            sprite.network.forEach(nSprite => nSprite.parent.toLocal(
+                new PIXI.Point(nSprite.x + pointDiff.x, nSprite.y + pointDiff.y), undefined, nSprite.position))
         }
     }
 
     // When drag finished, compare and initialize / connect containers if necessary
     // Move the destination container sprites to the source container, remove destination container
-    const snapSound = new Audio(SnapSound);
-    const completeSound = new Audio(CompleteSound);
-    completeSound.volume = 0.2;
-    async function onDragEnd() {
+    function onDragEnd() {
         if (currentDragData !== undefined) {
             jigsawApplication.stage.off('pointermove', onDragMove);
 
-            // Retrieve current container or sprite from the drag data
-            const [sourceContainer] = currentDragData;
-            sourceContainer.children.forEach(sprite => { sprite.alpha = 1 });
+            const [sprite, row, col] = currentDragData;
+            sprite.alpha = 1;
+            sprite.network.forEach(nSprite => { nSprite.alpha = 1 });
             currentDragData = undefined;
 
-            // Iterate over source sprites and check whether any connections match
-            // If connections match, then add the container to be "merged"
-            const containersToTransfer: PIXI.Container[] = [];
-            for(const _sourceSprite of sourceContainer.children) {
-                const sourceSprite = _sourceSprite as JigsawSprite;
-                const currentPieceCenter = jigsawPiecesData[sourceSprite.row][sourceSprite.col].center;
+            // Iterate over networked sprites and check whether any connections match
+            // If connections match, then add the networked sprites to the "to add" set
+            const spritesToNetwork: Set<JigsawSprite> = new Set();
+            for(const nSprite of [sprite, ...sprite.network]) {
+                const currentPieceCenter = jigsawPiecesData[nSprite.row][nSprite.col].center;
                 const connectedPiecesData = [
-                    [sourceSprite.row - 1, sourceSprite.col],
-                    [sourceSprite.row, sourceSprite.col + 1],
-                    [sourceSprite.row + 1, sourceSprite.col],
-                    [sourceSprite.row, sourceSprite.col - 1],
+                    [nSprite.row - 1, nSprite.col],
+                    [nSprite.row, nSprite.col + 1],
+                    [nSprite.row + 1, nSprite.col],
+                    [nSprite.row, nSprite.col - 1]
                 ];
                 for(const [connectedRow, connectedCol] of connectedPiecesData) {
                     const connectedPieceData = (jigsawPiecesData[connectedRow] ?? [])[connectedCol];
                     if(connectedPieceData === undefined) { continue; }
                     const connectedCenter = connectedPieceData.center;
                     const connectedSprite = sprites[connectedRow][connectedCol];
-                    const connectedContainer = connectedSprite.parent;
-                    if(connectedContainer === sourceContainer) { continue; }
+                    if(spritesToNetwork.has(connectedSprite)) { continue; }
 
                     // Get the expected offset between the center points of both
-                    const expectedOffset = [
-                        (connectedCenter.x - currentPieceCenter.x) * upDownscale, 
-                        (connectedCenter.y - currentPieceCenter.y) * upDownscale];
+                    const expectedOffset = [connectedCenter.x - currentPieceCenter.x, connectedCenter.y - currentPieceCenter.y];
                     const actualOffset = [
-                        connectedSprite.worldTransform.tx - sourceSprite.worldTransform.tx,
-                        connectedSprite.worldTransform.ty - sourceSprite.worldTransform.ty];
+                        connectedSprite.worldTransform.tx - nSprite.worldTransform.tx,
+                        connectedSprite.worldTransform.ty - nSprite.worldTransform.ty];
                     const offsetDiff = [
                         expectedOffset[0] - actualOffset[0],
                         expectedOffset[1] - actualOffset[1]
@@ -373,43 +352,23 @@ export async function generateRenderJigsaw(containerDiv: HTMLDivElement, imageSr
                     
                     // If offset is within error range, then mark for combination - shift container and mark for transfer
                     if(offsetDiffPixels < pixelErrorAllowed) {
-                        connectedContainer.x += offsetDiff[0];
-                        connectedContainer.y += offsetDiff[1];
-                        jigsawApplication.render();
-                        containersToTransfer.push(connectedContainer);
-                        snapSound.play();
+                        alert("good match!")
+                        // connectedContainer.x -= offsetDiff[0];
+                        // connectedContainer.y -= offsetDiff[1];
+                        spritesToNetwork.add(nSprite);
+                        nSprite.network.forEach(oSprite => {
+                            nSprite.network.delete(oSprite);
+                            spritesToNetwork.add(oSprite);
+                        });
                     }
                 }
             }
 
-            if(containersToTransfer.length === 0) { return; }
-
-            let now = new Date().getTime();
-            const containersToDestroy: PIXI.Container[] = [];
-            for(const destinationContainer of containersToTransfer) {
-                if(destinationContainer.children.length === 0) { continue; }
-                const destinationChildren = [...destinationContainer.children]; // Mutate?
-                for(const destinationSprite of destinationChildren) {
-                    let previousLocation = new PIXI.Point(destinationSprite.worldTransform.tx, destinationSprite.worldTransform.ty);
-                    sourceContainer.addChild(destinationSprite);
-                    jigsawApplication.render();
-                    let newLocation = new PIXI.Point(destinationSprite.worldTransform.tx, destinationSprite.worldTransform.ty);
-
-                    const distanceX = previousLocation.x - newLocation.x;
-                    const distanceY = previousLocation.y - newLocation.y;
-                    destinationSprite.x += distanceX;
-                    destinationSprite.y += distanceY;
-                }
-                sourceContainer.addChild(destinationContainer)
-                containersToDestroy.push(destinationContainer);
-            }
-            containersToDestroy.forEach(container => { container.destroy(); });
-            console.log(new Date().getTime() - now);
-
-            if(sourceContainer.children.length === jigsawRows * jigsawCols) {
-                alert("done!")
-                completeSound.play();
-            }
+            spritesToNetwork.forEach(oSprite => {
+                sprite.network.add(oSprite);
+                oSprite.network = sprite.network;
+            });
+            console.log(sprite.network);
         }
     }
 }
