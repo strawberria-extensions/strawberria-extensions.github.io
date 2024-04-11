@@ -276,6 +276,7 @@
         <div class="w-full h-screen flex flex-col items-center justify-center">
             <img src={chasterLogo} alt="Chaster logo">
             <div class="mt-4 caption text-lg">{initialLoadMessage}</div>
+            <div class="fa-image"></div>
         </div>
     {:else if selectedWheelID !== undefined}
         {@const wheelData = $extendedWheelConfigStore.wheels[selectedWheelID]}
