@@ -4,7 +4,13 @@ import seedrandom from "seedrandom";
 import * as PIXI from "pixi.js"
 import * as XXH from "xxhashjs";
 import { writable, type Writable } from "svelte/store";
-import { generateTimeString, sleep } from "./utility";
+
+// TODO:
+// - Auto resize when screen changes
+// - Implement ghost toggle
+// - Shadows if possible for pieces
+// - Rotation support for mobile (rotation button?)
+// - Actual completion screen
 
 let startTimeMS = -1;
 // let startTimeMS = -1;
@@ -367,7 +373,10 @@ export async function generateRenderJigsaw(containerDiv: HTMLDivElement, imageSr
     jigsawApplication.stage.hitArea = jigsawApplication.screen;
     jigsawApplication.canvas.oncontextmenu = (event: MouseEvent) => { 
         event.preventDefault();
-        if(currentDragData !== undefined) {
+    } // Ignore context menu for jigsaw canvas
+    jigsawApplication.canvas.onmousedown = (event: MouseEvent) => { 
+        // Handle right click for canvas
+        if(event.button === 2 && currentDragData !== undefined) {
             // Rotate child sprites which are JigsawSprite, NOT the container
             const container = currentDragData[0];
             container.angle += rotationInterval;
