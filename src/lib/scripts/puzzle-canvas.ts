@@ -20,8 +20,6 @@ const maxRowCols = 30;
 const weightAspectRatio = 10; // WIP ratios
 const weightPieces = 0.05;    // WIP ratios
 const vertexVarianceMultiplier = 0.1;
-const jigsawSizeRatio = 0.8;
-const jigsawPlaceErrorRatio = 0.05;
 const jigsawBezierData: [PIXI.Point, [number, number], [number, number]][] = [
     // Bezier point, X variance, Y variance
     [new PIXI.Point(0, 0), [0, 0], [0, 0]],

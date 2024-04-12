@@ -106,6 +106,45 @@ export function truncateWords(input: string, maxLen: number) {
     return input.substr(0, input.lastIndexOf(" ", maxLen));
 }
 
+// https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/encrypt
+// https://gist.github.com/deweller/13015c28ff6ef981693545b664591b01
+export async function encryptAES256GCM(text: string, keyStr: string) {
+    const pwUtf8 = new TextEncoder().encode(keyStr);
+    const pwHash = await crypto.subtle.digest('SHA-256', pwUtf8);
+    const keyBuf = await crypto.subtle.importKey("raw", pwHash, "AES-GCM", true, ["encrypt"]);
+    const encoded = new TextEncoder().encode(text);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ctBuf = await window.crypto.subtle.encrypt(
+        { name: "AES-GCM", iv: iv },
+        keyBuf, encoded,
+    );
+    const ctArray = Array.from(new Uint8Array(ctBuf));
+    const ctStr = ctArray.map(byte => String.fromCharCode(byte)).join('');
+    const ctBase64 = btoa(ctStr);
+    const ivHex = Array.from(iv).map(b => ('00' + b.toString(16)).slice(-2)).join(''); 
+
+    return ivHex + ctBase64;
+}
+
+export async function decryptAES256GCM(ciphertext: string, keyStr: string) {
+    const pwUtf8 = new TextEncoder().encode(keyStr);
+    const pwHash = await crypto.subtle.digest('SHA-256', pwUtf8);
+    const keyBuf = await crypto.subtle.importKey("raw", pwHash, "AES-GCM", true, ["decrypt"]);
+    const iv = (ciphertext.slice(0,24).match(/.{2}/g) ?? []).map(byte => parseInt(byte, 16));
+    const ctStr = atob(ciphertext.slice(24));
+    const ctUint8 = new Uint8Array(new ArrayBuffer(ctStr.length));
+    for (let i = 0; i < ctStr.length; i++) {
+        ctUint8[i] = ctStr.charCodeAt(i);
+    }
+    const plainBuffer = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv: new Uint8Array(iv) }, 
+        keyBuf, ctUint8
+    );                
+    const plaintext = new TextDecoder().decode(plainBuffer);
+
+    return plaintext;
+}
+
 // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest
 // Incredibly slow for hashing...
 export async function hashSHA256(text: string) {
