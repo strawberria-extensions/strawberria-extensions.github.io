@@ -144,6 +144,13 @@ export async function decryptAES256GCM(ciphertext: string, keyStr: string) {
 
     return plaintext;
 }
+export function hexToBuffer(hex: string) {
+    const bytes: number[] = [];
+    for(let index = 0; index < hex.length; index++) {
+        bytes.push(parseInt(hex[index], 16));
+    }
+    return new Uint8Array(bytes).buffer;
+}
 
 // https://developer.mozilla.org/en-US/docs/Web/API/SubtleCrypto/digest
 // Incredibly slow for hashing...
