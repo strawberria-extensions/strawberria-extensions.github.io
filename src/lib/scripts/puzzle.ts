@@ -148,7 +148,7 @@ export class JigsawInstance {
             const right = event.button === 2;
             const action = currentThis.whatAction("pointerup", right);
             if(action === "dragEnd") {
-                onDragEnd(event, currentThis);
+                currentThis.onDragEnd();
             }
         }
         this.application.stage.on('pointerup', onPointerUp);
@@ -514,7 +514,7 @@ export class JigsawInstance {
                         container.zIndex = currentThis.currentZIndex;
                         currentThis.currentZIndex++;
                     } else if(action === "dragEnd") {
-                        onDragEnd(event, currentThis);
+                        currentThis.onDragEnd();
                     }
                 });
     
@@ -767,127 +767,128 @@ export class JigsawInstance {
             container.angle %= 360;
         }
     }
+
+    // On drag end, check whether there's a match - and perform logistics
+    // - Determine whether any other sprites match within error (+ rotation)
+    async onDragEnd() {
+        console.log(`undefined = ${this.currentDragData === undefined}`)
+        if(this.currentDragData !== undefined) {
+            // this.application.stage.off('pointermove', );
+            // Retrieve current container or sprite from the drag data, then reset
+            const [sourceContainer] = this.currentDragData;
+            sourceContainer.children.forEach(sprite => { sprite.alpha = 1 });
+            this.currentDragData = undefined;
+
+            // Iterate over source sprites and check whether any connections match
+            // If connections match, then add the container to be "merged"
+            const containersToTransfer: PIXI.Container[] = [];
+            let containerRadians: number = 0;
+            for(const _sourceSprite of sourceContainer.children) {
+                // Ignore the mask, only care about the piece sprite
+                if(_sourceSprite.constructor.name !== "JigsawSprite") { continue; }
+                const sourceSprite = _sourceSprite as JigsawSprite;
+                const currentPieceCenter = this.jigsawPiecesData[sourceSprite.row][sourceSprite.col].center;
+                const connectedPiecesData = [
+                    [sourceSprite.row - 1, sourceSprite.col],
+                    [sourceSprite.row, sourceSprite.col + 1],
+                    [sourceSprite.row + 1, sourceSprite.col],
+                    [sourceSprite.row, sourceSprite.col - 1],
+                ]; // Represents the row/col lookup for connected sprites
+                for(const [connectedRow, connectedCol] of connectedPiecesData) {
+                    // Construct a line from the source center to the expected connected center
+                    const connectedPieceData = (this.jigsawPiecesData[connectedRow] ?? [])[connectedCol];
+                    if(connectedPieceData === undefined) { continue; }
+                    const connectedCenter = connectedPieceData.center;
+                    const connectedSprite = this.sprites[connectedRow][connectedCol];
+                    const connectedContainer = connectedSprite.parent;
+                    if(connectedContainer === sourceContainer) { continue; }
+
+                    // Normalize rounded angles because of computer math dumb stuff
+                    const sourceAngleRound = Math.round(sourceContainer.angle / this.config.settings.rotation) * this.config.settings.rotation;
+                    const connectedAngleRound = Math.round(connectedContainer.angle / this.config.settings.rotation) * this.config.settings.rotation;
+                    sourceContainer.angle = sourceAngleRound; // Necessary?
+                    connectedContainer.angle = connectedAngleRound;
+                    if(sourceContainer.angle != connectedContainer.angle) { 
+                        continue; 
+                    }
+
+                    // Get the expected offset between the center points of both
+                    // Transform based on (360 - angle) degrees
+                    const expectedOffsetBase = [
+                        (connectedCenter.x - currentPieceCenter.x) * this.upDownscale, 
+                        (connectedCenter.y - currentPieceCenter.y) * this.upDownscale];
+                    const radians = (sourceContainer.angle * Math.PI / 180); // Reverse
+                    const expectedOffsetActual = [
+                        expectedOffsetBase[0] * Math.cos(radians) - expectedOffsetBase[1] * Math.sin(radians),
+                        expectedOffsetBase[1] * Math.cos(radians) + expectedOffsetBase[0] * Math.sin(radians),
+                    ];
+                    const actualOffset = [
+                        connectedSprite.worldTransform.tx - sourceSprite.worldTransform.tx,
+                        connectedSprite.worldTransform.ty - sourceSprite.worldTransform.ty];
+                    const offsetDiff = [
+                        expectedOffsetActual[0] - actualOffset[0],
+                        expectedOffsetActual[1] - actualOffset[1]
+                    ];
+                    const offsetDiffPixels = Math.sqrt(Math.pow(offsetDiff[0], 2) + Math.pow(offsetDiff[1], 2));
+                    console.log(offsetDiffPixels);
+
+                    // If offset is within error range, then mark for combination - shift container and mark for transfer
+                    if(offsetDiffPixels < this.pixelErrorAllowed) {
+                        containerRadians = sourceContainer.angle * Math.PI / 180 * -1;
+                        connectedContainer.x += offsetDiff[0];
+                        connectedContainer.y += offsetDiff[1];
+                        this.application.render();
+                        containersToTransfer.push(connectedContainer);
+
+                        if(this.snapSound === undefined) {
+                            this.snapSound = new Audio(SnapSound);
+                            this.snapSound.volume = 0.6;
+                        }
+                        this.snapSound.play();
+                    }
+                }
+            }
+
+            if(containersToTransfer.length === 0) { return; }
+
+            // Transferring containers - destroy any destination containers after transferring their contents
+            const containersToDestroy: PIXI.Container[] = [];
+            for(const destinationContainer of containersToTransfer) {
+                if(destinationContainer.children.length === 0) { continue; }
+                const destinationChildren = [...destinationContainer.children]; // Mutate?
+                for(const destinationSprite of destinationChildren) {
+                    let previousLocation = new PIXI.Point(destinationSprite.worldTransform.tx, destinationSprite.worldTransform.ty);
+                    sourceContainer.addChild(destinationSprite);
+                    this.application.render();
+
+                    let newLocation = new PIXI.Point(destinationSprite.worldTransform.tx, destinationSprite.worldTransform.ty);
+
+                    // Rotate according to the angle specified
+                    const distanceX = previousLocation.x - newLocation.x;
+                    const distanceY = previousLocation.y - newLocation.y;
+                    destinationSprite.x += distanceX * Math.cos(containerRadians) - distanceY * Math.sin(containerRadians);
+                    destinationSprite.y += distanceY * Math.cos(containerRadians) + distanceX * Math.sin(containerRadians);
+                }
+                // sourceContainer.addChild(destinationContainer) // ???
+                containersToDestroy.push(destinationContainer);
+                this.containers.delete(destinationContainer);
+            }
+            containersToDestroy.forEach(container => { container.destroy(); });
+            
+            // When there's only one container left, then the game is done
+            if(this.containers.size === 1) {
+                this.handleCompletion();
+            }
+
+            // Save after drag end assuming something has changed
+            this.saveProgress();
+        }
+    }
 }
 
 export function onDragMove(event: PIXI.FederatedPointerEvent, instance: JigsawInstance) {
     if(instance.currentDragData !== undefined) {
         // Update the location of the current container... idk how this magic works
         instance.currentDragData[0].parent.toLocal(event.global, undefined, instance.currentDragData[0].position);
-    }
-}
-// On drag end, check whether there's a match - and perform logistics
-// - Determine whether any other sprites match within error (+ rotation)
-export async function onDragEnd(event: PIXI.FederatedPointerEvent, instance: JigsawInstance) {
-    console.log(`undefined = ${instance.currentDragData === undefined}`)
-    if(instance.currentDragData !== undefined) {
-        // instance.application.stage.off('pointermove', );
-        // Retrieve current container or sprite from the drag data, then reset
-        const [sourceContainer] = instance.currentDragData;
-        sourceContainer.children.forEach(sprite => { sprite.alpha = 1 });
-        instance.currentDragData = undefined;
-
-        // Iterate over source sprites and check whether any connections match
-        // If connections match, then add the container to be "merged"
-        const containersToTransfer: PIXI.Container[] = [];
-        let containerRadians: number = 0;
-        for(const _sourceSprite of sourceContainer.children) {
-            // Ignore the mask, only care about the piece sprite
-            if(_sourceSprite.constructor.name !== "JigsawSprite") { continue; }
-            const sourceSprite = _sourceSprite as JigsawSprite;
-            const currentPieceCenter = instance.jigsawPiecesData[sourceSprite.row][sourceSprite.col].center;
-            const connectedPiecesData = [
-                [sourceSprite.row - 1, sourceSprite.col],
-                [sourceSprite.row, sourceSprite.col + 1],
-                [sourceSprite.row + 1, sourceSprite.col],
-                [sourceSprite.row, sourceSprite.col - 1],
-            ]; // Represents the row/col lookup for connected sprites
-            for(const [connectedRow, connectedCol] of connectedPiecesData) {
-                // Construct a line from the source center to the expected connected center
-                const connectedPieceData = (instance.jigsawPiecesData[connectedRow] ?? [])[connectedCol];
-                if(connectedPieceData === undefined) { continue; }
-                const connectedCenter = connectedPieceData.center;
-                const connectedSprite = instance.sprites[connectedRow][connectedCol];
-                const connectedContainer = connectedSprite.parent;
-                if(connectedContainer === sourceContainer) { continue; }
-
-                // Normalize rounded angles because of computer math dumb stuff
-                const sourceAngleRound = Math.round(sourceContainer.angle / instance.config.settings.rotation) * instance.config.settings.rotation;
-                const connectedAngleRound = Math.round(connectedContainer.angle / instance.config.settings.rotation) * instance.config.settings.rotation;
-                sourceContainer.angle = sourceAngleRound; // Necessary?
-                connectedContainer.angle = connectedAngleRound;
-                if(sourceContainer.angle != connectedContainer.angle) { 
-                    continue; 
-                }
-
-                // Get the expected offset between the center points of both
-                // Transform based on (360 - angle) degrees
-                const expectedOffsetBase = [
-                    (connectedCenter.x - currentPieceCenter.x) * instance.upDownscale, 
-                    (connectedCenter.y - currentPieceCenter.y) * instance.upDownscale];
-                const radians = (sourceContainer.angle * Math.PI / 180); // Reverse
-                const expectedOffsetActual = [
-                    expectedOffsetBase[0] * Math.cos(radians) - expectedOffsetBase[1] * Math.sin(radians),
-                    expectedOffsetBase[1] * Math.cos(radians) + expectedOffsetBase[0] * Math.sin(radians),
-                ];
-                const actualOffset = [
-                    connectedSprite.worldTransform.tx - sourceSprite.worldTransform.tx,
-                    connectedSprite.worldTransform.ty - sourceSprite.worldTransform.ty];
-                const offsetDiff = [
-                    expectedOffsetActual[0] - actualOffset[0],
-                    expectedOffsetActual[1] - actualOffset[1]
-                ];
-                const offsetDiffPixels = Math.sqrt(Math.pow(offsetDiff[0], 2) + Math.pow(offsetDiff[1], 2));
-                console.log(offsetDiffPixels);
-
-                // If offset is within error range, then mark for combination - shift container and mark for transfer
-                if(offsetDiffPixels < instance.pixelErrorAllowed) {
-                    containerRadians = sourceContainer.angle * Math.PI / 180 * -1;
-                    connectedContainer.x += offsetDiff[0];
-                    connectedContainer.y += offsetDiff[1];
-                    instance.application.render();
-                    containersToTransfer.push(connectedContainer);
-
-                    if(instance.snapSound === undefined) {
-                        instance.snapSound = new Audio(SnapSound);
-                        instance.snapSound.volume = 0.6;
-                    }
-                    instance.snapSound.play();
-                }
-            }
-        }
-
-        if(containersToTransfer.length === 0) { return; }
-
-        // Transferring containers - destroy any destination containers after transferring their contents
-        const containersToDestroy: PIXI.Container[] = [];
-        for(const destinationContainer of containersToTransfer) {
-            if(destinationContainer.children.length === 0) { continue; }
-            const destinationChildren = [...destinationContainer.children]; // Mutate?
-            for(const destinationSprite of destinationChildren) {
-                let previousLocation = new PIXI.Point(destinationSprite.worldTransform.tx, destinationSprite.worldTransform.ty);
-                sourceContainer.addChild(destinationSprite);
-                instance.application.render();
-
-                let newLocation = new PIXI.Point(destinationSprite.worldTransform.tx, destinationSprite.worldTransform.ty);
-
-                // Rotate according to the angle specified
-                const distanceX = previousLocation.x - newLocation.x;
-                const distanceY = previousLocation.y - newLocation.y;
-                destinationSprite.x += distanceX * Math.cos(containerRadians) - distanceY * Math.sin(containerRadians);
-                destinationSprite.y += distanceY * Math.cos(containerRadians) + distanceX * Math.sin(containerRadians);
-            }
-            // sourceContainer.addChild(destinationContainer) // ???
-            containersToDestroy.push(destinationContainer);
-            instance.containers.delete(destinationContainer);
-        }
-        containersToDestroy.forEach(container => { container.destroy(); });
-        
-        // When there's only one container left, then the game is done
-        if(instance.containers.size === 1) {
-            instance.handleCompletion();
-        }
-
-        // Save after drag end assuming something has changed
-        instance.saveProgress();
     }
 }
