@@ -7,6 +7,7 @@ export const load = ({ params }) => {
 export function entries() {
 	return [
 		{ slug: "extended_wheel" },
-		{ slug: "strawberria_penalties" }
+		{ slug: "strawberria_penalties" },
+		{ slug: "jigsaw_puzzles" },
 	];
 }

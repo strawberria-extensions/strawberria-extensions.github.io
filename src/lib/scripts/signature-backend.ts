@@ -1,6 +1,7 @@
 import type { LockEffectData } from "./signature-lock_effects";
 import type { ExtendedWheelConfig, ExtendedWheelConfig_OutcomeData_Result, ExtendedWheelConfig_User, ExtendedWheelCustom } from "./signature-extended_wheel";
 import { TypingTasksConfig_User } from "./signature-typing_tasks";
+import { JigsawPuzzlesConfig } from "./signature-puzzle";
 
 export interface BackendRequestSignature {
     "chaster_utilities": {
@@ -13,7 +14,7 @@ export interface BackendRequestSignature {
         "extended-main-spin": {
             mainToken: string;
             wheelID:   string;
-        }
+        };
     };
     "database_utilities": {
         "chaster_access-check": {
@@ -44,6 +45,9 @@ export interface BackendResponseSignature {
         };
         "typing_tasks-page": {
             config: TypingTasksConfig_User;
+        };
+        "jigsaw_puzzles-page": {
+            config: JigsawPuzzlesConfig;
         }
     };
     "database_utilities": {

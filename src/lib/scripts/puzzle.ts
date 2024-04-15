@@ -1,11 +1,11 @@
 import SnapSound from "$lib/resources/snap.mp3";
 import CompleteSound from "$lib/resources/upgrade.mp3";
 import seedrandom from "seedrandom";
-import { encode } from "base64-arraybuffer"
 import * as PIXI from "pixi.js"
-import { writable, type Writable } from "svelte/store";
+import * as XXH from "xxhashjs";
+import { get, writable, type Writable } from "svelte/store";
 import { type ActionType, colorArray, type JigsawCompletionData, type JigsawConfig, type JigsawPieceData, type JigsawSaveData, JigsawSprite } from "./signature-puzzle";
-import { decryptAES256GCM, encryptAES256GCM, hexToBuffer, md5 } from "./utility";
+import { decryptAES256GCM, encryptAES256GCM, hashSHA256, hexToBuffer, md5 } from "./utility";
 
 // TODO:
 // - Auto resize when screen changes
@@ -13,30 +13,11 @@ import { decryptAES256GCM, encryptAES256GCM, hexToBuffer, md5 } from "./utility"
 // - Rotation support for mobile (rotation button?)
 // - Actual completion screen
 
-let startTimeMS = -1;
-let stopTick = false;
-export let elapsedTimestampStore: Writable<string> = writable("00:00:00");
-setInterval(() => {
-    if(startTimeMS === -1) { 
-        elapsedTimestampStore.set("00:00:00"); 
-        return; 
-    } else if(stopTick === false) {
-        const diffMS = new Date().getTime() - startTimeMS;
-        elapsedTimestampStore.set(new Date(diffMS).toISOString().slice(11,19))
-    }
-}, 100);
-function checkStart() {
-    if(startTimeMS === -1) {
-        startTimeMS = new Date().getTime();
-    }
-}
-
 // Constants for fine-tuning
 // @ts-ignore encryptionKey = strawberria-jigsaw
-function _0x47d6(){const _0x3e8517=['12fMuoEe','4463676chgkyy','1592tDkGon','35MyozrZ','a-jigsaw','50455zmbqzw','14663880cpKSZm','41544DlqaUD','400734FetXQp','1640541FTlYjD','strawberri','25729869FoMcTs','2kEaPub','572mvIGdl'];_0x47d6=function(){return _0x3e8517;};return _0x47d6();}function _0x359a(_0x26b960,_0x50b3fb){const _0x385df1=_0x47d6();return _0x359a=function(_0x1932d6,_0x5ad733){_0x1932d6=_0x1932d6-(0x6*-0x270+0xcff+0x308);let _0x6d5577=_0x385df1[_0x1932d6];return _0x6d5577;},_0x359a(_0x26b960,_0x50b3fb);}const _0x431096=_0x359a;(function(_0x8564e9,_0x333357){const _0x58f2b4=_0x359a,_0x221c7a=_0x8564e9();while(!![]){try{const _0x327929=parseInt(_0x58f2b4(0x167))/(0x1646+-0x193a*0x1+0x2f5)*(-parseInt(_0x58f2b4(0x16a))/(-0x25b3+0x13d4+0x1*0x11e1))+parseInt(_0x58f2b4(0x16d))/(0x23fa+0x47+-0x243e)+parseInt(_0x58f2b4(0x16b))/(0x1*-0x6e2+-0x151d+0x1c03)*(-parseInt(_0x58f2b4(0x171))/(0x5*0x1d3+-0x4e*0x4f+0xef8))+parseInt(_0x58f2b4(0x174))/(0x2232*-0x1+0x49*0x2b+-0xb*-0x1ff)*(-parseInt(_0x58f2b4(0x16f))/(0x2*-0x89b+-0x4*-0x18b+0x1*0xb11))+parseInt(_0x58f2b4(0x16e))/(-0x1ca9*0x1+0x13c*-0x1a+0x3cc9)*(-parseInt(_0x58f2b4(0x173))/(0x1886+0x757*0x1+-0x1fd4))+parseInt(_0x58f2b4(0x172))/(-0x91e+0x740*-0x1+0x1068)+-parseInt(_0x58f2b4(0x169))/(-0x7df+-0x25f4*-0x1+-0x1e0a)*(-parseInt(_0x58f2b4(0x16c))/(0xd66+-0x20*0x3d+-0x5ba*0x1));if(_0x327929===_0x333357)break;else _0x221c7a['push'](_0x221c7a['shift']());}catch(_0x16afcf){_0x221c7a['push'](_0x221c7a['shift']());}}}(_0x47d6,-0x1*0xfeb5b+0x33013+0x1b56a4));const encryptionKey=_0x431096(0x168)+_0x431096(0x170);const maxRowCols = 50;
-// const weightAspectRatio = 10; // WIP ratios
-// const weightPieces = 0.05;    // WIP ratios
-const imageProxyURL = "https://image-proxy.strawberria.workers.dev/";
+let encryptionKey: string = "";
+// function _0x47d6(){const _0x3e8517=['12fMuoEe','4463676chgkyy','1592tDkGon','35MyozrZ','a-jigsaw','50455zmbqzw','14663880cpKSZm','41544DlqaUD','400734FetXQp','1640541FTlYjD','strawberri','25729869FoMcTs','2kEaPub','572mvIGdl'];_0x47d6=function(){return _0x3e8517;};return _0x47d6();}function _0x359a(_0x26b960,_0x50b3fb){const _0x385df1=_0x47d6();return _0x359a=function(_0x1932d6,_0x5ad733){_0x1932d6=_0x1932d6-(0x6*-0x270+0xcff+0x308);let _0x6d5577=_0x385df1[_0x1932d6];return _0x6d5577;},_0x359a(_0x26b960,_0x50b3fb);}const _0x431096=_0x359a;(function(_0x8564e9,_0x333357){const _0x58f2b4=_0x359a,_0x221c7a=_0x8564e9();while(!![]){try{const _0x327929=parseInt(_0x58f2b4(0x167))/(0x1646+-0x193a*0x1+0x2f5)*(-parseInt(_0x58f2b4(0x16a))/(-0x25b3+0x13d4+0x1*0x11e1))+parseInt(_0x58f2b4(0x16d))/(0x23fa+0x47+-0x243e)+parseInt(_0x58f2b4(0x16b))/(0x1*-0x6e2+-0x151d+0x1c03)*(-parseInt(_0x58f2b4(0x171))/(0x5*0x1d3+-0x4e*0x4f+0xef8))+parseInt(_0x58f2b4(0x174))/(0x2232*-0x1+0x49*0x2b+-0xb*-0x1ff)*(-parseInt(_0x58f2b4(0x16f))/(0x2*-0x89b+-0x4*-0x18b+0x1*0xb11))+parseInt(_0x58f2b4(0x16e))/(-0x1ca9*0x1+0x13c*-0x1a+0x3cc9)*(-parseInt(_0x58f2b4(0x173))/(0x1886+0x757*0x1+-0x1fd4))+parseInt(_0x58f2b4(0x172))/(-0x91e+0x740*-0x1+0x1068)+-parseInt(_0x58f2b4(0x169))/(-0x7df+-0x25f4*-0x1+-0x1e0a)*(-parseInt(_0x58f2b4(0x16c))/(0xd66+-0x20*0x3d+-0x5ba*0x1));if(_0x327929===_0x333357)break;else _0x221c7a['push'](_0x221c7a['shift']());}catch(_0x16afcf){_0x221c7a['push'](_0x221c7a['shift']());}}}(_0x47d6,-0x1*0xfeb5b+0x33013+0x1b56a4));const encryptionKey=_0x431096(0x168)+_0x431096(0x170);const maxRowCols = 50;
+// const imageProxyURL = "https://image-proxy.strawberria.workers.dev/";
 const vertexVarianceMultiplier = 0.1;
 const jigsawSizeRatio = 0.9 ;
 const jigsawPlaceErrorRatio = 0.05;
@@ -64,8 +45,8 @@ export class JigsawInstance {
     randomSeed:   string;
     debug:        boolean;
     // Various callbacks?
-    callbackCompleted: (encrypted: string) => void;
-    callbackSaved:     (saveData: JigsawSaveData) => void;
+    callbackCompleted: (saveData: JigsawSaveData, suppress: boolean) => void;
+    callbackSaved:     (saveData?: JigsawSaveData) => void;
 
     // Bare minimum constructor, main handling is asynchronous
     constructor(config: JigsawConfig, containerDiv: HTMLDivElement, randomSeed: string, debug: boolean = false) {
@@ -73,6 +54,32 @@ export class JigsawInstance {
         this.config = config;
         this.randomSeed = randomSeed;
         this.debug = debug;
+        this.setupTicker();
+    }
+
+    // Ticker for updating elapsed timestamp
+    stopTick: boolean = true;
+    startTimeMS: number = -1;
+    elapsedTimeMSStore: Writable<number> = writable(0);
+    elapsedInterval: number;
+    saveInterval: number;
+    setupTicker() {
+        // Store elapsed milliseconds since start
+        this.elapsedInterval = setInterval(() => {
+            if(this.startTimeMS !== -1 && this.stopTick === false) {
+                // If tick is enabled, then update elapsed timestamp
+                this.elapsedTimeMSStore.set(new Date().getTime() - this.startTimeMS);
+            }
+        }, 100) as any;
+        this.saveInterval = setInterval(() => {
+            if(this.startTimeMS !== -1 && this.stopTick === false) {
+                this.saveProgress();
+            }
+        }, 1000) as any;
+    }
+    prepMainMenu() {
+        clearInterval(this.elapsedInterval);
+        clearInterval(this.saveInterval);
     }
 
     // Pre-initialize constants given configuration as "checkpoint" before initialization / restart
@@ -91,14 +98,15 @@ export class JigsawInstance {
     jigsawRatio:  number; // Aspect ratio
     upDownscale:  number; // Multiplier for scaling
     async preInitialize() {
-        // Retrieve the image from the encrypted image URL
-        const proxyResponse = await fetch(imageProxyURL, { 
-            method: "POST", body: JSON.stringify({ encryptedURL: this.config.encryptedURL })});
-        const imageB64 = await proxyResponse.text();
-
-        // Initialize image texture for future ghosting and slicing
-        // this.imageTexture = await PIXI.Assets.load(this.config.imageURL);
-        this.imageTexture = await PIXI.Assets.load(imageB64);
+        // Use proxy URL to bypass CORS, note PIXI doesn't like normal asset loading...
+        const proxiedURL = `https://image-proxy.strawberria.workers.dev?imageURL=${encodeURIComponent(this.config.imageURL)}`;
+        const imageElement = document.createElement("img");
+        imageElement.src = proxiedURL;
+        imageElement.crossOrigin = "anonymous";
+        await new Promise<void>((resolve) => imageElement.onload = () => { resolve(); });
+        this.imageTexture = PIXI.Texture.from(imageElement);
+        // this.imageTexture = await PIXI.Assets.load(proxiedURL); // Proxy URL to get around CORS
+        // this.imageTexture = await PIXI.Assets.load(this.config.imageURL); // Proxy URL to get around CORS
         this.imageTexture.source.autoGenerateMipmaps = true;
         this.imageTexture.source.antialias = true;
         this.imageSprite = new PIXI.Sprite(this.imageTexture);
@@ -107,14 +115,14 @@ export class JigsawInstance {
         // Initialize jigsaw application (note: will be preserved between restarts)
         await this.application.init({ width: this.containerDiv.clientWidth, height: this.containerDiv.clientHeight });
         const jigsawBackground = new PIXI.BackgroundSystem();
-        jigsawBackground.color = "#1f2937";
+        jigsawBackground.color = "#2f2c3b";
         this.application.renderer.background = jigsawBackground;
         this.containerDiv.appendChild(this.application.canvas);
 
         // Generate base64 in jpg format (for string size limitations) for generating image hash
-        // const imageB64 = await this.application.renderer.extract.base64({ target: this.imageTexture, format: "jpg", quality: 0.5 });
-        // this.imageHash = `${XXH.h64(imageB64, 0)}`; 
-        // this.imageHash = md5(imageB64); 
+        const imageB64 = await this.application.renderer.extract.base64({ target: this.imageTexture, format: "jpg", quality: 0.5 });
+        this.imageHash = `${XXH.h64(imageB64, 0)}`; 
+        this.imageHash = md5(imageB64); 
 
         // Application handling for on[X] events, see below
         const currentThis = this;
@@ -130,7 +138,7 @@ export class JigsawInstance {
         }
         this.application.canvas.onwheel = (event: WheelEvent) => { 
             // Handle right click for canvas
-            currentThis.onRotate(event.deltaY < 0);
+            currentThis.onRotate(event.deltaY > 0);
         }
         function onPointerUp(event: PIXI.FederatedPointerEvent) {
             const right = event.button === 2;
@@ -205,12 +213,18 @@ export class JigsawInstance {
     pixelErrorAllowed: number;
     async initializeInstance(restart: boolean = false) {
         // Indicates game restart, generate new seed from random generator
-        startTimeMS = -1;
-        stopTick = false;
+        this.startTimeMS = -1;
+        this.stopTick = true;
         if(restart === true) { 
+            // Reset start time, elapsed, and ticker
+            this.elapsedTimeMSStore.set(0);
+
             // Delete any existing saves with the given key
-            const saveKey = `${this.imageHash}-${this.config.rowColsRatio[0]}x${this.config.rowColsRatio[1]}`;
+            const urlHash = await hashSHA256(this.config.imageURL);
+            // const saveKey = `${this.imageHash}-${this.config.rowColsRatio[0]}x${this.config.rowColsRatio[1]}`;
+            const saveKey = `${urlHash}-${this.config.rowColsRatio[0]}x${this.config.rowColsRatio[1]}`;
             window.localStorage.removeItem(saveKey);
+            this.callbackSaved();
 
             // Generate random large number for seed
             this.randomSeed = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString();
@@ -416,14 +430,11 @@ export class JigsawInstance {
         this.containers = new Set();
         this.currentZIndex = 100;
 
-        // Check whether any save data exists for the current configuration
-        const saveKey = `${this.imageHash}-${this.config.rowColsRatio[0]}x${this.config.rowColsRatio[1]}`;
-        let saveData: JigsawSaveData | undefined = undefined;
-        const encryptedSaveData = window.localStorage.getItem(saveKey)
-        if(encryptedSaveData !== null) {
-            // Save data exists, decrypt and load
-            const saveDataRaw = await decryptAES256GCM(encryptedSaveData, encryptionKey);
-            saveData = JSON.parse(saveDataRaw); // Cast to type
+        // Retrieve save data (if exists) for the current configuration
+        const [_, saveData] = await this.getSaveData();
+        if(saveData !== undefined) {
+            // Update the elapsed timestamp before it starts
+            this.elapsedTimeMSStore.set(saveData.elapsedMS);
         }
 
         // Generate and store jigsaw pieces and their containers
@@ -479,7 +490,12 @@ export class JigsawInstance {
                     const right = event.button === 2;
                     const action = currentThis.whatAction("pointerdown", right);
                     if(action === "dragStart") {
-                        checkStart();
+                        if(this.startTimeMS === -1) {
+                            this.startTimeMS = get(this.elapsedTimeMSStore) !== 0
+                                ? new Date().getTime() - get(this.elapsedTimeMSStore)
+                                : new Date().getTime();
+                        }
+                        this.stopTick = false;
 
                         // Handle drag start for jigsaw
                         container.children.forEach(sprite => { sprite.alpha = 0.75 });
@@ -512,8 +528,12 @@ export class JigsawInstance {
                 }
             }
 
-            // Shuffle the pieces again to remove any continuity whatever
-            this.shuffleContainers(true);
+            if(this.containers.size === 1) {
+                this.handleCompletion(true);
+            } else {
+                // Shuffle the pieces again to remove any continuity whatever
+                this.shuffleContainers(true);
+            }
         }
     }
 
@@ -577,10 +597,12 @@ export class JigsawInstance {
     saveData: JigsawSaveData;
     async saveProgress(): Promise<string> {
         // Initialize key and save data
-        const key = `${this.imageHash}-${this.config.rowColsRatio[0]}x${this.config.rowColsRatio[1]}`;
+        const urlHash = await hashSHA256(this.config.imageURL);
+        // const key = `${this.imageHash}-${this.config.rowColsRatio[0]}x${this.config.rowColsRatio[1]}`;
+        const key = `${urlHash}-${this.config.rowColsRatio[0]}x${this.config.rowColsRatio[1]}`;
         this.saveData = {
             seed: this.randomSeed,
-            elapsedMS: new Date().getTime() - startTimeMS,
+            elapsedMS: new Date().getTime() - this.startTimeMS,
             connections: [],
         };
 
@@ -607,11 +629,44 @@ export class JigsawInstance {
         return encryptedSaveData;
     }
 
+    // Retrieve save data if exists from LocalStorage
+    // - Then decrypt data before returning
+    async getSaveData(): Promise<[string, JigsawSaveData | undefined]> {
+        // Check whether any save data exists for the current configuration
+        const urlHash = await hashSHA256(this.config.imageURL);
+        // const saveKey = `${this.imageHash}-${this.config.rowColsRatio[0]}x${this.config.rowColsRatio[1]}`;
+        const saveKey = `${urlHash}-${this.config.rowColsRatio[0]}x${this.config.rowColsRatio[1]}`;
+        let saveData: JigsawSaveData | undefined = undefined;
+        const encryptedSaveData = window.localStorage.getItem(saveKey)
+        if(encryptedSaveData !== null) {
+            // Save data exists, decrypt and load
+            const saveDataRaw = await decryptAES256GCM(encryptedSaveData, encryptionKey);
+            saveData = JSON.parse(saveDataRaw); // Cast to type
+        }
+
+        return [saveKey, saveData];
+    }
+
     // Handle puzzle completion including callback and moving final sprite
     // Should progress be cleared after completion or not?
-    async handleCompletion() {
-        stopTick = true;
-        this.completeSound.play();
+    async handleCompletion(suppress: boolean = false) {
+        const lastContainer = Array.from(this.containers.values())[0];
+        lastContainer.angle = 0;
+        this.application.render();
+        // Move the remaining container to the center of the screen
+        const lastBounds = lastContainer.getBounds();
+        const centerX = (lastBounds.minX + lastBounds.maxX) / 2;
+        const centerY = (lastBounds.minY + lastBounds.maxY) / 2;
+        console.log(centerX, centerY);
+        lastContainer.position.set(this.containerDiv.clientWidth / 2 - centerX + lastContainer.position.x, 
+            this.containerDiv.clientHeight / 2 - centerY + lastContainer.position.y);
+
+        // Save progress, stop tick, play sound if not suppressed
+        await this.saveProgress();
+        this.stopTick = true;
+        if(suppress === false) { this.completeSound.play(); }
+
+        // Afterwards, call callback if deffined
         if(this.callbackCompleted !== undefined) {
             let completionData: JigsawCompletionData = {
                 config: this.config,
@@ -620,16 +675,18 @@ export class JigsawInstance {
                     elapsedMS: this.saveData.elapsedMS
                 }
             };
-            const encryptedCompletionData = await encryptAES256GCM(JSON.stringify(completionData), encryptionKey);
-            this.callbackCompleted(encryptedCompletionData);
+            this.callbackCompleted(this.saveData, suppress);
+            // const encryptedCompletionData = await encryptAES256GCM(JSON.stringify(completionData), encryptionKey);
+            // this.callbackCompleted(encryptedCompletionData);
         }
     }
 
     // Shuffle all containers to random positions and rotations, ensuring bounds are valid
     shuffleContainers(angle: boolean = false) {
+        // Iterate through containers and rotate randomly
         const shuffleSeed = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString();
         const shuffleRandom = seedrandom(`seed=${shuffleSeed}`);
-        // Iterate through containers and rotate randomly
+        const marginSides = Math.ceil(Math.max(this.containerDiv.clientWidth, this.containerDiv.clientHeight) * 0.01);
         for(const container of this.containers) {
             // Rotate randomly and then get bounds to determine where to move
             if(angle === true) {
@@ -647,8 +704,8 @@ export class JigsawInstance {
             const diffX = container.position.x - coordCenterX;
             const diffY = container.position.y - coordCenterY;
             // Determine valid movement points based on total "width" and "height"
-            const randomX = centerX + (this.containerDiv.clientWidth - centerX * 2) * shuffleRandom();
-            const randomY = centerY + (this.containerDiv.clientHeight - centerY * 2) * shuffleRandom();
+            const randomX = centerX + marginSides + (this.containerDiv.clientWidth - (centerX + marginSides) * 2) * shuffleRandom();
+            const randomY = centerY + marginSides + (this.containerDiv.clientHeight - (centerY + marginSides) * 2) * shuffleRandom();
             container.x = randomX + diffX; container.y = randomY + diffY;
         }
     }

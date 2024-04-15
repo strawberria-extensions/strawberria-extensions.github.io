@@ -12,14 +12,18 @@ export class JigsawSprite extends PIXI.Sprite {
 }
 
 // Internal and external data
+export interface JigsawPuzzlesConfig {
+    jigsaws: JigsawConfig[];
+}
 export interface JigsawConfig {
-    title:        string;
-    encryptedURL:     string;
-    rowColsRatio: [number, number, number];
+    title:         string;
+    imageURL:      string;
+    thumbnailURL?: string;
+    rowColsRatio:  [number, number, number];
     settings: {
-        rotation: number;
-        ghost:    boolean;
-        edge:     boolean;
+        rotation:  number;
+        ghost:     boolean;
+        edge:      boolean;
     }
 }
 export interface JigsawSaveData {

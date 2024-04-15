@@ -109,6 +109,10 @@
         },
         "custom": {}
     },
+    "jigsaw_puzzles": {
+        "config": {},
+        "custom": {}
+    },
     "typing_tasks": {
         "config": {
             "$schema": "https://json-schema.org/draft/2020-12/schema",
