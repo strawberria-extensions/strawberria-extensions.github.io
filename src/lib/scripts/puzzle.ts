@@ -778,6 +778,7 @@ export function onDragMove(event: PIXI.FederatedPointerEvent, instance: JigsawIn
 // On drag end, check whether there's a match - and perform logistics
 // - Determine whether any other sprites match within error (+ rotation)
 export async function onDragEnd(event: PIXI.FederatedPointerEvent, instance: JigsawInstance) {
+    console.log(`undefined = ${instance.currentDragData === undefined}`)
     if(instance.currentDragData !== undefined) {
         // instance.application.stage.off('pointermove', );
         // Retrieve current container or sprite from the drag data, then reset
