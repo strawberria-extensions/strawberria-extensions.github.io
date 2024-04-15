@@ -56,7 +56,6 @@ export class JigsawInstance {
         this.config = config;
         this.randomSeed = randomSeed;
         this.debug = debug;
-        this.setupTicker();
     }
 
     // Ticker for updating elapsed timestamp
@@ -100,6 +99,8 @@ export class JigsawInstance {
     jigsawRatio:  number; // Aspect ratio
     upDownscale:  number; // Multiplier for scaling
     async preInitialize() {
+        this.setupTicker();
+
         // Use proxy URL to bypass CORS, note PIXI doesn't like normal asset loading...
         const proxiedURL = `https://image-proxy.strawberria.workers.dev?imageURL=${encodeURIComponent(this.config.imageURL)}`;
         const imageElement = document.createElement("img");

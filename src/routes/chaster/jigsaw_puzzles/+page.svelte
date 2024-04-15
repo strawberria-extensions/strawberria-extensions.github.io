@@ -7,7 +7,7 @@
     import type { JigsawConfig, JigsawPuzzlesConfig, JigsawSaveData } from "$lib/scripts/signature-puzzle";
     import type { BackendResponseSignature } from "$lib/scripts/signature-backend";
     import { JigsawInstance } from "$lib/scripts/puzzle";
-    import { hashSHA256 } from "$lib/scripts/utility";
+    import { hashSHA256, sleep } from "$lib/scripts/utility";
 
     // Supabase anon key has no database access due to RLS
     const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwbmpsYmpwY2ZlYnFwYXFrcGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODg1NDM0NTgsImV4cCI6MjAwNDExOTQ1OH0.CsGySz2c8bIWphE6--T51CsmSeBQajfwvBYfTkjviM4";
@@ -77,7 +77,21 @@
         await refreshProgressData();
 
         initialLoadMessage = "";
-        setTimeout(() => { refreshLayout() }, 1000);
+
+        let lastHeights = 0;
+        while(true) {
+            await sleep(10);
+            const imageElements = Array.from(document.getElementsByTagName("img"));
+            if(imageElements.length != $jigsawPuzzlesConfigStore.jigsaws.length) { continue; }
+            const hasHeights = imageElements.filter(elem => elem.naturalHeight !== 0).length;
+            if(hasHeights > lastHeights) {
+                refreshLayout();
+                lastHeights = hasHeights;
+            }
+            if(hasHeights === $jigsawPuzzlesConfigStore.jigsaws.length) {
+                break;
+            }
+        }
     });
 
     // Refresh the progress data when returning to the main menu
@@ -87,7 +101,6 @@
             const jigsawConfig = $jigsawPuzzlesConfigStore.jigsaws[index];
             const totalPieces = jigsawConfig.rowColsRatio[0] * jigsawConfig.rowColsRatio[1];
             if(jigsawInstances[index] === undefined) {
-                console.log("new!")
                 jigsawInstances[index] = new JigsawInstance(jigsawConfig, undefined as any, ""); // Dummy instance
             }
             const [saveKey, saveData] = await jigsawInstances[index].getSaveData();
