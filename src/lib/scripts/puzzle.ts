@@ -5,7 +5,7 @@ import * as PIXI from "pixi.js"
 import * as XXH from "xxhashjs";
 import { get, writable, type Writable } from "svelte/store";
 import { type ActionType, colorArray, type JigsawCompletionData, type JigsawConfig, type JigsawPieceData, type JigsawSaveData, JigsawSprite } from "./signature-puzzle";
-import { decryptAES256GCM, encryptAES256GCM, hashSHA256, hexToBuffer, md5 } from "./utility";
+import { decryptAES256GCM, encryptAES256GCM, hashSHA256, hexToBuffer, md5, sleep } from "./utility";
 
 // TODO:
 // - Auto resize when screen changes
