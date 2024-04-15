@@ -48,7 +48,7 @@
             }
         }
 
-        // Retrieve data for jigsaw puzzles
+        // Retrieve data for jigsaw puzzles, ensure all domains are imgbox
         const jigsawPuzzlesMainResponse = await fetch(chasterUtilitiesURL, {
             method: "POST", headers: { "Authorization": `Bearer ${anonKey}` },
             body: JSON.stringify({ 
@@ -63,19 +63,14 @@
         const jigsawPuzzlesMainData: BackendResponseSignature["chaster_utilities"]["jigsaw_puzzles-page"] 
             = await jigsawPuzzlesMainResponse.json();
         $jigsawPuzzlesConfigStore = jigsawPuzzlesMainData.config;
-        // $jigsawPuzzlesConfigStore = { 
-        //     jigsaws: [
-        //         { title: "A Hanging Predicament", thumbnailURL: "https://thumbs2.imgbox.com/88/bd/2K7pG5Ll_t.jpg", imageURL: "https://images2.imgbox.com/88/bd/2K7pG5Ll_o.jpg", 
-        //         rowColsRatio: [9, 16, 3840 / 2160], settings: { rotation: 360, ghost: false, edge: false } },
-        //         { title: "Silver Wolf's Retribution", thumbnailURL: "https://thumbs2.imgbox.com/c2/a4/hBbrFuUR_t.jpg", imageURL: "https://iili.io/JveHAH7.jpg", 
-        //         rowColsRatio: [9, 16, 3840 / 2160], settings: { rotation: 360, ghost: false, edge: false } },
-        //         { title: "A Cursed Misunderstanding", thumbnailURL: "https://thumbs2.imgbox.com/6c/30/BYliIfWX_t.png", imageURL: "https://images2.imgbox.com/6c/30/BYliIfWX_o.png", 
-        //         rowColsRatio: [2, 2, 3840 / 2160], settings: { rotation: 360, ghost: false, edge: false } },
-        //         { title: "Silver Wolf's Retribution", thumbnailURL: "https://thumbs2.imgbox.com/c2/a4/hBbrFuUR_t.jpg", imageURL: "https://iili.io/JveHAH7.jpg", 
-        //         rowColsRatio: [9, 16, 3840 / 2160], settings: { rotation: 360, ghost: false, edge: false } },
-        //     ]
-        // }
-        // $chosenJigsawConfigStore = $jigsawPuzzlesConfigStore.jigsaws[0];
+        for(const jigsawConfig of $jigsawPuzzlesConfigStore.jigsaws) {
+            const imageCheck = new URL(jigsawConfig.imageURL);
+            if(imageCheck.host.endsWith("imgbox.com") === false) { throw Error(`unwhitelisted url: ${jigsawConfig.imageURL}`); }
+            if(jigsawConfig.thumbnailURL !== undefined) {
+                const thumbCheck = new URL(jigsawConfig.thumbnailURL);
+                if(thumbCheck.host.endsWith("imgbox.com") === false) { throw Error(`unwhitelisted url: ${jigsawConfig.thumbnailURL}`); }
+            }
+        }
 
         // Retrieve existing save data, mapping current progress to key
         // No mapping for jigsaws which don't have any progress data

@@ -84,7 +84,10 @@
             style="background-color: rgb(31 41 55 / 0.85)">
             <div class="flex flex-col items-center p-5 bg-gray-800 !opacity-100 space-y-[1.5em] rounded-lg border-gray-600 border-2">
                 <div class="flex flex-col items-center justify-center">
-                    <div class="text-xl">Jigsaw completed! {timestamp}</div>
+                    <div class="text-xl">
+                        Jigsaw puzzle completed! 
+                        Time elapsed: {timestamp}
+                    </div>
                 </div>
                 <div class="flex flex-row space-x-[1em]">
                     <button class="bg-gray-600 p-2 px-4 rounded-[0.5em] hover:bg-gray-500 text-xl"
