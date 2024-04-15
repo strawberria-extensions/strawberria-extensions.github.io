@@ -176,7 +176,7 @@
                             <div class="flex flex-col items-center">
                                 <div class="relative aspect-video">
                                     <div class="absolute top-0 left-0 w-full h-full opacity-80 z-10"
-                                        style={progressDeg !== 0 && configProgress[0] > 1 ? `background: conic-gradient(transparent ${progressDeg}deg, #292833 ${progressDeg}deg 360deg);` : ""} />
+                                        style={configProgress[1] !== undefined && configProgress[0] > 1 ? `background: conic-gradient(transparent ${progressDeg}deg, #292833 ${progressDeg}deg 360deg);` : ""} />
                                     <img class="block h-full w-full pie"
                                         class:blur-md={!jigsawConfig.settings.ghost && configProgress[0] !== 1} 
                                         style={!jigsawConfig.settings.ghost ? "clip-path: inset(0 0 0 0);" : ""}
