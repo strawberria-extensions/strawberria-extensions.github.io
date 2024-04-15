@@ -116,7 +116,7 @@
         </button>
     </div>
     <div class="flex flex-row p-[0.5em] items-center">
-        {jigsawConfig.title} TEST3｜{jigsawConfig.rowColsRatio[0] * jigsawConfig.rowColsRatio[1]}
+        {jigsawConfig.title} ｜{jigsawConfig.rowColsRatio[0] * jigsawConfig.rowColsRatio[1]}
         <svg class="h-6 aspect-square ml-[0.125em] mb-[0.125em]" 
             viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
             <defs>

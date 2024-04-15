@@ -52,8 +52,6 @@ export class JigsawInstance {
     snapSound: HTMLAudioElement;
     completeSound: HTMLAudioElement;
     constructor(config: JigsawConfig, containerDiv: HTMLDivElement, randomSeed: string, debug: boolean = false) {
-        console.log("inst")
-
         this.containerDiv = containerDiv;
         this.config = config;
         this.randomSeed = randomSeed;
@@ -614,7 +612,7 @@ export class JigsawInstance {
         for(const container of this.containers) {
             const containerRowCols: [number, number][] = [];
             for(const _sprite of container.children) {
-                if(_sprite.constructor.name !== "JigsawSprite") { continue; }
+                if((_sprite as any).row === undefined) { continue; }
                 const sprite = _sprite as JigsawSprite;
                 containerRowCols.push([sprite.row, sprite.col]);
             }
@@ -661,7 +659,6 @@ export class JigsawInstance {
         const lastBounds = lastContainer.getBounds();
         const centerX = (lastBounds.minX + lastBounds.maxX) / 2;
         const centerY = (lastBounds.minY + lastBounds.maxY) / 2;
-        console.log(centerX, centerY);
         lastContainer.position.set(this.containerDiv.clientWidth / 2 - centerX + lastContainer.position.x, 
             this.containerDiv.clientHeight / 2 - centerY + lastContainer.position.y);
 
@@ -742,7 +739,7 @@ export class JigsawInstance {
                 let containerHasEdge = false;
                 for(const _sprite of container.children) {
                     // Only care about sprites I guess
-                    if(_sprite.constructor.name !== "JigsawSprite") { continue; }
+                    if((_sprite as any).row === undefined) { continue; }
                     const sprite = _sprite as JigsawSprite;
                     if(sprite.row === 0 || sprite.row === this.config.rowColsRatio[0] - 1
                         || sprite.col === 0 || sprite.col === this.config.rowColsRatio[1] - 1) {
@@ -771,7 +768,6 @@ export class JigsawInstance {
     // On drag end, check whether there's a match - and perform logistics
     // - Determine whether any other sprites match within error (+ rotation)
     async onDragEnd() {
-        console.log(`undefined = ${this.currentDragData === undefined}`)
         if(this.currentDragData !== undefined) {
             // this.application.stage.off('pointermove', );
             // Retrieve current container or sprite from the drag data, then reset
@@ -785,7 +781,7 @@ export class JigsawInstance {
             let containerRadians: number = 0;
             for(const _sourceSprite of sourceContainer.children) {
                 // Ignore the mask, only care about the piece sprite
-                if(_sourceSprite.constructor.name !== "JigsawSprite") { continue; }
+                if((_sourceSprite as any).row === undefined) { continue; }
                 const sourceSprite = _sourceSprite as JigsawSprite;
                 const currentPieceCenter = this.jigsawPiecesData[sourceSprite.row][sourceSprite.col].center;
                 const connectedPiecesData = [
@@ -830,7 +826,6 @@ export class JigsawInstance {
                         expectedOffsetActual[1] - actualOffset[1]
                     ];
                     const offsetDiffPixels = Math.sqrt(Math.pow(offsetDiff[0], 2) + Math.pow(offsetDiff[1], 2));
-                    console.log(offsetDiffPixels);
 
                     // If offset is within error range, then mark for combination - shift container and mark for transfer
                     if(offsetDiffPixels < this.pixelErrorAllowed) {
