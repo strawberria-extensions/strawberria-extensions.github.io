@@ -49,7 +49,11 @@ export class JigsawInstance {
     callbackSaved:     (saveData?: JigsawSaveData) => void;
 
     // Bare minimum constructor, main handling is asynchronous
+    snapSound: HTMLAudioElement;
+    completeSound: HTMLAudioElement;
     constructor(config: JigsawConfig, containerDiv: HTMLDivElement, randomSeed: string, debug: boolean = false) {
+        console.log("inst")
+
         this.containerDiv = containerDiv;
         this.config = config;
         this.randomSeed = randomSeed;
@@ -664,7 +668,13 @@ export class JigsawInstance {
         // Save progress, stop tick, play sound if not suppressed
         await this.saveProgress();
         this.stopTick = true;
-        if(suppress === false) { this.completeSound.play(); }
+        if(suppress === false) { 
+            if(this.completeSound === undefined) {
+                this.completeSound = new Audio(CompleteSound);
+                this.completeSound.volume = 0.2;
+            }
+            this.completeSound.play(); 
+        }
 
         // Afterwards, call callback if deffined
         if(this.callbackCompleted !== undefined) {
@@ -749,18 +759,6 @@ export class JigsawInstance {
     }
 
     // Different handlers for onDragStart, onDragMove, and onDragEnd (and fake onRotate)
-    snapSound = function() {
-        // Initialize the sound to not kill your ears
-        const sound = new Audio(SnapSound);
-        sound.volume = 0.6;
-        return sound;
-    }();
-    completeSound = function() {
-        // Initialize the sound to not kill your ears
-        const sound = new Audio(CompleteSound);
-        sound.volume = 0.2;
-        return sound;
-    }();
     onRotate(clockwise: boolean = true) {
         if(this.currentDragData !== undefined) {
             // Rotate child sprites which are JigsawSprite, NOT the container
@@ -771,7 +769,7 @@ export class JigsawInstance {
     }
 }
 
-function onDragMove(event: PIXI.FederatedPointerEvent, instance: JigsawInstance) {
+export function onDragMove(event: PIXI.FederatedPointerEvent, instance: JigsawInstance) {
     if(instance.currentDragData !== undefined) {
         // Update the location of the current container... idk how this magic works
         instance.currentDragData[0].parent.toLocal(event.global, undefined, instance.currentDragData[0].position);
@@ -779,7 +777,7 @@ function onDragMove(event: PIXI.FederatedPointerEvent, instance: JigsawInstance)
 }
 // On drag end, check whether there's a match - and perform logistics
 // - Determine whether any other sprites match within error (+ rotation)
-async function onDragEnd(event: PIXI.FederatedPointerEvent, instance: JigsawInstance) {
+export async function onDragEnd(event: PIXI.FederatedPointerEvent, instance: JigsawInstance) {
     if(instance.currentDragData !== undefined) {
         // instance.application.stage.off('pointermove', );
         // Retrieve current container or sprite from the drag data, then reset
@@ -838,7 +836,8 @@ async function onDragEnd(event: PIXI.FederatedPointerEvent, instance: JigsawInst
                     expectedOffsetActual[1] - actualOffset[1]
                 ];
                 const offsetDiffPixels = Math.sqrt(Math.pow(offsetDiff[0], 2) + Math.pow(offsetDiff[1], 2));
-                
+                console.log(offsetDiffPixels);
+
                 // If offset is within error range, then mark for combination - shift container and mark for transfer
                 if(offsetDiffPixels < instance.pixelErrorAllowed) {
                     containerRadians = sourceContainer.angle * Math.PI / 180 * -1;
@@ -846,6 +845,11 @@ async function onDragEnd(event: PIXI.FederatedPointerEvent, instance: JigsawInst
                     connectedContainer.y += offsetDiff[1];
                     instance.application.render();
                     containersToTransfer.push(connectedContainer);
+
+                    if(instance.snapSound === undefined) {
+                        instance.snapSound = new Audio(SnapSound);
+                        instance.snapSound.volume = 0.6;
+                    }
                     instance.snapSound.play();
                 }
             }

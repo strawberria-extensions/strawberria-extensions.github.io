@@ -86,11 +86,16 @@
     });
 
     // Refresh the progress data when returning to the main menu
+    const jigsawInstances: JigsawInstance[] = [];
     async function refreshProgressData() {
-        for(const jigsawConfig of $jigsawPuzzlesConfigStore.jigsaws) {
+        for(let index = 0; index < $jigsawPuzzlesConfigStore.jigsaws.length; index++) {
+            const jigsawConfig = $jigsawPuzzlesConfigStore.jigsaws[index];
             const totalPieces = jigsawConfig.rowColsRatio[0] * jigsawConfig.rowColsRatio[1];
-            const jigsawInstance = new JigsawInstance(jigsawConfig, undefined as any, ""); // Dummy instance
-            const [saveKey, saveData] = await jigsawInstance.getSaveData();
+            if(jigsawInstances[index] === undefined) {
+                console.log("new!")
+                jigsawInstances[index] = new JigsawInstance(jigsawConfig, undefined as any, ""); // Dummy instance
+            }
+            const [saveKey, saveData] = await jigsawInstances[index].getSaveData();
             if(saveData === undefined) { continue; }
             const progressPercentage = (totalPieces - saveData.connections.length) / (totalPieces - 1);
             const progressElapsed = new Date(saveData.elapsedMS).toISOString().slice(11,19);
