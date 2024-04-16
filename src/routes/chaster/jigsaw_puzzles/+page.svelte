@@ -72,6 +72,12 @@
             }
         }
 
+        // Update local storage with contents of database
+        window.localStorage.clear()
+        for(const [key, value] of Object.entries(jigsawPuzzlesMainData.custom)) {
+            window.localStorage.setItem(key, value);
+        }
+
         // Retrieve existing save data, mapping current progress to key
         // No mapping for jigsaws which don't have any progress data
         await refreshProgressData();
@@ -124,8 +130,22 @@
             })
         });
     }
-    const saved = async (saveData?: JigsawSaveData) => {
+    const saved = async (saveData: JigsawSaveData | undefined, encrypted: string | undefined, action: string, key: string) => {
         refreshProgressData();
+
+        // If action is not tick (instead restart or update), push update to database
+        if(action !== "tick" && encrypted !== undefined) {
+            await fetch(chasterUtilitiesURL, {
+                method: "POST", headers: { "Authorization": `Bearer ${anonKey}` },
+                body: JSON.stringify({ 
+                    action: "jigsaw_puzzles-update",
+                    mainToken: mainToken,
+                    encrypted,
+                    _action: action, // Overlap with action
+                    key,
+                })
+            });
+        }
     }
     const mainMenu = async (saveData?: JigsawSaveData) => {
         await refreshProgressData();

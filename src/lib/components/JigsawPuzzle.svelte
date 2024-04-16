@@ -7,7 +7,7 @@
     export let jigsawConfig: JigsawConfig;
     export let mainMenu: () => void;
     export let callbackCompletedExternal: (saveData: JigsawSaveData) => Promise<void>;
-    export let callbackSavedExternal: (saveData?: JigsawSaveData) => Promise<void>;
+    export let callbackSavedExternal: (saveData: JigsawSaveData | undefined, encrypted: string | undefined, action: string, key: string) => Promise<void>;
     let containerDiv: HTMLDivElement;
     let instance: JigsawInstance;
     let timestamp: string;
@@ -36,14 +36,14 @@
         await instance.initializeInstance(restart);
         await instance.generateJigsawPieces();
     }
-    function callbackSaved(saveData?: JigsawSaveData) {
+    function callbackSaved(saveData: JigsawSaveData | undefined, encrypted: string | undefined, action: string, key: string) {
         if(saveData !== undefined) {
             const totalPieces = jigsawConfig.rowColsRatio[0] * jigsawConfig.rowColsRatio[1];
             const numContainers = saveData.connections.length;
             progress = (totalPieces - numContainers) / totalPieces;
         }
 
-        callbackSavedExternal(saveData);
+        callbackSavedExternal(saveData, encrypted, action, key);
     }
     function callbackCompleted(saveData: JigsawSaveData, suppress: boolean = false) {
         if(suppress === false) { callbackCompletedExternal(saveData); }

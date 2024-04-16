@@ -48,6 +48,7 @@ export interface BackendResponseSignature {
         };
         "jigsaw_puzzles-page": {
             config: JigsawPuzzlesConfig;
+            custom: { [key: string]: string };
         }
     };
     "database_utilities": {

@@ -46,7 +46,7 @@ export class JigsawInstance {
     debug:        boolean;
     // Various callbacks?
     callbackCompleted: (saveData: JigsawSaveData, suppress: boolean) => void;
-    callbackSaved:     (saveData?: JigsawSaveData) => void;
+    callbackSaved:     (saveData: JigsawSaveData | undefined, encrypted: string | undefined, action: string, key: string) => void;
 
     // Bare minimum constructor, main handling is asynchronous
     snapSound: HTMLAudioElement;
@@ -74,7 +74,7 @@ export class JigsawInstance {
         }, 100) as any;
         this.saveInterval = setInterval(() => {
             if(this.startTimeMS !== -1 && this.stopTick === false) {
-                this.saveProgress();
+                this.saveProgress("tick");
             }
         }, 1000) as any;
     }
@@ -100,6 +100,10 @@ export class JigsawInstance {
     upDownscale:  number; // Multiplier for scaling
     async preInitialize() {
         this.setupTicker();
+
+        // Generate and cache the save key for future usage
+        const urlHash = await hashSHA256(this.config.imageURL);
+        this.saveKey = `${urlHash}-${this.config.rowColsRatio[0]}x${this.config.rowColsRatio[1]}`;
 
         // Use proxy URL to bypass CORS, note PIXI doesn't like normal asset loading...
         const proxiedURL = `https://image-proxy.strawberria.workers.dev?imageURL=${encodeURIComponent(this.config.imageURL)}`;
@@ -227,7 +231,7 @@ export class JigsawInstance {
             // const saveKey = `${this.imageHash}-${this.config.rowColsRatio[0]}x${this.config.rowColsRatio[1]}`;
             const saveKey = `${urlHash}-${this.config.rowColsRatio[0]}x${this.config.rowColsRatio[1]}`;
             window.localStorage.removeItem(saveKey);
-            this.callbackSaved();
+            this.callbackSaved(undefined, undefined, "restart", this.saveKey);
 
             // Generate random large number for seed
             this.randomSeed = Math.floor(Math.random() * Number.MAX_SAFE_INTEGER).toString();
@@ -597,12 +601,9 @@ export class JigsawInstance {
     // Export save data to localStorage (and callback?)
     // - Key: image hash and target pieces
     // - Encrypted data: seed, elapsed time, and connections
+    saveKey: string;
     saveData: JigsawSaveData;
-    async saveProgress(): Promise<string> {
-        // Initialize key and save data
-        const urlHash = await hashSHA256(this.config.imageURL);
-        // const key = `${this.imageHash}-${this.config.rowColsRatio[0]}x${this.config.rowColsRatio[1]}`;
-        const key = `${urlHash}-${this.config.rowColsRatio[0]}x${this.config.rowColsRatio[1]}`;
+    async saveProgress(overrideAction?: string): Promise<string> {
         this.saveData = {
             seed: this.randomSeed,
             elapsedMS: new Date().getTime() - this.startTimeMS,
@@ -622,11 +623,12 @@ export class JigsawInstance {
 
         // Encode and encrypt the save data
         const encryptedSaveData = await encryptAES256GCM(JSON.stringify(this.saveData), encryptionKey);
-        window.localStorage.setItem(key, encryptedSaveData);
+        window.localStorage.setItem(this.saveKey, encryptedSaveData);
         
         // Callback if there's one set
         if(this.callbackSaved !== undefined) {
-            this.callbackSaved(this.saveData);
+            const action = overrideAction ?? "update";
+            this.callbackSaved(this.saveData, encryptedSaveData, action, this.saveKey);
         }
 
         return encryptedSaveData;
