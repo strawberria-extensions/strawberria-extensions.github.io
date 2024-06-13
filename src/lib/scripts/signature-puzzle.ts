@@ -20,6 +20,7 @@ export interface JigsawConfig {
     imageURL:      string;
     thumbnailURL?: string;
     rowColsRatio:  [number, number, number];
+    targetPieces?: number;
     settings: {
         rotation:  number;
         ghost:     boolean;
