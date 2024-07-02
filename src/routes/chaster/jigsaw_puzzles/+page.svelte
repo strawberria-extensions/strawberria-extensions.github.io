@@ -194,7 +194,8 @@
                             on:click={() => { $chosenJigsawConfigStore = jigsawConfig }}>
                             <!-- <img class="aspect-square" src={jigsawConfig.thumbnailURL} /> -->
                             <div class="flex flex-col items-center">
-                                <div class="relative aspect-video">
+                                <!-- aspect-video causing problems? -->
+                                <div class="relative">
                                     <div class="absolute top-0 left-0 w-full h-full opacity-80 z-10"
                                         style={configProgress[1] !== undefined && configProgress[0] > 1 ? `background: conic-gradient(transparent ${progressDeg}deg, #292833 ${progressDeg}deg 360deg);` : ""} />
                                     <img class="block h-full w-full pie"
@@ -288,7 +289,7 @@
 
     .grid-masonry {
         display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: masonry;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: masonry;
     }
 </style>

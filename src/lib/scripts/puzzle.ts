@@ -120,7 +120,12 @@ export class JigsawInstance {
         this.application = new PIXI.Application();
 
         // Initialize jigsaw application (note: will be preserved between restarts)
-        await this.application.init({ width: this.containerDiv.clientWidth, height: this.containerDiv.clientHeight });
+        await this.application.init({ 
+            width: this.containerDiv.clientWidth, 
+            height: this.containerDiv.clientHeight,
+            resolution: 1,
+            antialias: true
+        });
         const jigsawBackground = new PIXI.BackgroundSystem();
         jigsawBackground.color = "#2f2c3b";
         this.application.renderer.background = jigsawBackground;
@@ -282,7 +287,7 @@ export class JigsawInstance {
                 ];
                 const pixelVertexes = ratioVertexes.map( // Did I screw this up or something? Whatever.
                     vertexData => new PIXI.Point(vertexData.x * this.imageTexture.width, vertexData.y * this.imageTexture.height));
-                
+
                 // Preliminary information for generating specific types of jigsaw edges
                 const edgesShouldStraight = [row === 0, col === this.config.rowColsRatio[1] - 1, row === this.config.rowColsRatio[0] - 1, col === 0];
                 const edgesShouldReflect = [false, false, true, true]; // Reflect the bottom and left edges
@@ -368,6 +373,10 @@ export class JigsawInstance {
                     this.imageSprite.addChild(maskGraphic); // Don't care about deprecation really
                     const pieceTexture = this.application.renderer.extract.texture({ target: this.imageSprite });
                     this.imageSprite.removeChild(maskGraphic);
+                    if(row === 0 && col === 0) {
+                        const png = this.application.renderer.extract.base64({ target: this.imageSprite });
+                        console.log(await png)
+                    }
                     pieceTexture.source.autoGenerateMipmaps = true;
                     pieceTexture.source.antialias = true;
                     this.jigsawPiecesData[row][col] = { center: graphicCenter, texture: pieceTexture, mask: maskGraphic };
