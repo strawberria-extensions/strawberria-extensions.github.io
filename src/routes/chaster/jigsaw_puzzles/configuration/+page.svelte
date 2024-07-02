@@ -107,7 +107,7 @@
         delete configData.config.handlebar;
         configDataStore.set(configData.config);
         configText = JSON.stringify($configDataStore);
-        customDataStore.set(configData.custom);
+        customDataStore.set(configData.custom || {});
         customText = JSON.stringify($customDataStore);
 
         initialLoadMessage = "";

@@ -217,7 +217,7 @@
                                 </div>
                             </div>
                             <div class="flex flex-col items-stretch w-full text-lg">
-                                <div class="flex flex-row items-center text-xl">
+                                <div class="flex flex-row items-center">
                                     <div class="flex flex-row">
                                         {jigsawConfig.title} (<div>{totalPieces}</div>
                                         <svg class="h-6 aspect-square ml-[0.125em] mb-[0.125em]" 

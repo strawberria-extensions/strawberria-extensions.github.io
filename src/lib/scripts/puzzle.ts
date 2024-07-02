@@ -141,10 +141,12 @@ export class JigsawInstance {
         };
         this.application.canvas.onmousedown = (event: MouseEvent) => { 
             // Handle right click for canvas
+            console.log("onmousedown")
             if(event.button === 2) { currentThis.onRotate(); }
         }
         this.application.canvas.onwheel = (event: WheelEvent) => { 
             // Handle right click for canvas
+            console.log("onwheel")
             currentThis.onRotate(event.deltaY > 0);
         }
         function onPointerUp(event: PIXI.FederatedPointerEvent) {
@@ -494,6 +496,7 @@ export class JigsawInstance {
                 container.cursor = "pointer";
                 container.on("pointerdown", (event: PIXI.FederatedPointerEvent) => {
                     // Determine which action to fire
+                    console.log("pointerdown")
                     const right = event.button === 2;
                     const action = currentThis.whatAction("pointerdown", right);
                     if(action === "dragStart") {
