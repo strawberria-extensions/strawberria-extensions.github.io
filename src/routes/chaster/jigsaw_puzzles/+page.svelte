@@ -176,14 +176,15 @@
                             Configurable jigsaw puzzles supporting rotating pieces, image 'ghosting', and other features! <br>
                             • Number of pieces is automatically optimized on config creation based on target number of pieces <br>
                             • Currently whitelisted image hosters (hotlinking and thumbnail): <a target="_blank" href="https://imgbox.com">imgbox</a>, <a target="_blank" href="https://postimages.org">postimages</a> <br>
-                            <b>(If you experience any performance issues especially when moving between puzzles, please refresh the page!)</b>
+                            • Rotation is disabled for mobile devices until a convenient solution is found...<br>
+                            <b class="mt-[1em]">(If you experience any performance issues especially when moving between puzzles, please refresh the page!)</b>
                         </div>
                     </div>
                 </div>
                 <!-- <div class="grid gap-[1.5em] grid-flow-row grid-cols-2"> -->
                 <!-- <div class="flex flex-col flex-wrap grow min-h-0 gap-[1.5em] w-[0em]"> -->
                 <!-- <div class="grid-masonry"> -->
-                <Masonry bind:refreshLayout={refreshLayout} reset={false} colWidth="28em" gridGap="1em">
+                <Masonry bind:refreshLayout={refreshLayout} reset={false} colWidth="24em" gridGap="1em">
                     {#each $jigsawPuzzlesConfigStore.jigsaws as jigsawConfig, index}
                         {@const totalPieces = jigsawConfig.rowColsRatio[0] * jigsawConfig.rowColsRatio[1]}
                         {@const configProgress = $progressMappingStore[configKeys[index]] ?? [0, undefined]}
@@ -237,9 +238,9 @@
                                         </svg>)
                                     </div>
                                     <div class="grow" />
-                                    {#if configProgress[2]}
+                                    <!-- {#if configProgress[2]}
                                         <div>{configProgress[2]}</div>
-                                    {/if}
+                                    {/if} -->
                                 </div>
                                 {#if jigsawConfig.settings.rotation % 360 !== 0}
                                     <div class="caption">• Rotation enabled: {jigsawConfig.settings.rotation}° increments</div>

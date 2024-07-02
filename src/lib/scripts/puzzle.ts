@@ -53,7 +53,11 @@ export class JigsawInstance {
     completeSound: HTMLAudioElement;
     constructor(config: JigsawConfig, containerDiv: HTMLDivElement, randomSeed: string, debug: boolean = false) {
         this.containerDiv = containerDiv;
-        this.config = config;
+        this.config = JSON.parse(JSON.stringify(config));
+        if(window.innerHeight > window.innerWidth) {
+            // Mobile device, disable rotation
+            this.config.settings.rotation = 0;
+        }
         this.randomSeed = randomSeed;
         this.debug = debug;
     }
@@ -373,10 +377,6 @@ export class JigsawInstance {
                     this.imageSprite.addChild(maskGraphic); // Don't care about deprecation really
                     const pieceTexture = this.application.renderer.extract.texture({ target: this.imageSprite });
                     this.imageSprite.removeChild(maskGraphic);
-                    if(row === 0 && col === 0) {
-                        const png = this.application.renderer.extract.base64({ target: this.imageSprite });
-                        console.log(await png)
-                    }
                     pieceTexture.source.autoGenerateMipmaps = true;
                     pieceTexture.source.antialias = true;
                     this.jigsawPiecesData[row][col] = { center: graphicCenter, texture: pieceTexture, mask: maskGraphic };
