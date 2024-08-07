@@ -11,7 +11,10 @@
     
     const href=`https://chaster.app/locks/${lockID}/extensions/${individualPenaltyData.extensionData._id}`;
     const todoSubtitle = extensionLookup.key === "extended_wheel"
-        ? `Spin the wheel named '${individualPenaltyData.penaltyConfig.display}'` : "";
+        ? `Spin the wheel named '${individualPenaltyData.penaltyConfig.display}'` 
+        : extensionLookup.key === "jigsaw_puzzles"
+            ? `Solve (not yet complete) jigsaw puzzles`
+            : "";
     let widthPercentage = individualPenaltyData.penaltyData.current / individualPenaltyData.penaltyConfig.required * 100;
     if(widthPercentage > 100) { widthPercentage = 100; }
     

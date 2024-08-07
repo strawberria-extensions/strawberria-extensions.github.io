@@ -6,6 +6,9 @@
             "additionalProperties": {
                 "$ref": "/penaltyData"
             }
+        },
+        "jigsaw_puzzles": {
+            "$ref": "/penaltyData"
         }
     }
 }
