@@ -9,7 +9,8 @@
     const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwbmpsYmpwY2ZlYnFwYXFrcGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODg1NDM0NTgsImV4cCI6MjAwNDExOTQ1OH0.CsGySz2c8bIWphE6--T51CsmSeBQajfwvBYfTkjviM4";
     const chasterUtilitiesURL = "https://bpnjlbjpcfebqpaqkphy.supabase.co/functions/v1/chaster_utilities";
     const extensionLookupData: any = {
-        "extended-wheel-of-fortune": { "key": "extended_wheel", "what": "spin" }
+        "extended-wheel-of-fortune": { "key": "extended_wheel", "what": "spin" },
+        "jigsaw-puzzles": { "key": "jigsaw_puzzles", "what": "jigsaw"}
     };
 
     let initialLoadMessage: string = "Loading extension data...";
