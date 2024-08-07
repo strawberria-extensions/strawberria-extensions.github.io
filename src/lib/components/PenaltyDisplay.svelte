@@ -13,7 +13,7 @@
     const todoSubtitle = extensionLookup.key === "extended_wheel"
         ? `Spin the wheel named '${individualPenaltyData.penaltyConfig.display}'` 
         : extensionLookup.key === "jigsaw_puzzles"
-            ? `Complete ${individualPenaltyData.penaltyConfig.required} new jigsaw puzzles`
+            ? `Solve (not yet complete) jigsaw puzzles`
             : "";
     let widthPercentage = individualPenaltyData.penaltyData.current / individualPenaltyData.penaltyConfig.required * 100;
     if(widthPercentage > 100) { widthPercentage = 100; }

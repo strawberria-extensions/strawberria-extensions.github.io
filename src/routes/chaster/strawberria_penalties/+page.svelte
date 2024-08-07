@@ -14,7 +14,6 @@
     };
 
     let initialLoadMessage: string = "Loading extension data...";
-    let selectedExtensionKey: "extended_wheel" = "extended_wheel";
 
     let mainToken = "";
     let individualPenaltiesStore: Writable<IndividualPenaltyData[]> = writable([]);
