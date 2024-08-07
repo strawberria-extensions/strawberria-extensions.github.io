@@ -98,7 +98,7 @@
                     </div>
                 <div class="caption mb-3">
                     Extended penalty handling for all personally-developed extensions! <br>
-                    Now supporting extended lock effects and dynamic penalty interval with minute-level granularity!
+                    Now supporting extended lock effects and dynamic penalty intervals with minute-level granularity!
                 </div>
                 <div class="flex flex-row space-x-[0.5em]">
                     <i class="fal fa-tasks fa-2x"></i>
