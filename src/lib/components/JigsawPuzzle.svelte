@@ -36,7 +36,7 @@
             await instance.preInitialize();
         }
         await instance.initializeInstance(restart);
-        await instance.generateJigsawPieces();
+        // await instance.generateJigsawPieces();
     }
     function callbackSaved(saveData: JigsawSaveData | undefined, encrypted: string | undefined, action: string, key: string) {
         if(saveData !== undefined) {
