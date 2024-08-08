@@ -54,10 +54,10 @@ export class JigsawInstance {
     constructor(config: JigsawConfig, containerDiv: HTMLDivElement, randomSeed: string, debug: boolean = false) {
         this.containerDiv = containerDiv;
         this.config = JSON.parse(JSON.stringify(config));
-        if(window.innerHeight > window.innerWidth) {
-            // Mobile device, disable rotation
-            this.config.settings.rotation = 0;
-        }
+        // if(window.innerHeight > window.innerWidth) {
+        //     // Mobile device, disable rotation
+        //     this.config.settings.rotation = 0;
+        // }
         this.randomSeed = randomSeed;
         this.debug = debug;
     }
@@ -112,9 +112,12 @@ export class JigsawInstance {
         // Use proxy URL to bypass CORS, note PIXI doesn't like normal asset loading...
         const proxiedURL = `https://image-proxy.strawberria.workers.dev?imageURL=${encodeURIComponent(this.config.imageURL)}`;
         const imageElement = document.createElement("img");
-        imageElement.src = proxiedURL;
         imageElement.crossOrigin = "anonymous";
-        await new Promise<void>((resolve) => imageElement.onload = () => { resolve(); });
+        imageElement.src = proxiedURL;
+        if(imageElement.complete === false) {
+            // Wait for image element to finish loading
+            await new Promise<void>((resolve) => imageElement.onload = () => { resolve(); });
+        }
         this.imageTexture = PIXI.Texture.from(imageElement);
         // this.imageTexture = await PIXI.Assets.load(proxiedURL); // Proxy URL to get around CORS
         // this.imageTexture = await PIXI.Assets.load(this.config.imageURL); // Proxy URL to get around CORS
@@ -359,7 +362,7 @@ export class JigsawInstance {
                     }
                 }
 
-                // Generate and export the texture for the individual jigsaw piece
+                // Generate and export the tecture for the individual jigsaw piece
                 // Debug drawing for ensuring they all still fit together properly
                 const maskGraphic = new PIXI.Graphics().path(jigsawPiecePath);
                 maskGraphic.fill(colorArray[(row * this.config.rowColsRatio[1] + col) % colorArray.length]);
@@ -376,10 +379,6 @@ export class JigsawInstance {
                     this.imageSprite.mask = maskGraphic;
                     this.imageSprite.addChild(maskGraphic); // Don't care about deprecation really
                     const pieceTexture = this.application.renderer.extract.texture({ target: this.imageSprite });
-                    if(row === 0 && col === 0) {
-                        const b64 = this.application.renderer.extract.base64({ target: this.imageSprite });
-                        console.log(await b64)
-                    }
                     this.imageSprite.removeChild(maskGraphic);
                     pieceTexture.source.autoGenerateMipmaps = true;
                     pieceTexture.source.antialias = true;
