@@ -379,6 +379,10 @@ export class JigsawInstance {
                     this.imageSprite.mask = maskGraphic;
                     this.imageSprite.addChild(maskGraphic); // Don't care about deprecation really
                     const pieceTexture = this.application.renderer.extract.texture({ target: this.imageSprite });
+                    if(row === 0 && col === 0) {
+                        const b64 = this.application.renderer.extract.base64({ target: this.imageSprite });
+                        console.log(await b64)
+                    }
                     this.imageSprite.removeChild(maskGraphic);
                     pieceTexture.source.autoGenerateMipmaps = true;
                     pieceTexture.source.antialias = true;
