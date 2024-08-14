@@ -174,6 +174,17 @@
         });
         $configDataStore.jigsaws = $configDataStore.jigsaws;
     }
+    function copyConfig() {
+        navigator.clipboard.writeText(JSON.stringify($configDataStore))
+    }
+    async function pasteConfig() {
+        try {
+            const parsed = JSON.parse(await navigator.clipboard.readText());
+            $configDataStore = parsed;
+        } catch(err) {
+            alert("Invalid JSON specified!");
+        }
+    }
 </script>
 
 <div class="container-bg w-full h-screen pl-3 pr-3 mt-2 overflow-y-auto">
@@ -251,11 +262,21 @@
                     </div>
                 {/each}
             </div>
-            <div class="w-full flex flex-col items-center mt-[0.5em] mb-[2em]">
+            <div class="w-full flex flex-row items-center justify-around mt-[0.5em] mb-[2em]">
+                <button type="button" class="btn btn-primary"
+                    on:click={() => { copyConfig() }}>
+                    <i class="fas fa-plus text-sm mr-[0.125em]"></i>
+                    Copy Config
+                </button>
                 <button type="button" class="btn btn-primary"
                     on:click={() => { addPuzzle() }}>
                     <i class="fas fa-plus text-sm mr-[0.125em]"></i>
                     Add a puzzle
+                </button>
+                <button type="button" class="btn btn-primary"
+                    on:click={() => { pasteConfig() }}>
+                    <i class="fas fa-plus text-sm mr-[0.125em]"></i>
+                    Paste Config
                 </button>
             </div>
         </div>

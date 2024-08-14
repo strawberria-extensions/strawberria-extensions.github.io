@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { writable, type Writable } from "svelte/store";
+    import SvelteMarkdown from "svelte-markdown";
     import chasterLogo from "$lib/resources/logo.png"
     import type { BackendResponseSignature } from '$lib/scripts/signature-backend';
     import type { TypingTasksConfig_User } from "$lib/scripts/signature-typing_tasks";
@@ -16,6 +17,12 @@
     let selectedTaskIDStore: Writable<string | undefined> = writable(undefined);
     let typingTasksConfigStore: Writable<TypingTasksConfig_User> = writable({"tasks": {}});
     // let extendedWheelCustomStore: Writable<TypingTasksCustom> = writable({});
+
+    // Continually focus the dummy input element while it exists
+    setInterval(() => {
+        const inputElement = document.getElementById("catch-input");
+        if(inputElement) { inputElement.focus(); }
+    }, 10);
 
     let hash: string = "";
     onMount(async () => {
@@ -116,6 +123,8 @@
                 }
             }
             characterCount++;
+
+            try { bottomDiv.scrollIntoView({ behavior: "smooth"}); } catch(err) {}
         } else {
             // Append line history and reset phrase
             linesHistory.push([currentTypedLine, key !== " " ? key : "☐"]);
@@ -132,6 +141,9 @@
             // Set mistake and untoggle after 2 seconds
             mistake = true;
             extra += selectedTaskData.settings.extra;
+            setTimeout(() => {
+                try { bottomDiv.scrollIntoView({ behavior: "smooth"}); } catch(err) {}
+            }, 250);
             setTimeout(() => { 
                 mistake = false; 
                 // Don't let delay affect stats?
@@ -158,8 +170,6 @@
             }, 25);
             started = true;
         }
-
-        try { bottomDiv.scrollIntoView({ behavior: "smooth"}); } catch(err) {}
     }
 
     onMount(() => {
@@ -171,7 +181,8 @@
 
 <svelte:window />
 <!-- Note: p-4 moved inside -->
-<div class="container-bg min-w-0 min-h-0 space-y-2 grow">
+<!-- <div class="container-bg min-w-0 min-h-0 space-y-2 grow max-h-full "> -->
+<div class="container-bg absolute inset-0 space-y-2">
     {#if initialLoadMessage !== ""}
         <!-- While extension data is loading, show Chaster logo -->
         <div class="w-full h-screen flex flex-col items-center justify-center p-4">
@@ -195,9 +206,11 @@
                     <div class="card-content flex flex-col space-y-[0.5em] w-[32em]">
                         <div class="flex flex-row space-x-[1em] items-center">
                             <div class="flex flex-col">
-                                <h5 class="mb-[0.25em]">{taskData.display}</h5>
+                                <h5 class="mb-[0.5em]">{taskData.display}</h5>
                                 {#if taskData.note !== undefined}
-                                    <div class="caption">{taskData.note}</div>
+                                    <div class="caption">
+                                        <SvelteMarkdown source={taskData.note} isInline />
+                                    </div>
                                 {/if}
                             </div>
                             <div class="grow" />
@@ -211,7 +224,7 @@
     {:else}
         {@const selectedTaskData = $typingTasksConfigStore.tasks[$selectedTaskIDStore]}
         <div class="w-full h-full grid">
-            <div class="w-full h-full flex flex-col items-center overlay p-4">
+            <div class="w-full h-full min-h-0 flex flex-col items-center overlay p-4">
                 <div class="flex flex-col h-full p-4 space-y-[0.5em]"
                     style="width: min(100%, 64em)">
                     <div class="font-medium text-left text-xl pl-[0.5em]">
@@ -229,13 +242,14 @@
                             {/if}
                         </div>
                     </div>
-                    <div class="font-semibold bg-darker">
+                    <input id="catch-input" class="opacity-0 !w-0 !h-0 !m-0 !p-0" />
+                    <div class="font-semibold bg-darker overflow-y-hidden">
                         {#if started === false}
                             <div class="font-semibold bg-darker p-[0.675em] text-2xl text-center text-red-500">
                                 Start typing to begin...
                             </div>
                         {:else}
-                            <div class="w-full h-full items-stretch whitespace-pre">
+                            <div class="w-full h-full max-h-full items-stretch whitespace-pre">
                                 <div class="flex flex-col space-y-[0.5em] p-[1.25em]"
                                     style="overflow-wrap: break-word">
                                     {#each linesHistory as lineHistory}
@@ -260,6 +274,7 @@
                                             {currentTypedLine}
                                         </div>
                                     </div>
+                                    <div class="!m-0" bind:this={bottomDiv} />
                                 </div>
                             </div>
                         {/if}
@@ -283,7 +298,6 @@
                             <div>{charactersPerMinute}</div>
                         </div>
                     </div>
-                    <div bind:this={bottomDiv} />
                 </div>
             </div>
             <div class="w-full h-full flex flex-col items-center justify-center overlay z-10"
@@ -422,7 +436,7 @@
         background-color: #1f1d2b;
     }
 
-    .blink-cursor:last-child {
+    .blink-cursor > div {
         display: flex;
         min-width: 0px;
         gap: 2px;
@@ -430,13 +444,13 @@
     .no-gap:last-child {
         gap: 0px !important;
     }
-    .blink-cursor:last-child::after {
+    .blink-cursor > div:after {
         content: "";
-        width: 3px;
+        width: 2px;
         height: 22px;
-        background: #b91c1c;
+        background: red;
         display: inline-block;
-        /* animation: cursor-blink 1.5s steps(2) infinite; */
+        animation: cursor-blink 1.5s steps(2) infinite;
     }
 
     @keyframes cursor-blink {
