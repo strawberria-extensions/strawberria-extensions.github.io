@@ -310,7 +310,7 @@
                                     <div class="result" on:click={() => { $resultStore = undefined }}>
                                         <!-- Basically copied from WheelOutcome -->
                                         <div class="flex flex-col">
-                                            <div>{$resultStore.text ?? ""}</div>
+                                            <div class="mb-[0.25em]">{$resultStore.text ?? ""}</div>
                                             {#if $resultStore.effects.length > 0}
                                                 <ul class="list">
                                                     {#each $resultStore.effects as effectData}
@@ -324,7 +324,6 @@
                                                 </ul>
                                             {/if}
                                         </div>
-
                                         <div class="text-sm mt-[1em] w-full text-center cursor-default">
                                             [ Click anywhere to close ]
                                         </div>
