@@ -825,8 +825,12 @@ export class JigsawInstance {
                     if(connectedContainer === sourceContainer) { continue; }
 
                     // Normalize rounded angles because of computer math dumb stuff
-                    const sourceAngleRound = Math.round(sourceContainer.angle / this.config.settings.rotation) * this.config.settings.rotation;
-                    const connectedAngleRound = Math.round(connectedContainer.angle / this.config.settings.rotation) * this.config.settings.rotation;
+                    const sourceAngleRound = this.config.settings.rotation !== 0
+                        ? Math.round(sourceContainer.angle / this.config.settings.rotation) * this.config.settings.rotation
+                        : 0;
+                    const connectedAngleRound = this.config.settings.rotation !== 0
+                        ? Math.round(connectedContainer.angle / this.config.settings.rotation) * this.config.settings.rotation
+                        : 0;
                     sourceContainer.angle = sourceAngleRound; // Necessary?
                     connectedContainer.angle = connectedAngleRound;
                     if(sourceContainer.angle != connectedContainer.angle) { 
