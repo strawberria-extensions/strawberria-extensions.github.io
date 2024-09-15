@@ -16,10 +16,10 @@
 
         // instance = new JigsawInstance(parentDiv, TestImage, 6, `1`);
         const seed = "1";
-        instance = new JigsawInstance(jigsawConfig, containerDiv, seed);
+        instance = new JigsawInstance(jigsawConfig, containerDiv, seed, false);
         instance.elapsedTimeMSStore.subscribe(elapsedMS => {
             timestamp = new Date(elapsedMS).toISOString().slice(11, 19);
-        })
+        });
         instance.callbackCompleted = callbackCompleted;
         instance.callbackSaved = callbackSaved;
         await restartGame(false);

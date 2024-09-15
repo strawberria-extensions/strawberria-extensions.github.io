@@ -495,8 +495,11 @@ export class JigsawInstance {
                 // If there's existing save data, then skip this step and let shuffle do the work
                 if(saveData === undefined) {
                     // Modify the angle first so we can get the proper bounds
-                    let randomAngle = this.config.settings.rotation * Math.floor(imageRandom() * (360 / this.config.settings.rotation));
-                    container.angle = randomAngle; // Force update needed?
+                    if(this.config.settings.rotation !== 0) {
+                        // Can't divide by zero!
+                        let randomAngle = this.config.settings.rotation * Math.floor(imageRandom() * (360 / this.config.settings.rotation));
+                        container.angle = randomAngle; // Force update needed?
+                    }
 
                     // Determine valid movement points based on total "width" and "height"
                     const bounds = container.getBounds();

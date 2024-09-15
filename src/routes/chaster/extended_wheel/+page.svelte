@@ -447,10 +447,10 @@
                         </div>
                         <hr> -->
                         {#key selectedWheelID}
-                            {#if userRole == "keyholder"}
+                            <!-- {#if userRole == "keyholder"}
                                 <button on:click={window.setConfig}>[ Debug - Simulate Config ]</button>
                                 <hr>
-                            {/if}
+                            {/if} -->
                             {#if wheelData.note !== undefined}
                                 {@const lines = wheelData.note.split("\n")}
                                 <div class="space-y-[0.5em]">

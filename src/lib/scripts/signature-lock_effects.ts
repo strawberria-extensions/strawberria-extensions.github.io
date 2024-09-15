@@ -84,6 +84,9 @@ export type LockEffectDataBase = {
 } | {
     "key": "extendedUpdatePercentage",
     "params": [string, string, "set" | "modify" | "multiply", number, number | undefined];
+} | {
+    "key": "resetCooldown",
+    "params": [string, string]
 };
 export type LockEffectData = LockEffectDataBase & {
     hidden?: boolean;

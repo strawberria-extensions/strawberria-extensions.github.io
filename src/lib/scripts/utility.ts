@@ -59,6 +59,7 @@ export function generateTimeStringPenalties(seconds: number) {
 export function generateTimeString(seconds: number, showSeconds: boolean = false) {
     // Generate second multipliers for counting each
     const multipliers: { [key: string]: number } = {
+        "week": 60 * 60 * 24 * 7,
         "day": 60 * 60 * 24,
         "hour": 60 * 60,
         "minute": 60,
@@ -270,7 +271,9 @@ export function chineseWhisper(line: string) {
 export function generateOutcomeEffectLabel(actionData: LockEffectData): string {
     let actionText = "";
 
-    if(actionData.key === "customText") {
+    if(actionData.key === "resetCooldown") { // Only for extended wheel right now
+        actionText = `**[Extended Wheel]** Reset cooldown for the wheel keyed "${actionData.params[1]}"`;
+    } else if(actionData.key === "customText") {
         actionText = actionData.params[0];
     } else if(actionData.key === "resetLock") {
         actionText = "**[Lock]** Reset the lock";
@@ -455,11 +458,11 @@ export function generateOutcomeEffectLabel(actionData: LockEffectData): string {
         const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
         actionText = actionData.params[2] === "modify"
             ? actionData.params[3] > 0
-                ? `**[Extended Wheel]** Add ${valueStr} to the weight of outcome "${actionData.params[1]}`
-                : `**[Extended Wheel]** Subtract ${valueStr} from the weight of outcome "${actionData.params[1]}`
+                ? `**[Extended Wheel]** Add ${valueStr} to the weight of outcome "${actionData.params[1]}"`
+                : `**[Extended Wheel]** Subtract ${valueStr} from the weight of outcome "${actionData.params[1]}"`
             : actionData.params[2] === "multiply"
-                ? `**[Extended Wheel]** Multiply the weight of outcome "${actionData.params[1]} by ${valueStr}`
-            : `**[Extended Wheel]** Set the weight of outcome "${actionData.params[1]} to ${valueStr}`;
+                ? `**[Extended Wheel]** Multiply the weight of outcome "${actionData.params[1]}" by ${valueStr}`
+            : `**[Extended Wheel]** Set the weight of outcome "${actionData.params[1]}" to ${valueStr}`;
     }
 
     return actionText;

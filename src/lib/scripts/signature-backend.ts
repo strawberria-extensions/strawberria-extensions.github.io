@@ -1,7 +1,8 @@
 import type { LockEffectData } from "./signature-lock_effects";
 import type { ExtendedWheelConfig, ExtendedWheelConfig_OutcomeData_Result, ExtendedWheelConfig_User, ExtendedWheelCustom } from "./signature-extended_wheel";
-import { TypingTasksConfig_User } from "./signature-typing_tasks";
-import { JigsawPuzzlesConfig } from "./signature-puzzle";
+import type { TypingTasksConfig_User } from "./signature-typing_tasks";
+import type { JigsawPuzzlesConfig } from "./signature-puzzle";
+import type { KeyHuntCardType, KeyHuntConfig_User, KeyHuntCustom_User, KeyHuntCustomCard } from "$lib/scripts/signature-key_hunt";
 
 export interface BackendRequestSignature {
     "chaster_utilities": {
@@ -49,6 +50,18 @@ export interface BackendResponseSignature {
         "jigsaw_puzzles-page": {
             config: JigsawPuzzlesConfig;
             custom: { [key: string]: string };
+        };
+        "key_hunt-page": {
+            userRole:    "keyholder" | "wearer";
+            config:      KeyHuntConfig_User, 
+            customData:  KeyHuntCustom_User,
+            count?:      number,
+        };
+        "key_hunt-pick": {
+            chosenCardType:    KeyHuntCardType;
+            chosenCardCustom?: KeyHuntCustomCard; 
+            customData:        KeyHuntCustom_User;         
+            count?:            number;                   
         }
     };
     "database_utilities": {

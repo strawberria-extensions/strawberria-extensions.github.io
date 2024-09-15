@@ -673,6 +673,35 @@
                 "key",
                 "params"
             ]
+        },
+        {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string",
+                    "enum": [
+                        "resetCooldown"
+                    ]
+                },
+                "params": {
+                    "type": "array",
+                    "prefixItems": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ]
+                },
+                "hidden": {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "key",
+                "params"
+            ]
         }
     ]
 }

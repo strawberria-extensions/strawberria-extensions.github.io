@@ -1,4 +1,5 @@
 import type { LockEffectData } from "./signature-lock_effects.ts";
+import type { RegularityConfig } from "./signature-shared.ts"
 
 export interface ExtendedWheelConfig {
     wheels: { [key: string]: ExtendedWheelConfig_WheelData };
@@ -14,11 +15,8 @@ export interface ExtendedWheelConfig_WheelData {
         hiddenOutcomes:    boolean;
         hiddenEffects:     boolean;
     }
-    regularity:  {
-        interval: number; // Seconds, or remaining spins
-        mode:     "unlimited" | "cumulative" | "non_cumulative";
-    }
-    outcomes: ExtendedWheelConfig_OutcomeData[];
+    regularity: RegularityConfig;
+    outcomes:   ExtendedWheelConfig_OutcomeData[];
 }
 export interface ExtendedWheelConfig_OutcomeData_Result {
     text:    string;
