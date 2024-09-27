@@ -1,17 +1,17 @@
 <script lang="ts">
     import bigDecimal from "js-big-decimal";
     import SvelteMarkdown from "svelte-markdown";
-    import { generateOutcomeEffectLabel } from "$lib/scripts/utility";
-    import type { ExtendedWheelConfig_OutcomeData_User, ExtendedWheelConfig_User } from "../scripts/signature-extended_wheel";
+    import * as ExtendedWheel from "$lib/import/extension-extended_wheel";
+    import { renderLockEffect } from "$lib/import/nunjucks";
 
-    export let outcomeData: ExtendedWheelConfig_OutcomeData_User;
-    export let settings: ExtendedWheelConfig_User["wheels"][string]["settings"];
+    export let outcomeData: ExtendedWheel.OutcomeData;
+    export let settings: ExtendedWheel.Config["config"]["wheels"][string]["settings"];
     export let userRole: "keyholder" | "wearer";
     export let totalPercentage: number;
     export let color: string;
 
-    let actualPercentage = (settings.hiddenPercentages && userRole !== "keyholder")
-        ? "???" : new bigDecimal(outcomeData.percentage)
+    let actualPercentage = (settings.hiddenWeights && userRole !== "keyholder")
+        ? "???" : new bigDecimal(outcomeData.weight)
             .divide(new bigDecimal(totalPercentage), 8)
             .multiply(new bigDecimal(100))
             .round(3).getValue()
@@ -25,7 +25,7 @@
             <ul class="list mt-[0.25em]">
                 {#each outcomeData.effects as effectData}
                     {#if !effectData.hidden}
-                        {@const effectText = generateOutcomeEffectLabel(effectData)}
+                        {@const effectText = renderLockEffect(effectData)}
                         <li class="caption whitespace-pre-wrap text-sm">
                             <SvelteMarkdown source={effectText} isInline />   
                         </li>

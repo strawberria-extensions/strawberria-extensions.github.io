@@ -4,8 +4,15 @@ import seedrandom from "seedrandom";
 import * as PIXI from "pixi.js"
 import * as XXH from "xxhashjs";
 import { get, writable, type Writable } from "svelte/store";
-import { type ActionType, colorArray, type JigsawCompletionData, type JigsawConfig, type JigsawPieceData, type JigsawSaveData, JigsawSprite } from "./signature-puzzle";
+import * as JigsawPuzzles from "$lib/import/extension-jigsaw_puzzles"
+
+// import { type ActionType, colorArray, type JigsawCompletionData, type JigsawPuzzles.Config, type JigsawPieceData, type JigsawPuzzles.JigsawSave, JigsawSprite } from "./signature-puzzle";
 import { decryptAES256GCM, encryptAES256GCM, hashSHA256, hexToBuffer, md5, sleep } from "./utility";
+
+class JigsawSprite extends PIXI.Sprite {
+    row: number = -1;
+    col: number = -1;
+}
 
 // TODO:
 // - Auto resize when screen changes
@@ -41,17 +48,17 @@ const reflectedJigsawBezierData: typeof jigsawBezierData = jigsawBezierData
 export class JigsawInstance {
     // Base constructor configuration
     containerDiv: HTMLDivElement;
-    config:       JigsawConfig;
+    config:       JigsawPuzzles.JigsawData;
     randomSeed:   string;
     debug:        boolean;
     // Various callbacks?
-    callbackCompleted: (saveData: JigsawSaveData, suppress: boolean) => void;
-    callbackSaved:     (saveData: JigsawSaveData | undefined, encrypted: string | undefined, action: string, key: string) => void;
+    callbackCompleted: (saveData: JigsawPuzzles.JigsawSave, suppress: boolean) => void;
+    callbackSaved:     (saveData: JigsawPuzzles.JigsawSave | undefined, encrypted: string | undefined, action: string, key: string) => void;
 
     // Bare minimum constructor, main handling is asynchronous
     snapSound: HTMLAudioElement;
     completeSound: HTMLAudioElement;
-    constructor(config: JigsawConfig, containerDiv: HTMLDivElement, randomSeed: string, debug: boolean = false) {
+    constructor(config: JigsawPuzzles.JigsawData, containerDiv: HTMLDivElement, randomSeed: string, debug: boolean = false) {
         this.containerDiv = containerDiv;
         this.config = JSON.parse(JSON.stringify(config));
         // if(window.innerHeight > window.innerWidth) {
@@ -226,7 +233,7 @@ export class JigsawInstance {
     // Initialize per-instance constants, re-ran on restart (TODO: how to handle container size change?)
     // - Generate random jigsaw vertexes for aligning individual pieces
     // - Generate the actual jigsaw pieces and related information (index, center point, etc.)
-    jigsawPiecesData:  JigsawPieceData[][];
+    jigsawPiecesData:  JigsawPuzzles.JigsawPieceData[][];
     randomXMin:        number;
     randomYMin:        number;
     randomXOffset:     number;
@@ -365,7 +372,7 @@ export class JigsawInstance {
                 // Generate and export the tecture for the individual jigsaw piece
                 // Debug drawing for ensuring they all still fit together properly
                 const maskGraphic = new PIXI.Graphics().path(jigsawPiecePath);
-                maskGraphic.fill(colorArray[(row * this.config.rowColsRatio[1] + col) % colorArray.length]);
+                maskGraphic.fill(JigsawPuzzles.colorArray[(row * this.config.rowColsRatio[1] + col) % JigsawPuzzles.colorArray.length]);
                 // strokeGraphic.stroke({ color: "yellow", "width": 1, alignment: 1.5 });
                 if(this.debug) {
                     this.application.stage.addChild(maskGraphic);
@@ -408,9 +415,9 @@ export class JigsawInstance {
     // Determine what action is currently being taken from the given event
     currentAction: "clickDown" | undefined;
     lastActionMS: number = 0;
-    whatAction(action: "pointerdown" | "pointerup", right: boolean = false): ActionType | undefined {
+    whatAction(action: "pointerdown" | "pointerup", right: boolean = false): JigsawPuzzles.ActionType | undefined {
         // If no current action, ignore if pointerup 
-        let finalAction: ActionType | undefined = undefined;
+        let finalAction: JigsawPuzzles.ActionType | undefined = undefined;
         if(this.currentAction === undefined && action === "pointerup") {}
         else if(right === false) {
             // Handle left click, if no current action then clickDown
@@ -624,7 +631,7 @@ export class JigsawInstance {
     // - Key: image hash and target pieces
     // - Encrypted data: seed, elapsed time, and connections
     saveKey: string;
-    saveData: JigsawSaveData;
+    saveData: JigsawPuzzles.JigsawSave;
     async saveProgress(overrideAction?: string): Promise<string> {
         this.saveData = {
             seed: this.randomSeed,
@@ -658,12 +665,12 @@ export class JigsawInstance {
 
     // Retrieve save data if exists from LocalStorage
     // - Then decrypt data before returning
-    async getSaveData(): Promise<[string, JigsawSaveData | undefined]> {
+    async getSaveData(): Promise<[string, JigsawPuzzles.JigsawSave | undefined]> {
         // Check whether any save data exists for the current configuration
         const urlHash = await hashSHA256(this.config.imageURL);
         // const saveKey = `${this.imageHash}-${this.config.rowColsRatio[0]}x${this.config.rowColsRatio[1]}`;
         const saveKey = `${urlHash}-${this.config.rowColsRatio[0]}x${this.config.rowColsRatio[1]}`;
-        let saveData: JigsawSaveData | undefined = undefined;
+        let saveData: JigsawPuzzles.JigsawSave | undefined = undefined;
         const encryptedSaveData = window.localStorage.getItem(saveKey)
         if(encryptedSaveData !== null) {
             // Save data exists, decrypt and load
@@ -700,7 +707,7 @@ export class JigsawInstance {
 
         // Afterwards, call callback if deffined
         if(this.callbackCompleted !== undefined) {
-            let completionData: JigsawCompletionData = {
+            let completionData: JigsawPuzzles.JigsawCompletionData = {
                 config: this.config,
                 save: {
                     seed: this.saveData.seed,

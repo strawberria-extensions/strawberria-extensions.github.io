@@ -4,10 +4,10 @@
     import Masonry from '$lib/components/Masonry.svelte';
     import chasterLogo from "$lib/resources/logo.png"
     import JigsawPuzzle from "$lib/components/JigsawPuzzle.svelte";
-    import type { JigsawConfig, JigsawPuzzlesConfig, JigsawSaveData } from "$lib/scripts/signature-puzzle";
     import type { BackendResponseSignature } from "$lib/scripts/signature-backend";
     import { JigsawInstance } from "$lib/scripts/puzzle";
     import { hashSHA256, sleep } from "$lib/scripts/utility";
+    import * as JigsawPuzzles from "$lib/import/extension-jigsaw_puzzles";
 
     // Supabase anon key has no database access due to RLS
     const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwbmpsYmpwY2ZlYnFwYXFrcGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODg1NDM0NTgsImV4cCI6MjAwNDExOTQ1OH0.CsGySz2c8bIWphE6--T51CsmSeBQajfwvBYfTkjviM4";
@@ -16,8 +16,8 @@
     let initialLoadMessage: string = "Loading extension data...";
     let selectedExtensionKey = "jigsaw_puzzles";
     
-    const jigsawPuzzlesConfigStore: Writable<JigsawPuzzlesConfig> = writable({ jigsaws: [] });
-    const chosenJigsawConfigStore: Writable<JigsawConfig | undefined> = writable(undefined);
+    const jigsawPuzzlesConfigStore: Writable<JigsawPuzzles.Config["config"]> = writable({ jigsaws: [] });
+    const chosenJigsawConfigStore: Writable<JigsawPuzzles.JigsawData | undefined> = writable(undefined);
     const progressMappingStore: Writable<{ [key: string]: [number, number, string] }> = writable({});
     let configKeys: string[] = [];
     jigsawPuzzlesConfigStore.subscribe(async (data) => {
@@ -62,13 +62,13 @@
         }
         const jigsawPuzzlesMainData: BackendResponseSignature["chaster_utilities"]["jigsaw_puzzles-page"] 
             = await jigsawPuzzlesMainResponse.json();
-        $jigsawPuzzlesConfigStore = jigsawPuzzlesMainData.config;
+        $jigsawPuzzlesConfigStore = jigsawPuzzlesMainData.config.config;
         for(const jigsawConfig of $jigsawPuzzlesConfigStore.jigsaws) {
             const imageCheck = new URL(jigsawConfig.imageURL);
             if(imageCheck.host.endsWith("imgbox.com") === false) { throw Error(`unwhitelisted url: ${jigsawConfig.imageURL}`); }
-            if(jigsawConfig.thumbnailURL !== undefined) {
-                const thumbCheck = new URL(jigsawConfig.thumbnailURL);
-                if(thumbCheck.host.endsWith("imgbox.com") === false) { throw Error(`unwhitelisted url: ${jigsawConfig.thumbnailURL}`); }
+            if(jigsawConfig.imageURL !== undefined) {
+                const thumbCheck = new URL(jigsawConfig.imageURL);
+                if(thumbCheck.host.endsWith("imgbox.com") === false) { throw Error(`unwhitelisted url: ${jigsawConfig.imageURL}`); }
             }
         }
 
@@ -119,7 +119,7 @@
     }
 
     // When completed, send a request to the server with the completion data
-    const completed = async (saveData: JigsawSaveData) => {
+    const completed = async (saveData: JigsawPuzzles.JigsawSave) => {
         const completionResponse = await fetch(chasterUtilitiesURL, {
             method: "POST", headers: { "Authorization": `Bearer ${anonKey}` },
             body: JSON.stringify({ 
@@ -130,7 +130,7 @@
             })
         });
     }
-    const saved = async (saveData: JigsawSaveData | undefined, encrypted: string | undefined, action: string, key: string) => {
+    const saved = async (saveData: JigsawPuzzles.JigsawSave | undefined, encrypted: string | undefined, action: string, key: string) => {
         refreshProgressData();
 
         // If action is not tick (instead restart or update), push update to database
@@ -147,9 +147,14 @@
             });
         }
     }
-    const mainMenu = async (saveData?: JigsawSaveData) => {
+    const mainMenu = async (saveData?: JigsawPuzzles.JigsawSave) => {
         await refreshProgressData();
         $chosenJigsawConfigStore = undefined;
+    }
+
+    function getThumbnail(imageURL: string) {
+        return imageURL.replace("images2", "thumbs2")
+            .replace("_o", "_t");
     }
 
     let refreshLayout: () => Promise<void>;
@@ -200,9 +205,9 @@
                                     <div class="absolute top-0 left-0 w-full h-full opacity-80 z-10"
                                         style={configProgress[1] !== undefined && configProgress[0] > 1 ? `background: conic-gradient(transparent ${progressDeg}deg, #292833 ${progressDeg}deg 360deg);` : ""} />
                                     <img class="block h-full w-full pie"
-                                        class:blur-md={!jigsawConfig.settings.ghost && configProgress[0] !== 1} 
-                                        style={!jigsawConfig.settings.ghost ? "clip-path: inset(0 0 0 0);" : ""}
-                                        src={jigsawConfig.thumbnailURL ?? jigsawConfig.imageURL} />
+                                        class:blur-md={!jigsawConfig.settings.allowGhost && configProgress[0] !== 1} 
+                                        style={!jigsawConfig.settings.allowGhost ? "clip-path: inset(0 0 0 0);" : ""}
+                                        src={getThumbnail(jigsawConfig.imageURL)} />
                                     <!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
                                     {#if configProgress[0] === 1}
                                         <div class="absolute h-full w-full top-0 left-0 flex flex-col justify-center p-[2em]">
@@ -221,7 +226,7 @@
                             <div class="flex flex-col items-stretch w-full text-lg">
                                 <div class="flex flex-row items-center">
                                     <div class="flex flex-row">
-                                        {jigsawConfig.title} (<div>{totalPieces}</div>
+                                        {jigsawConfig.display} (<div>{totalPieces}</div>
                                         <svg class="h-6 aspect-square ml-[0.125em] mb-[0.125em]" 
                                             viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                                             <defs>
@@ -245,10 +250,10 @@
                                 {#if jigsawConfig.settings.rotation % 360 !== 0}
                                     <div class="caption">• Rotation enabled: {jigsawConfig.settings.rotation}° increments</div>
                                 {/if}
-                                {#if !jigsawConfig.settings.ghost}
+                                {#if !jigsawConfig.settings.allowEdge}
                                     <div class="caption">• ⚠️ Image ghosting disabled! ⚠️</div>
                                 {/if}
-                                {#if !jigsawConfig.settings.edge}
+                                {#if !jigsawConfig.settings.allowEdge}
                                     <div class="caption">• ⚠️ Edge piece filtering disabled! ⚠️</div>
                                 {/if}
                             </div>

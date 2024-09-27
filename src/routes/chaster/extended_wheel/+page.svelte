@@ -8,11 +8,12 @@
     import wheelBgOverlayFile from "$lib/resources/wheel-bg-overlay.svg"
     import { Wheel } from '$lib/resources/spin-wheel.js';
     import WheelOutcome from "$lib/components/WheelOutcome.svelte";
-    import { generateOutcomeEffectLabel, randomInt, sleep, truncateWords } from "$lib/scripts/utility";
-    import type { ExtendedWheelConfig_OutcomeData_Result, ExtendedWheelConfig_User, ExtendedWheelCustom } from '$lib/scripts/signature-extended_wheel';
+    import { randomInt, sleep, truncateWords } from "$lib/scripts/utility";
+    import * as ExtendedWheel from "$lib/import/extension-extended_wheel";
     import type { ChasterUserRole } from '$lib/scripts/signature-chaster';
     import type { BackendResponseSignature } from '$lib/scripts/signature-backend';
     import { generateTimeString } from "$lib/scripts/utility";
+    import { renderLockEffect } from '$lib/import/nunjucks';
     
     // Supabase anon key has no database access due to RLS
     const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwbmpsYmpwY2ZlYnFwYXFrcGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODg1NDM0NTgsImV4cCI6MjAwNDExOTQ1OH0.CsGySz2c8bIWphE6--T51CsmSeBQajfwvBYfTkjviM4";
@@ -41,8 +42,8 @@
     let mainToken = "";
     let userRole: ChasterUserRole = "keyholder";
     let keyholder: string | undefined = undefined;
-    let extendedWheelConfigStore: Writable<ExtendedWheelConfig_User> = writable({ "wheels": {} });
-    let extendedWheelCustomStore: Writable<ExtendedWheelCustom> = writable({ wheels: {} });
+    let extendedWheelConfigStore: Writable<ExtendedWheel.Config["config"]> = writable({ "wheels": {} });
+    let extendedWheelCustomStore: Writable<ExtendedWheel.Custom["custom"]> = writable({});
 
     let hash: string = "";
     onMount(async () => {
@@ -67,8 +68,8 @@
         const extendedMainPageData = await retrieveWheelConfig();
         keyholder = extendedMainPageData.keyholder;
         userRole = extendedMainPageData.userRole;
-        $extendedWheelConfigStore = extendedMainPageData.config;
-        $extendedWheelCustomStore = extendedMainPageData.customData;
+        $extendedWheelConfigStore = extendedMainPageData.config.config;
+        $extendedWheelCustomStore = extendedMainPageData.customData.custom;
         selectedWheelID = Object.keys($extendedWheelConfigStore.wheels)
             .filter(key => keyholder || !$extendedWheelConfigStore.wheels[key].settings.disabled)[0]
             ?? undefined;
@@ -81,7 +82,7 @@
         if(selectedWheelID === undefined) {
             return;
         }
-        const wheelCustomData = $extendedWheelCustomStore.wheels[selectedWheelID];
+        const wheelCustomData = $extendedWheelCustomStore[selectedWheelID];
         if(wheelCustomData === undefined) {
             $nextSpinTimestampStore = "";
         } else {
@@ -90,7 +91,7 @@
                 $nextSpinTimestampStore = "";
             } else {
                 const currentTimeMS = new Date().getTime();
-                const nextSpinMS = wheelCustomData.lastActionTimeMS + wheelConfigData.regularity.interval;
+                const nextSpinMS = wheelCustomData.lastSpinMS + wheelConfigData.regularity.interval;
                 $nextSpinTimestampStore = currentTimeMS > nextSpinMS
                     ? "" : generateTimeString(Math.floor((nextSpinMS - currentTimeMS) / 1000));
             }
@@ -104,7 +105,7 @@
 
     // Wheel-related logic including spinning, etc.
     let wheelContainerStore: Writable<HTMLDivElement | undefined> = writable(undefined);
-    let resultStore: Writable<ExtendedWheelConfig_OutcomeData_Result | undefined> = writable(undefined)
+    let resultStore: Writable<ExtendedWheel.OutcomeResult | undefined> = writable(undefined)
     let spinDisabled = false;
     let spinWheel: any;
     let lastRotation: [string, number] = ["", 0];
@@ -147,12 +148,12 @@
             await sleep(10);
         }
         if(JSON.stringify($extendedWheelConfigStore) !== JSON.stringify(extendedMainPageData.config)) {
-            if(extendedMainPageData.config.wheels[selectedWheelID ?? ""] === undefined) {
-                selectedWheelID = Object.keys(extendedMainPageData.config.wheels)[0] ?? undefined;
+            if(extendedMainPageData.config.config.wheels[selectedWheelID ?? ""] === undefined) {
+                selectedWheelID = Object.keys(extendedMainPageData.config.config.wheels)[0] ?? undefined;
             }
-            $extendedWheelConfigStore = extendedMainPageData.config; // Intensive?
+            $extendedWheelConfigStore = extendedMainPageData.config.config; // Intensive?
         }
-        $extendedWheelCustomStore = extendedMainPageData.customData;
+        $extendedWheelCustomStore = extendedMainPageData.customData.custom;
     }
 
     // Update wheel container with new outcomes from selected wheel
@@ -192,7 +193,7 @@
             (outcomeData) => {
                 const label = outcomeData.text ?? "";
                 const truncatedLabel = [truncateWords(label, 24), label.length >= 32 ? "..." : ""].join("");
-                const weight = parseFloat(outcomeData.percentage);
+                const weight = parseFloat(outcomeData.weight);
                 return { label: truncatedLabel, weight: weight };
             }
         )));
@@ -315,7 +316,7 @@
                                                 <ul class="list">
                                                     {#each $resultStore.effects as effectData}
                                                         {#if !effectData.hidden}
-                                                            {@const effectText = generateOutcomeEffectLabel(effectData)}
+                                                            {@const effectText = renderLockEffect(effectData)}
                                                             <li class="caption whitespace-pre-wrap text-sm">
                                                                 <SvelteMarkdown source={effectText} isInline />   
                                                             </li>
@@ -363,7 +364,7 @@
                         </div>
                     </div>
                     {#if !shouldHorizontal}
-                        {@const totalPercentage = wheelData.outcomes.reduce((sum, data) => sum += parseFloat(data.percentage), 0)}
+                        {@const totalPercentage = wheelData.outcomes.reduce((sum, data) => sum += parseFloat(data.weight), 0)}
                         <hr>
                         <div class="h-full flex flex-col">
                             {#key selectedWheelID}
@@ -393,7 +394,7 @@
                                             {#if wheelData.settings.hiddenEffects === true}
                                                 <div class="w-[14em] min-h-[1em]">❗ Effects Hidden ❗</div>
                                             {/if}
-                                            {#if wheelData.settings.hiddenPercentages === true}
+                                            {#if wheelData.settings.hiddenWeights === true}
                                                 <div class="w-[14em] min-h-[1em]">❗ Percentages Hidden ❗</div>
                                             {/if}
                                         {/if}
@@ -425,7 +426,7 @@
                     {/if}
                 </div>
                 {#if shouldHorizontal}
-                    {@const totalPercentage = wheelData.outcomes.reduce((sum, data) => sum += parseFloat(data.percentage), 0)}
+                    {@const totalPercentage = wheelData.outcomes.reduce((sum, data) => sum += parseFloat(data.weight), 0)}
                     <div class="h-full flex flex-col ml-4 w-[40em]">
                         <!-- style={`width: calc(${wheelWidth * 1.2}px * 1.0)`} -->
                         <!-- <div class={`flex flex-row flex-start items-center ${renderOAuth ? "justify-between" : "justify-start"}`}>
@@ -476,7 +477,7 @@
                                         {#if wheelData.settings.hiddenEffects === true}
                                             <div class="w-[14em] min-h-[1em]">❗ Effects Hidden ❗</div>
                                         {/if}
-                                        {#if wheelData.settings.hiddenPercentages === true}
+                                        {#if wheelData.settings.hiddenWeights === true}
                                             <div class="w-[14em] min-h-[1em]">❗ Percentages Hidden ❗</div>
                                         {/if}
                                     {/if}

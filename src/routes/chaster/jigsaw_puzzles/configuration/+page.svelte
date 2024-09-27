@@ -8,14 +8,15 @@
     import subPenaltyData from "$lib/resources/schemas/sub-penaltyData.json";
     import schemaConfigs from "$lib/resources/schemas/schema-configs.json";
     import InputCheckbox from "$lib/components/InputCheckbox.svelte";
-    import type { JigsawPuzzlesConfig } from "$lib/scripts/signature-puzzle";
+    import * as JigsawPuzzles from "$lib/import/extension-jigsaw_puzzles";
+    import JigsawPuzzle from "$lib/components/JigsawPuzzle.svelte";
 
     const data = { slug: "jigsaw_puzzles" } as const;
     // Supabase anon key has no database access due to RLS
     const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwbmpsYmpwY2ZlYnFwYXFrcGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODg1NDM0NTgsImV4cCI6MjAwNDExOTQ1OH0.CsGySz2c8bIWphE6--T51CsmSeBQajfwvBYfTkjviM4";
     const chasterUtilitiesURL = "https://bpnjlbjpcfebqpaqkphy.supabase.co/functions/v1/chaster_utilities";
 
-    let configDataStore: Writable<JigsawPuzzlesConfig> = writable({ jigsaws: [] });
+    let configDataStore: Writable<JigsawPuzzles.Config> = writable({ config: { jigsaws: [] }, base: { actions: {}, periodic: {}, events: {}, penalties: {} }});
     let customDataStore: Writable<{}> = writable({});
     let configText: string = "";
     let customText: string = "";
@@ -100,8 +101,8 @@
             return;
         }
         const configData: {
-            config:     any;
-            custom:     any;
+            config: JigsawPuzzles.Config;
+            custom: JigsawPuzzles.Custom;
         } = await configGetResponse.json();
         handlebarText = configData.config.handlebar ?? "";
         delete configData.config.handlebar;
@@ -144,7 +145,7 @@
 
     let rotations = [0, 15, 30, 45, 60, 90, 180]
     function updateRotation(index: number, diff: number) {
-        const currentRotation = $configDataStore.jigsaws[index].settings.rotation;
+        const currentRotation = $configDataStore.config.jigsaws[index].settings.rotation;
         const currentRotationIndex = rotations.indexOf(currentRotation);
         if(currentRotationIndex === -1) { return; }
 
@@ -153,26 +154,25 @@
         else if(newRotationIndex < 0) { newRotationIndex += rotations.length; }
 
         const newRotation = rotations[newRotationIndex];
-        $configDataStore.jigsaws[index].settings.rotation = newRotation;
+        $configDataStore.config.jigsaws[index].settings.rotation = newRotation;
     }
     function deletePuzzle(index: number) {
-        $configDataStore.jigsaws.splice(index, 1);
-        $configDataStore.jigsaws = $configDataStore.jigsaws;
+        $configDataStore.config.jigsaws.splice(index, 1);
+        $configDataStore.config.jigsaws = $configDataStore.config.jigsaws;
     }
     function addPuzzle() {
-        $configDataStore.jigsaws.push({
-            title: "",
+        $configDataStore.config.jigsaws.push({
+            display: "",
             imageURL: "",
-            thumbnailURL: "",
             rowColsRatio: [0, 0, 0],
             targetPieces: undefined,
             settings: {
                 rotation: 0,
-                ghost: false,
-                edge: false
+                allowGhost: false,
+                allowEdge: false
             }
         });
-        $configDataStore.jigsaws = $configDataStore.jigsaws;
+        $configDataStore.config.jigsaws = $configDataStore.config.jigsaws;
     }
     function copyConfig() {
         navigator.clipboard.writeText(JSON.stringify($configDataStore))
@@ -199,15 +199,15 @@
             <div>Jigsaw Puzzles</div>
             <div class="caption">Configure jigsaw puzzles from images</div>
             <div class="w-full flex flex-col space-y-[0.5em] my-[0.5em]">
-                {#each $configDataStore.jigsaws as jigsawData, index}
+                {#each $configDataStore.config.jigsaws as jigsawData, index}
                     <div class="flex flex-col card-content p-3 w-full space-y-[0.5em]">
                         <div class="w-full flex flex-row space-x-[1em] items-stretch">
                             <div class="flex flex-col w-full max-w-[32em] space-y-[0.5em]">
                                 <div class="flex flex-row space-x-[0.5em]">
                                     <input class="form-control"
-                                        class:is-invalid={jigsawData.title.length === 0} 
+                                        class:is-invalid={jigsawData.display.length === 0} 
                                         placeholder="Puzzle Name"
-                                        bind:value={jigsawData.title} />
+                                        bind:value={jigsawData.display} />
                                     <input min="1" max="1000" type="number" 
                                         class="!w-[5em] form-control" 
                                         class:is-invalid={!jigsawData.targetPieces || jigsawData.targetPieces < 2
@@ -215,23 +215,17 @@
                                         bind:value={jigsawData.targetPieces}
                                         placeholder="Pieces"/>
                                 </div>
-                                <div class="flex flex-row space-x-[0.5em]">
-                                    <input class="form-control grow"
-                                        class:is-invalid={jigsawData.imageURL.length === 0} 
-                                        placeholder="Image URL (imgbox.com)"
-                                        bind:value={jigsawData.imageURL} />
-                                    <input class="form-control grow"
-                                        class:is-invalid={jigsawData.thumbnailURL?.length === 0} 
-                                        placeholder="Thumbnail URL (imgbox.com)"
-                                        bind:value={jigsawData.thumbnailURL} />
-                                </div>
+                                <input class="form-control w-full"
+                                    class:is-invalid={jigsawData.imageURL.length === 0} 
+                                    placeholder="Image URL (imgbox.com)"
+                                    bind:value={jigsawData.imageURL} />
                             </div>
                             <div class="grow !m-0" />
                             <div class="flex flex-col space-y-[0.45em]">
                                 <InputCheckbox display="Ghosting Allowed"
-                                    bind:value={jigsawData.settings.ghost} />
+                                    bind:value={jigsawData.settings.allowGhost} />
                                 <InputCheckbox display="Show Edge Allowed" 
-                                    bind:value={jigsawData.settings.edge} />
+                                    bind:value={jigsawData.settings.allowEdge} />
                                 <div class="flex flex-row items-center">
                                     <div>Rotation</div>
                                     <div class="ml-[0.5em] mr-[0.25em]">=</div>

@@ -1,5 +1,3 @@
-import type { LockEffectData } from "./signature-lock_effects";
-
 // Generate random string of specified length
 // const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 const characterMappings = {
@@ -268,202 +266,202 @@ export function chineseWhisper(line: string) {
 }
 
 // Generate outcome effect label for extended wheel
-export function generateOutcomeEffectLabel(actionData: LockEffectData): string {
-    let actionText = "";
+// export function generateOutcomeEffectLabel(actionData: LockEffectData): string {
+//     let actionText = "";
 
-    if(actionData.key === "resetCooldown") { // Only for extended wheel right now
-        actionText = `**[Extended Wheel]** Reset cooldown for the wheel keyed "${actionData.params[1]}"`;
-    } else if(actionData.key === "customText") {
-        actionText = actionData.params[0];
-    } else if(actionData.key === "resetLock") {
-        actionText = "**[Lock]** Reset the lock";
-    } else if(actionData.key === "unlock") {
-        actionText = "**[Lock]** Unlock the lock";
-    } else if(actionData.key === "freeze") {
-        actionText = `**[Lock]** ${actionData.params[0] === true ? "Freeze"
-            : actionData.params[0] === false ? "Unfreeze" : "Toggle freeze on"} the lock`;
-    } else if(actionData.key === "pillory") {
-        const paramDuration = generateTimeString(Math.abs(actionData.params[0]));
-        actionText = `**[Lock]** Pillory for ${paramDuration}`;
-    } else if(actionData.key === "hygieneUnlock") {
-        actionText = "**[Lock]** Perform a hygiene unlock";
-    } else if(actionData.key === "requestVerification") {
-        actionText = "**[Verification]** Request a verification picture";
-    } else if(actionData.key === "assignTask") {
-        actionText = `**[Tasks]** Assign the task "${actionData.params[0].task}"`;
-    } else if(actionData.key === "assignTaskRandom") {
-        actionText = actionData.params[0] === undefined
-            ? "**[Tasks]** Assign a random task"
-            : "**[Tasks]** Have users vote on a task";
-    } else if(actionData.key === "modifyTasks") {
-        actionText = "**[Tasks]** Modify the task list (too complex)";
-    } else if(actionData.key === "updateLockDuration") {
-        const value = `${actionData.params[0] !== "multiply" 
-            ? actionData.params[1] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
-            ? generateTimeString(Math.abs(actionData.params[1])) : `${actionData.params[1]}`);
-        const value2 = actionData.params[2]
-            ? `${actionData.params[0] !== "multiply" 
-                ? actionData.params[2] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
-                ? generateTimeString(Math.abs(actionData.params[2])) : `${actionData.params[2]}`)
-            : "";
-        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
-        actionText = actionData.params[0] === "modify"
-            ? `**[Lock]** Modify the remaining lock time by ${valueStr}`
-            : actionData.params[0] === "multiply"
-                ? `**[Lock]** Multiply the remaining lock time by ${valueStr}`
-            : `**[Lock]** Set the remaining lock time to ${valueStr}`;
-    } else if(actionData.key === "updateLockSettings") {
-        actionText = `**[Lock]** `;
-        if(actionData.params[0] !== undefined) {
-            actionText += `${actionData.params[0] ? "Display" : "Hide"} remaining lock time`;
-            if(actionData.params[1] !== undefined) {
-                actionText += " | ";
-            }
-        }
-        if(actionData.params[1] !== undefined) {
-            actionText += `${actionData.params[0] ? "Hide" : "Show"} time changes.`;
-        }
-    } else if(actionData.key === "disableExtension") {
-        const extensionDisplayName = extensionDisplayNames[actionData.params[0]];
-        actionText = `**[Lock]** Disable the extension "${extensionDisplayName}"`;
-    } else if(actionData.key === "enableExtension") {
-        const extensionDisplayName = extensionDisplayNames[actionData.params[0]];
-        actionText = `**[Lock]** Enable the extension "${extensionDisplayName}"`;
-    } else if(actionData.key === "resetTaskPoints") {
-        actionText = "**[Tasks]** Reset the gained number of task points";
-    } else if(actionData.key === "shareLinkUpdateKey") {
-        const value = `${actionData.params[0] !== "nbVisits" && actionData.params[1] !== "multiply" 
-            ? actionData.params[2] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "nbVisits" && actionData.params[1] !== "multiply"
-            ? generateTimeString(Math.abs(actionData.params[2])) : `${actionData.params[2]}`);
-        const value2 = actionData.params[3]
-            ? `${actionData.params[0] !== "nbVisits" && actionData.params[1] !== "multiply" 
-                ? actionData.params[3] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "nbVisits" && actionData.params[1] !== "multiply"
-                ? generateTimeString(Math.abs(actionData.params[3])) : `${actionData.params[3]}`)
-            : "";
-        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
-        const affected = actionData.params[0] === "nbVisits" ? "number of required visits"
-            : actionData.params[0] === "timeToAdd" ? "link add time" : "link remove time";
-        if(actionData.params[1] === "set") {
-            actionText = `**[Share Link]** Set the ${affected} to ${valueStr}`;
-        } else if(actionData.params[1] === "modify") {
-            actionText = `**[Share Link]** ${actionData.params[2] > 0 ? "Increase" : "Decrease"} the ${affected} by ${valueStr}`;
-        } else { // multiply
-            actionText = `**[Share Link]** Multiply the ${affected} by ${valueStr}`;
-        }
-    } else if(actionData.key === "shareLinkSetLoggedIn") {
-        actionText = actionData.params[0] === undefined
-            ? "**[Share Link]** Toggle the logged-in requirement"
-            : `**[Share Link]** ${actionData.params ? "Enable" : "Disable"} the logged-in requirement`;
-    } else if(actionData.key === "pilloryUpdateDuration") {
-        const value = `${actionData.params[0] !== "multiply" 
-            ? actionData.params[1] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
-            ? generateTimeString(Math.abs(actionData.params[1])) : `${actionData.params[1]}`);
-        const value2 = actionData.params[2]
-            ? `${actionData.params[0] !== "multiply" 
-                ? actionData.params[2] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
-                ? generateTimeString(Math.abs(actionData.params[2])) : `${actionData.params[2]}`)
-            : "";
-        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
-        actionText = actionData.params[0] === "modify"
-            ? actionData.params[1] > 0
-                ? `**[Pillory]** Add ${valueStr} to the per-vote duration`
-                : `**[Pillory]** Subtract ${valueStr} from the per-vote duration`
-            : actionData.params[0] === "multiply"
-                ? `**[Pillory]** Multiply the per-vote duration by ${valueStr}`
-            : `**[Pillory]** Set the per-vote duration to ${valueStr}`;
-    } else if(actionData.key === "diceUpdateDuration") {
-        const value = `${actionData.params[0] !== "multiply" 
-            ? actionData.params[1] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
-            ? generateTimeString(Math.abs(actionData.params[1])) : `${actionData.params[1]}`);
-        const value2 = actionData.params[2]
-            ? `${actionData.params[0] !== "multiply" 
-                ? actionData.params[2] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
-                ? generateTimeString(Math.abs(actionData.params[2])) : `${actionData.params[2]}`)
-            : "";
-        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
-        actionText = actionData.params[0] === "modify"
-            ? actionData.params[1] > 0
-                ? `**[Dice]** Add ${valueStr} to the duration multiplier`
-                : `**[Dice]** Subtract ${valueStr} from the duration multiplier`
-            : actionData.params[0] === "multiply"
-                ? `**[Dice]** Multiply the duration multiplier by ${valueStr}`
-            : `**[Dice]** Set the duration multiplier to ${valueStr}`;
-    } else if(actionData.key === "tasksUpdateRequiredPoints") {
-        const value = `${actionData.params[0] !== "multiply" 
-            ? actionData.params[1] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
-            ? generateTimeString(Math.abs(actionData.params[1])) : `${actionData.params[1]}`);
-        const value2 = actionData.params[2]
-            ? `${actionData.params[0] !== "multiply" 
-                ? actionData.params[2] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
-                ? generateTimeString(Math.abs(actionData.params[2])) : `${actionData.params[2]}`)
-            : "";
-        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
-        actionText = actionData.params[0] === "modify"
-            ? actionData.params[1] > 0
-                ? `**[Tasks]** Add ${valueStr} to the required points`
-                : `**[Tasks]** Subtract ${valueStr} from the required points`
-            : actionData.params[0] === "multiply"
-                ? `**[Tasks]** Multiply the required points by ${valueStr}`
-            : `**[Tasks]** Set the required points to ${valueStr}`;
-    } else if(actionData.key === "randomEventsModifyDifficulty") {
-        const firstUpper = actionData.params[0].charAt(0).toUpperCase() + actionData.params[0].slice(1);
-        actionText = `**[Random]** Set the difficulty to ${firstUpper}`;
-    } else if(actionData.key === "guessTimerUpdateKey") {
-        const affected = actionData.params[0] === "minRandomTime"
-            ? "minimum added duration" : "maximum added duration";
-        const value = `${actionData.params[1] !== "multiply" 
-            ? actionData.params[2] < 0 ? "-" : "+" : "x"}` + (actionData.params[1] !== "multiply"
-            ? generateTimeString(Math.abs(actionData.params[2])) : `${actionData.params[2]}`);
-        const value2 = actionData.params[3]
-            ? `${actionData.params[1] !== "multiply" 
-                ? actionData.params[3] < 0 ? "-" : "+" : "x"}` + (actionData.params[1] !== "multiply"
-                ? generateTimeString(Math.abs(actionData.params[3])) : `${actionData.params[3]}`)
-            : "";
-        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
-        actionText = actionData.params[1] === "modify"
-            ? actionData.params[2] > 0
-                ? `**[Guess]** Add ${valueStr} to the ${affected}`
-                : `**[Guess]** Subtract ${valueStr} from the ${affected}`
-            : actionData.params[1] === "multiply"
-                ? `**[Guess]** Multiply the ${affected} by ${valueStr}`
-            : `**[Guess]** Set the ${affected} to ${valueStr}`;
-    } else if(actionData.key === "delayLockEffect") {
-        // Currently only output first delayed lock effect
-        const delayedEffectS = Math.floor(actionData.params[1] / 1000);
-        const delayedTimeString = generateTimeString(delayedEffectS, true);
-        const restEffectLabel = generateOutcomeEffectLabel(actionData.params[0]);
+//     if(actionData.key === "resetCooldown") { // Only for extended wheel right now
+//         actionText = `**[Extended Wheel]** Reset cooldown for the wheel keyed "${actionData.params[1]}"`;
+//     } else if(actionData.key === "customText") {
+//         actionText = actionData.params[0];
+//     } else if(actionData.key === "resetLock") {
+//         actionText = "**[Lock]** Reset the lock";
+//     } else if(actionData.key === "unlock") {
+//         actionText = "**[Lock]** Unlock the lock";
+//     } else if(actionData.key === "freeze") {
+//         actionText = `**[Lock]** ${actionData.params[0] === true ? "Freeze"
+//             : actionData.params[0] === false ? "Unfreeze" : "Toggle freeze on"} the lock`;
+//     } else if(actionData.key === "pillory") {
+//         const paramDuration = generateTimeString(Math.abs(actionData.params[0]));
+//         actionText = `**[Lock]** Pillory for ${paramDuration}`;
+//     } else if(actionData.key === "hygieneUnlock") {
+//         actionText = "**[Lock]** Perform a hygiene unlock";
+//     } else if(actionData.key === "requestVerification") {
+//         actionText = "**[Verification]** Request a verification picture";
+//     } else if(actionData.key === "assignTask") {
+//         actionText = `**[Tasks]** Assign the task "${actionData.params[0].task}"`;
+//     } else if(actionData.key === "assignTaskRandom") {
+//         actionText = actionData.params[0] === undefined
+//             ? "**[Tasks]** Assign a random task"
+//             : "**[Tasks]** Have users vote on a task";
+//     } else if(actionData.key === "modifyTasks") {
+//         actionText = "**[Tasks]** Modify the task list (too complex)";
+//     } else if(actionData.key === "updateLockDuration") {
+//         const value = `${actionData.params[0] !== "multiply" 
+//             ? actionData.params[1] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
+//             ? generateTimeString(Math.abs(actionData.params[1])) : `${actionData.params[1]}`);
+//         const value2 = actionData.params[2]
+//             ? `${actionData.params[0] !== "multiply" 
+//                 ? actionData.params[2] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
+//                 ? generateTimeString(Math.abs(actionData.params[2])) : `${actionData.params[2]}`)
+//             : "";
+//         const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
+//         actionText = actionData.params[0] === "modify"
+//             ? `**[Lock]** Modify the remaining lock time by ${valueStr}`
+//             : actionData.params[0] === "multiply"
+//                 ? `**[Lock]** Multiply the remaining lock time by ${valueStr}`
+//             : `**[Lock]** Set the remaining lock time to ${valueStr}`;
+//     } else if(actionData.key === "updateLockSettings") {
+//         actionText = `**[Lock]** `;
+//         if(actionData.params[0] !== undefined) {
+//             actionText += `${actionData.params[0] ? "Display" : "Hide"} remaining lock time`;
+//             if(actionData.params[1] !== undefined) {
+//                 actionText += " | ";
+//             }
+//         }
+//         if(actionData.params[1] !== undefined) {
+//             actionText += `${actionData.params[0] ? "Hide" : "Show"} time changes.`;
+//         }
+//     } else if(actionData.key === "disableExtension") {
+//         const extensionDisplayName = extensionDisplayNames[actionData.params[0]];
+//         actionText = `**[Lock]** Disable the extension "${extensionDisplayName}"`;
+//     } else if(actionData.key === "enableExtension") {
+//         const extensionDisplayName = extensionDisplayNames[actionData.params[0]];
+//         actionText = `**[Lock]** Enable the extension "${extensionDisplayName}"`;
+//     } else if(actionData.key === "resetTaskPoints") {
+//         actionText = "**[Tasks]** Reset the gained number of task points";
+//     } else if(actionData.key === "shareLinkUpdateKey") {
+//         const value = `${actionData.params[0] !== "nbVisits" && actionData.params[1] !== "multiply" 
+//             ? actionData.params[2] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "nbVisits" && actionData.params[1] !== "multiply"
+//             ? generateTimeString(Math.abs(actionData.params[2])) : `${actionData.params[2]}`);
+//         const value2 = actionData.params[3]
+//             ? `${actionData.params[0] !== "nbVisits" && actionData.params[1] !== "multiply" 
+//                 ? actionData.params[3] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "nbVisits" && actionData.params[1] !== "multiply"
+//                 ? generateTimeString(Math.abs(actionData.params[3])) : `${actionData.params[3]}`)
+//             : "";
+//         const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
+//         const affected = actionData.params[0] === "nbVisits" ? "number of required visits"
+//             : actionData.params[0] === "timeToAdd" ? "link add time" : "link remove time";
+//         if(actionData.params[1] === "set") {
+//             actionText = `**[Share Link]** Set the ${affected} to ${valueStr}`;
+//         } else if(actionData.params[1] === "modify") {
+//             actionText = `**[Share Link]** ${actionData.params[2] > 0 ? "Increase" : "Decrease"} the ${affected} by ${valueStr}`;
+//         } else { // multiply
+//             actionText = `**[Share Link]** Multiply the ${affected} by ${valueStr}`;
+//         }
+//     } else if(actionData.key === "shareLinkSetLoggedIn") {
+//         actionText = actionData.params[0] === undefined
+//             ? "**[Share Link]** Toggle the logged-in requirement"
+//             : `**[Share Link]** ${actionData.params ? "Enable" : "Disable"} the logged-in requirement`;
+//     } else if(actionData.key === "pilloryUpdateDuration") {
+//         const value = `${actionData.params[0] !== "multiply" 
+//             ? actionData.params[1] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
+//             ? generateTimeString(Math.abs(actionData.params[1])) : `${actionData.params[1]}`);
+//         const value2 = actionData.params[2]
+//             ? `${actionData.params[0] !== "multiply" 
+//                 ? actionData.params[2] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
+//                 ? generateTimeString(Math.abs(actionData.params[2])) : `${actionData.params[2]}`)
+//             : "";
+//         const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
+//         actionText = actionData.params[0] === "modify"
+//             ? actionData.params[1] > 0
+//                 ? `**[Pillory]** Add ${valueStr} to the per-vote duration`
+//                 : `**[Pillory]** Subtract ${valueStr} from the per-vote duration`
+//             : actionData.params[0] === "multiply"
+//                 ? `**[Pillory]** Multiply the per-vote duration by ${valueStr}`
+//             : `**[Pillory]** Set the per-vote duration to ${valueStr}`;
+//     } else if(actionData.key === "diceUpdateDuration") {
+//         const value = `${actionData.params[0] !== "multiply" 
+//             ? actionData.params[1] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
+//             ? generateTimeString(Math.abs(actionData.params[1])) : `${actionData.params[1]}`);
+//         const value2 = actionData.params[2]
+//             ? `${actionData.params[0] !== "multiply" 
+//                 ? actionData.params[2] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
+//                 ? generateTimeString(Math.abs(actionData.params[2])) : `${actionData.params[2]}`)
+//             : "";
+//         const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
+//         actionText = actionData.params[0] === "modify"
+//             ? actionData.params[1] > 0
+//                 ? `**[Dice]** Add ${valueStr} to the duration multiplier`
+//                 : `**[Dice]** Subtract ${valueStr} from the duration multiplier`
+//             : actionData.params[0] === "multiply"
+//                 ? `**[Dice]** Multiply the duration multiplier by ${valueStr}`
+//             : `**[Dice]** Set the duration multiplier to ${valueStr}`;
+//     } else if(actionData.key === "tasksUpdateRequiredPoints") {
+//         const value = `${actionData.params[0] !== "multiply" 
+//             ? actionData.params[1] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
+//             ? generateTimeString(Math.abs(actionData.params[1])) : `${actionData.params[1]}`);
+//         const value2 = actionData.params[2]
+//             ? `${actionData.params[0] !== "multiply" 
+//                 ? actionData.params[2] < 0 ? "-" : "+" : "x"}` + (actionData.params[0] !== "multiply"
+//                 ? generateTimeString(Math.abs(actionData.params[2])) : `${actionData.params[2]}`)
+//             : "";
+//         const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
+//         actionText = actionData.params[0] === "modify"
+//             ? actionData.params[1] > 0
+//                 ? `**[Tasks]** Add ${valueStr} to the required points`
+//                 : `**[Tasks]** Subtract ${valueStr} from the required points`
+//             : actionData.params[0] === "multiply"
+//                 ? `**[Tasks]** Multiply the required points by ${valueStr}`
+//             : `**[Tasks]** Set the required points to ${valueStr}`;
+//     } else if(actionData.key === "randomEventsModifyDifficulty") {
+//         const firstUpper = actionData.params[0].charAt(0).toUpperCase() + actionData.params[0].slice(1);
+//         actionText = `**[Random]** Set the difficulty to ${firstUpper}`;
+//     } else if(actionData.key === "guessTimerUpdateKey") {
+//         const affected = actionData.params[0] === "minRandomTime"
+//             ? "minimum added duration" : "maximum added duration";
+//         const value = `${actionData.params[1] !== "multiply" 
+//             ? actionData.params[2] < 0 ? "-" : "+" : "x"}` + (actionData.params[1] !== "multiply"
+//             ? generateTimeString(Math.abs(actionData.params[2])) : `${actionData.params[2]}`);
+//         const value2 = actionData.params[3]
+//             ? `${actionData.params[1] !== "multiply" 
+//                 ? actionData.params[3] < 0 ? "-" : "+" : "x"}` + (actionData.params[1] !== "multiply"
+//                 ? generateTimeString(Math.abs(actionData.params[3])) : `${actionData.params[3]}`)
+//             : "";
+//         const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
+//         actionText = actionData.params[1] === "modify"
+//             ? actionData.params[2] > 0
+//                 ? `**[Guess]** Add ${valueStr} to the ${affected}`
+//                 : `**[Guess]** Subtract ${valueStr} from the ${affected}`
+//             : actionData.params[1] === "multiply"
+//                 ? `**[Guess]** Multiply the ${affected} by ${valueStr}`
+//             : `**[Guess]** Set the ${affected} to ${valueStr}`;
+//     } else if(actionData.key === "delayLockEffect") {
+//         // Currently only output first delayed lock effect
+//         const delayedEffectS = Math.floor(actionData.params[1] / 1000);
+//         const delayedTimeString = generateTimeString(delayedEffectS, true);
+//         const restEffectLabel = generateOutcomeEffectLabel(actionData.params[0]);
 
-        actionText = `**Delay activation by ${delayedTimeString}:**\n➜ ${restEffectLabel}`;
-    } else if(actionData.key === "partnerAddRemoveReason") {
-        const display = actionData.params[0] === "extended-wheel-of-fortune"
-            ? "Extended Wheel" : "";
-        actionText = `**[${display}]** ${actionData.params[1] === "add" 
-            ? "Add" : "Remove"} reason preventing unlocking:\n➜ ${actionData.params[2]}`;
-    } else if(actionData.key === "extendedSetDisabled") {
-        actionText = `**[Extended Wheel]** ${actionData.params[2] === true ? "Disable"
-            : actionData.params[2] === false ? "Enable" : "Toggle access to"} the wheel named "${actionData.params[1]}"`;  
-    } else if(actionData.key === "extendedAddOutcome") {
-        actionText = `**[Extended Wheel]** Add outcome named "${actionData.params[1].text}"`;
-    } else if(actionData.key === "extendedRemoveOutcome") {
-        actionText = `**[Extended Wheel]** Remove outcome named "${actionData.params[1]}"`;
-    } else if(actionData.key === "extendedUpdatePercentage") {
-        const value = `${actionData.params[2] !== "multiply" 
-            ? actionData.params[3] < 0 ? "-" : "+" : "x"}` + (actionData.params[2] !== "multiply"
-            ? generateTimeString(Math.abs(actionData.params[3])) : `${actionData.params[3]}`);
-        const value2 = actionData.params[4]
-            ? `${actionData.params[2] !== "multiply" 
-                ? actionData.params[4] < 0 ? "-" : "+" : "x"}` + (actionData.params[2] !== "multiply"
-                ? generateTimeString(Math.abs(actionData.params[4])) : `${actionData.params[4]}`)
-            : "";
-        const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
-        actionText = actionData.params[2] === "modify"
-            ? actionData.params[3] > 0
-                ? `**[Extended Wheel]** Add ${valueStr} to the weight of outcome "${actionData.params[1]}"`
-                : `**[Extended Wheel]** Subtract ${valueStr} from the weight of outcome "${actionData.params[1]}"`
-            : actionData.params[2] === "multiply"
-                ? `**[Extended Wheel]** Multiply the weight of outcome "${actionData.params[1]}" by ${valueStr}`
-            : `**[Extended Wheel]** Set the weight of outcome "${actionData.params[1]}" to ${valueStr}`;
-    }
+//         actionText = `**Delay activation by ${delayedTimeString}:**\n➜ ${restEffectLabel}`;
+//     } else if(actionData.key === "partnerAddRemoveReason") {
+//         const display = actionData.params[0] === "extended-wheel-of-fortune"
+//             ? "Extended Wheel" : "";
+//         actionText = `**[${display}]** ${actionData.params[1] === "add" 
+//             ? "Add" : "Remove"} reason preventing unlocking:\n➜ ${actionData.params[2]}`;
+//     } else if(actionData.key === "extendedSetDisabled") {
+//         actionText = `**[Extended Wheel]** ${actionData.params[2] === true ? "Disable"
+//             : actionData.params[2] === false ? "Enable" : "Toggle access to"} the wheel named "${actionData.params[1]}"`;  
+//     } else if(actionData.key === "extendedAddOutcome") {
+//         actionText = `**[Extended Wheel]** Add outcome named "${actionData.params[1].text}"`;
+//     } else if(actionData.key === "extendedRemoveOutcome") {
+//         actionText = `**[Extended Wheel]** Remove outcome named "${actionData.params[1]}"`;
+//     } else if(actionData.key === "extendedUpdatePercentage") {
+//         const value = `${actionData.params[2] !== "multiply" 
+//             ? actionData.params[3] < 0 ? "-" : "+" : "x"}` + (actionData.params[2] !== "multiply"
+//             ? generateTimeString(Math.abs(actionData.params[3])) : `${actionData.params[3]}`);
+//         const value2 = actionData.params[4]
+//             ? `${actionData.params[2] !== "multiply" 
+//                 ? actionData.params[4] < 0 ? "-" : "+" : "x"}` + (actionData.params[2] !== "multiply"
+//                 ? generateTimeString(Math.abs(actionData.params[4])) : `${actionData.params[4]}`)
+//             : "";
+//         const valueStr = `${value2 ? "between " : ""}${value}${value2 ? " and " : ""}${value2}`;
+//         actionText = actionData.params[2] === "modify"
+//             ? actionData.params[3] > 0
+//                 ? `**[Extended Wheel]** Add ${valueStr} to the weight of outcome "${actionData.params[1]}"`
+//                 : `**[Extended Wheel]** Subtract ${valueStr} from the weight of outcome "${actionData.params[1]}"`
+//             : actionData.params[2] === "multiply"
+//                 ? `**[Extended Wheel]** Multiply the weight of outcome "${actionData.params[1]}" by ${valueStr}`
+//             : `**[Extended Wheel]** Set the weight of outcome "${actionData.params[1]}" to ${valueStr}`;
+//     }
 
-    return actionText;
-}
+//     return actionText;
+// }

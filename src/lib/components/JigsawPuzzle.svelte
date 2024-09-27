@@ -1,12 +1,12 @@
 <script lang="ts">
     import { onDestroy, onMount } from "svelte";
     import { JigsawInstance } from "$lib/scripts/puzzle";
-    import type { JigsawConfig, JigsawSaveData } from "$lib/scripts/signature-puzzle";
+    import * as JigsawPuzzles from "$lib/import/extension-jigsaw_puzzles";
 
-    export let jigsawConfig: JigsawConfig;
+    export let jigsawConfig: JigsawPuzzles.JigsawData;
     export let mainMenu: () => void;
-    export let callbackCompletedExternal: (saveData: JigsawSaveData) => Promise<void>;
-    export let callbackSavedExternal: (saveData: JigsawSaveData | undefined, encrypted: string | undefined, action: string, key: string) => Promise<void>;
+    export let callbackCompletedExternal: (saveData: JigsawPuzzles.JigsawSave) => Promise<void>;
+    export let callbackSavedExternal: (saveData: JigsawPuzzles.JigsawSave | undefined, encrypted: string | undefined, action: string, key: string) => Promise<void>;
     let containerDiv: HTMLDivElement;
     let instance: JigsawInstance;
     let timestamp: string;
@@ -38,7 +38,7 @@
         await instance.initializeInstance(restart);
         await instance.generateJigsawPieces();
     }
-    function callbackSaved(saveData: JigsawSaveData | undefined, encrypted: string | undefined, action: string, key: string) {
+    function callbackSaved(saveData: JigsawPuzzles.JigsawSave | undefined, encrypted: string | undefined, action: string, key: string) {
         if(saveData !== undefined) {
             const totalPieces = jigsawConfig.rowColsRatio[0] * jigsawConfig.rowColsRatio[1];
             const numContainers = saveData.connections.length;
@@ -47,7 +47,7 @@
 
         callbackSavedExternal(saveData, encrypted, action, key);
     }
-    function callbackCompleted(saveData: JigsawSaveData, suppress: boolean = false) {
+    function callbackCompleted(saveData: JigsawPuzzles.JigsawSave, suppress: boolean = false) {
         if(suppress === false) { callbackCompletedExternal(saveData); }
         completed = true;
         completedTimestamp = new Date(saveData.elapsedMS).toISOString().slice(11, 19);
@@ -132,7 +132,7 @@
     <div class="flex flex-row p-[0.25em] items-center"
         class:text-lg={isMobile}>
         {#if !isMobile}
-            {jigsawConfig.title} ｜{jigsawConfig.rowColsRatio[0] * jigsawConfig.rowColsRatio[1]}
+            {jigsawConfig.display} ｜{jigsawConfig.rowColsRatio[0] * jigsawConfig.rowColsRatio[1]}
             <svg class="h-6 aspect-square ml-[0.125em] mb-[0.125em]" 
                 viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                 <defs>
@@ -154,13 +154,13 @@
     <div class="flex flex-row grow justify-end"
         class:text-3xl={!isMobile}
         class:text-xl={isMobile}>
-        <button class={`flex flex-col justify-center ${jigsawConfig.settings.ghost ? "cursor-pointer hover:bg-gray-600 text-slate-300" : "cursor-not-allowed text-slate-500"}`}
-            disabled={jigsawConfig.settings.ghost === false}
+        <button class={`flex flex-col justify-center ${jigsawConfig.settings.allowGhost ? "cursor-pointer hover:bg-gray-600 text-slate-300" : "cursor-not-allowed text-slate-500"}`}
+            disabled={jigsawConfig.settings.allowGhost === false}
             on:click={() => { if(confirmRestart) { return; } instance.toggleGhostVisibility() }}>
             <i class="fas fa-image-polaroid text-center px-2" />
         </button>
-        <button class={`flex flex-col justify-center ${jigsawConfig.settings.edge ? "cursor-pointer hover:bg-gray-600 text-slate-300" : "cursor-not-allowed text-slate-500"}`}
-            disabled={jigsawConfig.settings.edge === false}
+        <button class={`flex flex-col justify-center ${jigsawConfig.settings.allowEdge ? "cursor-pointer hover:bg-gray-600 text-slate-300" : "cursor-not-allowed text-slate-500"}`}
+            disabled={jigsawConfig.settings.allowEdge === false}
             on:click={() => { if(confirmRestart) { return; } instance.toggleEdgeVisibility() }}>
             <i class="fas fa-border-outer text-center px-2" />
         </button>
