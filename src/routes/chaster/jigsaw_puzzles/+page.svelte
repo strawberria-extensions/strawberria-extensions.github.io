@@ -19,12 +19,13 @@
     const jigsawPuzzlesConfigStore: Writable<JigsawPuzzles.Config["config"]> = writable({ jigsaws: [] });
     const chosenJigsawConfigStore: Writable<JigsawPuzzles.JigsawData | undefined> = writable(undefined);
     const progressMappingStore: Writable<{ [key: string]: [number, number, string] }> = writable({});
+    (window as any).progress = () => { return $progressMappingStore }
     let configKeys: string[] = [];
     jigsawPuzzlesConfigStore.subscribe(async (data) => {
         const configs = data.jigsaws ?? [];
         configKeys = await Promise.all(configs.map(async (configData) => {
             const urlHash = await hashSHA256(configData.imageURL)
-            const saveKey = `${urlHash}-${configData.rowColsRatio[0]}x${configData.rowColsRatio[1]}`;
+            const saveKey = `${urlHash}-${configData.rowColsRatio.slice(0,2)}`;
             return saveKey;
         }));
     });
@@ -74,7 +75,7 @@
 
         // Update local storage with contents of database
         window.localStorage.clear()
-        for(const [key, value] of Object.entries(jigsawPuzzlesMainData.custom)) {
+        for(const [key, value] of Object.entries(jigsawPuzzlesMainData.custom.custom)) {
             window.localStorage.setItem(key, value.encrypted);
         }
 

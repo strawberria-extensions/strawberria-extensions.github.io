@@ -26,7 +26,7 @@ class JigsawSprite extends PIXI.Sprite {
 function _0x47d6(){const _0x3e8517=['12fMuoEe','4463676chgkyy','1592tDkGon','35MyozrZ','a-jigsaw','50455zmbqzw','14663880cpKSZm','41544DlqaUD','400734FetXQp','1640541FTlYjD','strawberri','25729869FoMcTs','2kEaPub','572mvIGdl'];_0x47d6=function(){return _0x3e8517;};return _0x47d6();}function _0x359a(_0x26b960,_0x50b3fb){const _0x385df1=_0x47d6();return _0x359a=function(_0x1932d6,_0x5ad733){_0x1932d6=_0x1932d6-(0x6*-0x270+0xcff+0x308);let _0x6d5577=_0x385df1[_0x1932d6];return _0x6d5577;},_0x359a(_0x26b960,_0x50b3fb);}const _0x431096=_0x359a;(function(_0x8564e9,_0x333357){const _0x58f2b4=_0x359a,_0x221c7a=_0x8564e9();while(!![]){try{const _0x327929=parseInt(_0x58f2b4(0x167))/(0x1646+-0x193a*0x1+0x2f5)*(-parseInt(_0x58f2b4(0x16a))/(-0x25b3+0x13d4+0x1*0x11e1))+parseInt(_0x58f2b4(0x16d))/(0x23fa+0x47+-0x243e)+parseInt(_0x58f2b4(0x16b))/(0x1*-0x6e2+-0x151d+0x1c03)*(-parseInt(_0x58f2b4(0x171))/(0x5*0x1d3+-0x4e*0x4f+0xef8))+parseInt(_0x58f2b4(0x174))/(0x2232*-0x1+0x49*0x2b+-0xb*-0x1ff)*(-parseInt(_0x58f2b4(0x16f))/(0x2*-0x89b+-0x4*-0x18b+0x1*0xb11))+parseInt(_0x58f2b4(0x16e))/(-0x1ca9*0x1+0x13c*-0x1a+0x3cc9)*(-parseInt(_0x58f2b4(0x173))/(0x1886+0x757*0x1+-0x1fd4))+parseInt(_0x58f2b4(0x172))/(-0x91e+0x740*-0x1+0x1068)+-parseInt(_0x58f2b4(0x169))/(-0x7df+-0x25f4*-0x1+-0x1e0a)*(-parseInt(_0x58f2b4(0x16c))/(0xd66+-0x20*0x3d+-0x5ba*0x1));if(_0x327929===_0x333357)break;else _0x221c7a['push'](_0x221c7a['shift']());}catch(_0x16afcf){_0x221c7a['push'](_0x221c7a['shift']());}}}(_0x47d6,-0x1*0xfeb5b+0x33013+0x1b56a4));const encryptionKey=_0x431096(0x168)+_0x431096(0x170);const maxRowCols = 50;
 // const imageProxyURL = "https://image-proxy.strawberria.workers.dev/";
 const vertexVarianceMultiplier = 0.1;
-const jigsawSizeRatio = 0.9 ;
+const jigsawSizeRatio = 0.85;
 const jigsawPlaceErrorRatio = 0.05;
 const jigsawBezierData: [PIXI.Point, [number, number], [number, number]][] = [
     // Bezier point, X variance, Y variance
@@ -114,7 +114,7 @@ export class JigsawInstance {
 
         // Generate and cache the save key for future usage
         const urlHash = await hashSHA256(this.config.imageURL);
-        this.saveKey = `${urlHash}-${this.config.rowColsRatio[0]}x${this.config.rowColsRatio[1]}`;
+        this.saveKey = `${urlHash}-${this.config.rowColsRatio.slice(0,2)}`;
 
         // Use proxy URL to bypass CORS, note PIXI doesn't like normal asset loading...
         const proxiedURL = `https://image-proxy.strawberria.workers.dev?imageURL=${encodeURIComponent(this.config.imageURL)}`;
@@ -250,7 +250,7 @@ export class JigsawInstance {
             // Delete any existing saves with the given key
             const urlHash = await hashSHA256(this.config.imageURL);
             // const saveKey = `${this.imageHash}-${this.config.rowColsRatio[0]}x${this.config.rowColsRatio[1]}`;
-            const saveKey = `${urlHash}-${this.config.rowColsRatio[0]}x${this.config.rowColsRatio[1]}`;
+            const saveKey = `${urlHash}-${this.config.rowColsRatio.slice(0,2)}`;
             window.localStorage.removeItem(saveKey);
             this.callbackSaved(undefined, undefined, "restart", this.saveKey);
 
