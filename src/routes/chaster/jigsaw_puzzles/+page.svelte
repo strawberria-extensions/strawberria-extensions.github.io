@@ -75,7 +75,7 @@
         // Update local storage with contents of database
         window.localStorage.clear()
         for(const [key, value] of Object.entries(jigsawPuzzlesMainData.custom)) {
-            window.localStorage.setItem(key, value);
+            window.localStorage.setItem(key, value.encrypted);
         }
 
         // Retrieve existing save data, mapping current progress to key

@@ -186,7 +186,7 @@ export const template = `{# Templating for lock effect, including support for re
         {%- endset %}
     {% endif %}
     {# Construct the string depending on whether value1 is defined too #}
-    {% if lockEffect.params[0] == "multiply" -%}
+    **[Tasks]** {% if lockEffect.params[0] == "multiply" -%}
         Multiply
     {%- elif lockEffect.params[0] == "modify" -%}
         Modify

@@ -253,7 +253,7 @@ Please report this to https://github.com/markedjs/marked.`,e){const s="<p>An err
         {%- endset %}
     {% endif %}
     {# Construct the string depending on whether value1 is defined too #}
-    {% if lockEffect.params[0] == "multiply" -%}
+    **[Tasks]** {% if lockEffect.params[0] == "multiply" -%}
         Multiply
     {%- elif lockEffect.params[0] == "modify" -%}
         Modify

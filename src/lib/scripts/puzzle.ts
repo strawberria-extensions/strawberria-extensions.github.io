@@ -669,9 +669,9 @@ export class JigsawInstance {
         // Check whether any save data exists for the current configuration
         const urlHash = await hashSHA256(this.config.imageURL);
         // const saveKey = `${this.imageHash}-${this.config.rowColsRatio[0]}x${this.config.rowColsRatio[1]}`;
-        const saveKey = `${urlHash}-${this.config.rowColsRatio[0]}x${this.config.rowColsRatio[1]}`;
+        const saveKey = `${urlHash}-${this.config.rowColsRatio.slice(0,2)}`;
         let saveData: JigsawPuzzles.JigsawSave | undefined = undefined;
-        const encryptedSaveData = window.localStorage.getItem(saveKey)
+        const encryptedSaveData = window.localStorage.getItem(saveKey);
         if(encryptedSaveData !== null) {
             // Save data exists, decrypt and load
             const saveDataRaw = await decryptAES256GCM(encryptedSaveData, encryptionKey);
