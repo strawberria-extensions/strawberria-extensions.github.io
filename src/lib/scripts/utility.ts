@@ -49,32 +49,35 @@ export function generateTimeStringPenalties(seconds: number) {
         const hours = Math.floor(seconds / 3600);
         return `${hours} hours`;
     } else {
-        return generateTimeString(seconds, true);
+        return generateTimeString(seconds);
     }
 }
 
-// Creates string from given number of seconds
-export function generateTimeString(seconds: number, showSeconds: boolean = false) {
-    // Generate second multipliers for counting each
-    const multipliers: { [key: string]: number } = {
-        "week": 60 * 60 * 24 * 7,
-        "day": 60 * 60 * 24,
-        "hour": 60 * 60,
-        "minute": 60,
-        "second": 1,
-    };
-    if(showSeconds) {
-        multipliers["second"] = 1;
-    }
-
+// Generates seconds into week, day, hour, etc.
+export const multipliers = {
+    // "week": 60 * 60 * 24 * 7,
+    "day": 60 * 60 * 24,
+    "hour": 60 * 60,
+    "minute": 60,
+    "second": 1,
+};
+export function generateTime(seconds: number) {
     // Generate day, hour, minute and optionally second values
-    const values: { [key: string]: number } = {};
+    const values: { [val in keyof typeof multipliers]: number } = {} as any;
     let currentSeconds = seconds;
     for(const [key, multiplier] of Object.entries(multipliers)) {
         const amount = Math.floor(currentSeconds / multiplier);
         currentSeconds -= amount * multiplier;
-        values[key] = amount;
-    }
+        (values as any)[key] = amount;
+    };
+
+    return values;
+}
+(window as any)["generateTime"] = generateTime;
+
+// Creates string from given number of seconds
+export function generateTimeString(seconds: number) {
+    const values = generateTime(seconds);
 
     // Turn into string and generate string things
     const finalChunks = [];
@@ -89,16 +92,16 @@ export function generateTimeString(seconds: number, showSeconds: boolean = false
     if(numCommas === 0) { // Single, no commas needed
     } else if(numCommas === 1) { // Replace ", " with " and "
         finalString = finalString.replace(", ", " and ");
-    } else { // Weird thing: reverse, replace " ," with " dna ,", then reverse again
+    } else { // Weird thing: reverse, replace " ," with " and ,", then reverse again
         let reversed = finalString.split("").reverse().join("");
-        reversed = reversed.replace(" ,", " dna ,");
+        reversed = reversed.replace(" ,", " and ,");
         finalString = reversed.split("").reverse().join("");
     }
 
     return finalString !== ""
         ? finalString : "0 seconds";
 }
-(window as any)["generate"] = generateTimeString;
+(window as any)["generateTimeString"] = generateTimeString;
 
 export function truncateWords(input: string, maxLen: number) {
     if(input.length <= maxLen) { return input; }

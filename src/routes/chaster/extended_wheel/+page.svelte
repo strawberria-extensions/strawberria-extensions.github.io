@@ -277,7 +277,6 @@
         <div class="w-full h-screen flex flex-col items-center justify-center">
             <img src={chasterLogo} alt="Chaster logo">
             <div class="mt-4 caption text-lg">{initialLoadMessage}</div>
-            <div class="fa-image"></div>
         </div>
     {:else if selectedWheelID !== undefined}
         {@const wheelData = $extendedWheelConfigStore.wheels[selectedWheelID]}
@@ -344,7 +343,7 @@
                             <div>Select</div>
                             <div class="caption mb-[0.5em]">Choose which wheel to spin with</div>
                             <div class="w-full">
-                                <select class="form-control" bind:value={selectedWheelID}>
+                                <select class="form-control" bind:value={selectedWheelID} disabled={buttonDisabled || !allowedSpin}>
                                     {#each Object.entries($extendedWheelConfigStore.wheels) as [wheelKey, wheelData]}
                                         {#if userRole === "keyholder" || wheelData.settings.disabled === false}
                                             <option value={wheelKey}>{wheelData.display}</option>
