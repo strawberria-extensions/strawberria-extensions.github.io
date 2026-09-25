@@ -111,7 +111,7 @@
             })
         });
         if(pickResultResponse.status > 200) {
-            alert(`Error picking card, please contact @strawberria: ${await pickResultResponse.text()}`);
+            alert(`Error picking card, please contact @TeasingOwner: ${await pickResultResponse.text()}`);
             return;
         }
         const pickResultData: BackendResponseSignature["chaster_utilities"]["key_hunt-pick"] = await pickResultResponse.json();

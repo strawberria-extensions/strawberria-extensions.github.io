@@ -94,7 +94,7 @@
                         class:space-x-1={shouldHorizontal}
                         class:items-end={shouldHorizontal}>
                         <h4 class="mb-0">[🍓] Strawberria Penalties</h4>
-                        <span class="caption">Developer: <a href="https://chaster.app/user/strawberria" target="_blank">@strawberria</a></span>
+                        <span class="caption">Developer: <a href="https://chaster.app/user/TeasingOwner" target="_blank">@TeasingOwner</a></span>
                     </div>
                 <div class="caption mb-3">
                     Extended penalty handling for all personally-developed extensions! <br>

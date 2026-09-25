@@ -215,7 +215,7 @@
             $extendedWheelCustomStore = extendedMainPageData.customData.custom;
         } catch(error) {
             console.error("Error spinning the extended wheel", error);
-            alert(`Error spinning wheel, please contact @strawberria: ${error instanceof Error ? error.message : String(error)}`);
+            alert(`Error spinning wheel, please contact @TeasingOwner: ${error instanceof Error ? error.message : String(error)}`);
         } finally {
             spinDisabled = false;
         }
@@ -369,7 +369,7 @@
                         class:space-x-1={shouldHorizontal}
                         class:items-end={shouldHorizontal}>
                         <h4 class="mb-0">[🍓] Extended Wheel of Fortune</h4>
-                        <span class="caption">Developer: <a href="https://chaster.app/user/strawberria" target="_blank">@strawberria</a></span>
+                        <span class="caption">Developer: <a href="https://chaster.app/user/TeasingOwner" target="_blank">@TeasingOwner</a></span>
                     </div>
                     <div class="caption mb-2">
                         Try your luck and spin the <b>extended</b> wheel of fortune! <br>

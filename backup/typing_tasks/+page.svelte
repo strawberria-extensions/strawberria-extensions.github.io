@@ -194,7 +194,7 @@
             <div class="card-content card-wrapper-desktop">
                 <div class="flex items-end justify-between mb-2 flex-row space-x-1">
                         <h4 class="mb-0">[🍓] Typing Tasks</h4>
-                        <span class="caption">Developer: <a href="https://chaster.app/user/strawberria" target="_blank">@strawberria</a></span>
+                        <span class="caption">Developer: <a href="https://chaster.app/user/TeasingOwner" target="_blank">@TeasingOwner</a></span>
                     </div>
                 <div class="caption">
                     Devious typing tasks with numerous hidden features, sure to keep your fingers busy! <br>

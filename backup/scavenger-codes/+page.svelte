@@ -118,7 +118,7 @@
                         Scavenger Codes
                     </div>
                     <div class="caption">
-                        Developed by @strawberria
+                        Developed by @TeasingOwner
                     </div>
                 </div>
                 <div class="flex flex-col items-center w-full space-y-[0.25em] mb-[1.5em]">
