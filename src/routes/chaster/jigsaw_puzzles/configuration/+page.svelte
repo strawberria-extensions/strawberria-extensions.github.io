@@ -1,12 +1,7 @@
 <script lang="ts">
     import { writable, type Writable } from "svelte/store";
     import { onMount } from "svelte";
-    import { Validator } from "jsonschema";
     import chasterLogo from "$lib/resources/logo.png"
-    import subLockEffect from "$lib/resources/schemas/sub-lockEffect.json";
-    import subLockEffects from "$lib/resources/schemas/sub-lockEffects.json";
-    import subPenaltyData from "$lib/resources/schemas/sub-penaltyData.json";
-    import schemaConfigs from "$lib/resources/schemas/schema-configs.json";
     import InputCheckbox from "$lib/components/InputCheckbox.svelte";
     import type * as JigsawPuzzles from "$lib/import/extension-jigsaw_puzzles";
     import JigsawPuzzle from "$lib/components/JigsawPuzzle.svelte";
@@ -18,8 +13,8 @@
 
     let configDataStore: Writable<JigsawPuzzles.Config> = writable({ config: { jigsaws: [] }, base: { actions: {}, periodic: {}, events: {}, penalties: {} }});
     let customDataStore: Writable<{}> = writable({});
-    let configText: string = "";
     let customText: string = "";
+    let customJSONInvalid = false;
     let handlebarText: string = "";
 
     let configurationToken = "";
@@ -61,6 +56,7 @@
             const eventData = JSON.parse(event.data);
 
             if (eventData.type === "chaster" && eventData.event === "partner_configuration_save") {
+                if(customJSONInvalid) { return; }
                 window.parent.postMessage(JSON.stringify({ type: "partner_configuration", event: "save_loading" }), "*");
 
                 // Always keep the thumbnail field populated, including pasted legacy configs.
@@ -118,41 +114,19 @@
         handlebarText = configData.config.handlebar ?? "";
         delete configData.config.handlebar;
         configDataStore.set(configData.config);
-        configText = JSON.stringify($configDataStore);
         customDataStore.set(configData.custom || {});
         customText = JSON.stringify($customDataStore);
 
         initialLoadMessage = "";
     });
 
-    const validator = new Validator();
-    validator.addSchema(subLockEffect, "/lockEffect")
-    validator.addSchema(subLockEffects, "/lockEffects")
-    validator.addSchema(subPenaltyData, "/penaltyData")
-
-    // let configJSONInvalid = false;
-    // $: {
-    //     configText;
-    //     configJSONInvalid = true;
-    //     try {
-    //         $configDataStore = JSON.parse(configText);
-    //         const result = validator.validate($configDataStore, schemaConfigs[data.slug]["config"]);
-    //         configJSONInvalid = !result.valid;
-    //         if(result.errors.length > 0) { console.log(result.errors) } 
-    //     } catch(_) {}
-    // }
-
-    // let customJSONInvalid = false;
-    // $: {
-    //     customText;
-    //     customJSONInvalid = true;
-    //     try {
-    //         $customDataStore = JSON.parse(customText);
-    //         const result = validator.validate($customDataStore, schemaConfigs[data.slug]["custom"]);
-    //         customJSONInvalid = !result.valid;
-    //         if(result.errors.length > 0) { console.log(result.errors) } 
-    //     } catch(_) {}
-    // }
+    $: {
+        customJSONInvalid = true;
+        try {
+            $customDataStore = JSON.parse(customText);
+            customJSONInvalid = false;
+        } catch(_) {}
+    }
 
     let rotations = [0, 15, 30, 45, 60, 90, 180]
     function updateRotation(index: number, diff: number) {
@@ -207,94 +181,105 @@
     }
 </script>
 
-<div class="container-bg w-full h-screen pl-3 pr-3 mt-2 overflow-y-auto">
+<div class="container-bg w-full h-screen pl-3 pr-3 pt-2 flex flex-col overflow-hidden">
     {#if initialLoadMessage !== ""}
         <!-- While extension data is loading, show Chaster logo -->
-        <div class="w-full h-screen flex flex-col items-center justify-center">
+        <div class="w-full h-full flex flex-col items-center justify-center">
             <img src={chasterLogo} alt="Chaster logo">
             <div class="mt-4 mb-3 caption text-lg">{initialLoadMessage}</div>
         </div>
     {:else}
-        <div class="w-full flex flex-col overflow-y-auto">
-            <div>Jigsaw Puzzles</div>
-            <div class="caption">Configure jigsaw puzzles from images</div>
-            <div class="w-full flex flex-col space-y-[0.5em] my-[0.5em]">
-                {#each $configDataStore.config.jigsaws as jigsawData, index}
-                    <div class="flex flex-col card-content p-3 w-full space-y-[0.5em]">
-                        <div class="w-full flex flex-row space-x-[1em] items-stretch">
-                            <div class="flex flex-col w-full max-w-[32em] space-y-[0.5em]">
-                                <div class="flex flex-row space-x-[0.5em]">
-                                    <input class="form-control"
-                                        class:is-invalid={jigsawData.display.length === 0} 
-                                        placeholder="Puzzle Name"
-                                        bind:value={jigsawData.display} />
-                                    <input min="1" max="1000" type="number" 
-                                        class="!w-[5em] form-control" 
-                                        class:is-invalid={!jigsawData.targetPieces || jigsawData.targetPieces < 2
-                                            || Number.isInteger(jigsawData.targetPieces) === false}
-                                        bind:value={jigsawData.targetPieces}
-                                        placeholder="Pieces"/>
-                                </div>
-                                <input class="form-control w-full"
-                                    class:is-invalid={jigsawData.imageURL.length === 0} 
-                                    placeholder="catbox.moe image URL (also used as thumbnail)"
-                                    value={jigsawData.imageURL}
-                                    on:input={(event) => updateImageURL(index, event)} />
-                            </div>
-                            <div class="grow !m-0" />
-                            <div class="flex flex-col space-y-[0.45em]">
-                                <InputCheckbox display="Required to Unlock"
-                                    bind:value={jigsawData.settings.required} />
-                                <InputCheckbox display="Ghosting Allowed"
-                                    bind:value={jigsawData.settings.allowGhost} />
-                                <InputCheckbox display="Show Edge Allowed" 
-                                    bind:value={jigsawData.settings.allowEdge} />
-                                <div class="flex flex-row items-center">
-                                    <div>Rotation</div>
-                                    <div class="ml-[0.5em] mr-[0.25em]">=</div>
-                                    <button class="mx-[0.25em]"
-                                        on:click={() => { updateRotation(index, -1) }}>
-                                        <i class="text-sm fas fa-chevron-left" />
-                                    </button>
-                                    <div class="mx-[0.25em] w-[5em] text-center">
-                                        {#if jigsawData.settings.rotation !== 0}
-                                            {jigsawData.settings.rotation}°
-                                        {:else}
-                                            Disabled
-                                        {/if}
+        <div class="w-full flex flex-col min-h-0 grow">
+            <div class="w-full flex flex-col min-h-0 grow overflow-y-auto">
+                <div>Jigsaw Puzzles</div>
+                <div class="caption">Configure jigsaw puzzles from images</div>
+                <div class="w-full flex flex-col space-y-[0.5em] my-[0.5em]">
+                    {#each $configDataStore.config.jigsaws as jigsawData, index}
+                        <div class="flex flex-col card-content p-3 w-full space-y-[0.5em]">
+                            <div class="w-full flex flex-row space-x-[1em] items-stretch">
+                                <div class="flex flex-col w-full max-w-[32em] space-y-[0.5em]">
+                                    <div class="flex flex-row space-x-[0.5em]">
+                                        <input class="form-control"
+                                            class:is-invalid={jigsawData.display.length === 0} 
+                                            placeholder="Puzzle Name"
+                                            bind:value={jigsawData.display} />
+                                        <input min="1" max="1000" type="number" 
+                                            class="!w-[5em] form-control" 
+                                            class:is-invalid={!jigsawData.targetPieces || jigsawData.targetPieces < 2
+                                                || Number.isInteger(jigsawData.targetPieces) === false}
+                                            bind:value={jigsawData.targetPieces}
+                                            placeholder="Pieces"/>
                                     </div>
-                                    <button class="px-[0.25em]"
-                                        on:click={() => { updateRotation(index, 1) }}>
-                                        <i class="text-sm fas fa-chevron-right" />
+                                    <input class="form-control w-full"
+                                        class:is-invalid={jigsawData.imageURL.length === 0} 
+                                        placeholder="catbox.moe image URL (also used as thumbnail)"
+                                        value={jigsawData.imageURL}
+                                        on:input={(event) => updateImageURL(index, event)} />
+                                </div>
+                                <div class="grow !m-0" />
+                                <div class="flex flex-col space-y-[0.45em]">
+                                    <InputCheckbox display="Required to Unlock"
+                                        bind:value={jigsawData.settings.required} />
+                                    <InputCheckbox display="Ghosting Allowed"
+                                        bind:value={jigsawData.settings.allowGhost} />
+                                    <InputCheckbox display="Show Edge Allowed" 
+                                        bind:value={jigsawData.settings.allowEdge} />
+                                    <div class="flex flex-row items-center">
+                                        <div>Rotation</div>
+                                        <div class="ml-[0.5em] mr-[0.25em]">=</div>
+                                        <button class="mx-[0.25em]"
+                                            on:click={() => { updateRotation(index, -1) }}>
+                                            <i class="text-sm fas fa-chevron-left" />
+                                        </button>
+                                        <div class="mx-[0.25em] w-[5em] text-center">
+                                            {#if jigsawData.settings.rotation !== 0}
+                                                {jigsawData.settings.rotation}°
+                                            {:else}
+                                                Disabled
+                                            {/if}
+                                        </div>
+                                        <button class="px-[0.25em]"
+                                            on:click={() => { updateRotation(index, 1) }}>
+                                            <i class="text-sm fas fa-chevron-right" />
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="grow !m-0" />
+                                <div class="flex flex-col items-center justify-center">
+                                    <button on:click={() => { deletePuzzle(index) }}>
+                                        <i class="fal fa-trash-alt"></i>
                                     </button>
                                 </div>
-                            </div>
-                            <div class="grow !m-0" />
-                            <div class="flex flex-col items-center justify-center">
-                                <button on:click={() => { deletePuzzle(index) }}>
-                                    <i class="fal fa-trash-alt"></i>
-                                </button>
                             </div>
                         </div>
-                    </div>
-                {/each}
+                    {/each}
+                </div>
+                <div class="w-full flex flex-row items-center justify-around mt-[0.5em] mb-[1em]">
+                    <button type="button" class="btn btn-primary"
+                        on:click={() => { copyConfig() }}>
+                        <i class="fas fa-plus text-sm mr-[0.125em]"></i>
+                        Copy Config
+                    </button>
+                    <button type="button" class="btn btn-primary"
+                        on:click={() => { addPuzzle() }}>
+                        <i class="fas fa-plus text-sm mr-[0.125em]"></i>
+                        Add a puzzle
+                    </button>
+                    <button type="button" class="btn btn-primary"
+                        on:click={() => { pasteConfig() }}>
+                        <i class="fas fa-plus text-sm mr-[0.125em]"></i>
+                        Paste Config
+                    </button>
+                </div>
             </div>
-            <div class="w-full flex flex-row items-center justify-around mt-[0.5em] mb-[2em]">
-                <button type="button" class="btn btn-primary"
-                    on:click={() => { copyConfig() }}>
-                    <i class="fas fa-plus text-sm mr-[0.125em]"></i>
-                    Copy Config
-                </button>
-                <button type="button" class="btn btn-primary"
-                    on:click={() => { addPuzzle() }}>
-                    <i class="fas fa-plus text-sm mr-[0.125em]"></i>
-                    Add a puzzle
-                </button>
-                <button type="button" class="btn btn-primary"
-                    on:click={() => { pasteConfig() }}>
-                    <i class="fas fa-plus text-sm mr-[0.125em]"></i>
-                    Paste Config
-                </button>
+            <div class="w-full flex-none flex flex-col space-y-[0.5em] pt-2 pb-2">
+                <div>
+                    Database Custom Data
+                </div>
+                <textarea class="form-control resize-none" 
+                    class:text-invalid={customJSONInvalid}
+                    rows="4"
+                    bind:value={customText}></textarea>
             </div>
         </div>
     {/if}
