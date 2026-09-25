@@ -382,18 +382,29 @@ export class JigsawInstance {
                     const graphicCenterY = (maskGraphic.bounds.minY + maskGraphic.bounds.maxY) / 2;
                     const graphicCenter = new PIXI.Point(graphicCenterX, graphicCenterY)
 
-                    // Mask the original image to create the "jigsaw piece", then extract the texture
-                    this.imageSprite.mask = maskGraphic;
-                    this.imageSprite.addChild(maskGraphic); // Don't care about deprecation really
+                    // Keep at least two screen pixels of overlap after scaling. The
+                    // pieces are antialiased separately, so touching edges need overlap
+                    // before the whole dragged group is faded.
+                    const edgeOverlap = Math.max(2, 2 / this.upDownscale);
+                    const textureMask = new PIXI.Graphics()
+                        .path(jigsawPiecePath)
+                        .fill(0xffffff)
+                        .stroke({ width: edgeOverlap, color: 0xffffff, alignment: 0 });
+                    this.imageSprite.mask = textureMask;
+                    this.imageSprite.addChild(textureMask);
+                    const extractionBounds = this.imageSprite.getLocalBounds();
+                    const textureOrigin = new PIXI.Point(extractionBounds.minX, extractionBounds.minY);
                     const pieceTexture = this.application.renderer.extract.texture({ target: this.imageSprite });
-                    if(row === 0 && col === 0) {
-                        const b64 = this.application.renderer.extract.base64({ target: this.imageSprite });
-                        console.log(await b64)
-                    }
-                    this.imageSprite.removeChild(maskGraphic);
-                    pieceTexture.source.autoGenerateMipmaps = true;
+                    this.imageSprite.removeChild(textureMask);
+                    pieceTexture.source.autoGenerateMipmaps = false;
                     pieceTexture.source.antialias = true;
-                    this.jigsawPiecesData[row][col] = { center: graphicCenter, texture: pieceTexture, mask: maskGraphic };
+                    // The display mask extends beyond the texture's antialiased edge,
+                    // so masking the sprite does not fade that edge a second time.
+                    const displayMask = new PIXI.Graphics()
+                        .path(jigsawPiecePath)
+                        .fill(0xffffff)
+                        .stroke({ width: edgeOverlap + 2 / this.upDownscale, color: 0xffffff, alignment: 0 });
+                    this.jigsawPiecesData[row][col] = { center: graphicCenter, texture: pieceTexture, mask: displayMask, textureOrigin };
                 }
             }
         }
@@ -493,8 +504,8 @@ export class JigsawInstance {
                 container.addChild(newMask);
                 newMask.scale.set(this.upDownscale, this.upDownscale)
                 newMask.position.set(
-                    -newMask.bounds.minX * this.upDownscale - sprite.width / 2, 
-                    -newMask.bounds.minY * this.upDownscale - sprite.height / 2);
+                    -jigsawPieceData.textureOrigin.x * this.upDownscale - sprite.width / 2,
+                    -jigsawPieceData.textureOrigin.y * this.upDownscale - sprite.height / 2);
                 sprite.mask = newMask;
                 this.application.stage.addChild(container);
 
@@ -533,8 +544,9 @@ export class JigsawInstance {
                         }
                         this.stopTick = false;
 
-                        // Handle drag start for jigsaw
-                        container.children.forEach(sprite => { sprite.alpha = 0.75 });
+                        // Fade the dragged group as one composited object. Lowering each
+                        // child's alpha separately makes antialiased edges show seams.
+                        container.filters = [new PIXI.AlphaFilter({ alpha: 0.75 })];
                         const position = event.data.getLocalPosition(container);
                         container.pivot.set(position.x, position.y);
                         currentThis.currentDragData = [container, row, col];
@@ -601,9 +613,7 @@ export class JigsawInstance {
             expectedOffsetActual[1] - actualOffset[1]
         ];
 
-        // Move the second container and stuff
-        // const containerRadians = sprite1.parent.angle * Math.PI / 180 * -1;
-        const containerRadians = 0;
+        // Move the second group into alignment with the first group's piece.
         sprite2.parent.x += offsetDiff[0];
         sprite2.parent.y += offsetDiff[1];
         this.application.render();
@@ -612,17 +622,10 @@ export class JigsawInstance {
         this.containers.delete(sprite2.parent)
         const connectedChildren = [...sprite2.parent.children]; // Mutate?
         for(const connectedSprite of connectedChildren) {
-            let previousLocation = new PIXI.Point(connectedSprite.worldTransform.tx, connectedSprite.worldTransform.ty);
+            const previousLocation = new PIXI.Point(connectedSprite.worldTransform.tx, connectedSprite.worldTransform.ty);
             sprite1.parent.addChild(connectedSprite);
-            this.application.render();
-
-            let newLocation = new PIXI.Point(connectedSprite.worldTransform.tx, connectedSprite.worldTransform.ty);
-
-            // Rotate according to the angle specified
-            const distanceX = previousLocation.x - newLocation.x;
-            const distanceY = previousLocation.y - newLocation.y;
-            connectedSprite.x += distanceX * Math.cos(containerRadians) - distanceY * Math.sin(containerRadians);
-            connectedSprite.y += distanceY * Math.cos(containerRadians) + distanceX * Math.sin(containerRadians);
+            const newLocalPosition = sprite1.parent.toLocal(previousLocation);
+            connectedSprite.position.set(newLocalPosition.x, newLocalPosition.y);
         }
         // sprite2.parent.destroy()
     }
@@ -804,13 +807,12 @@ export class JigsawInstance {
             // this.application.stage.off('pointermove', );
             // Retrieve current container or sprite from the drag data, then reset
             const [sourceContainer] = this.currentDragData;
-            sourceContainer.children.forEach(sprite => { sprite.alpha = 1 });
+            sourceContainer.filters = [];
             this.currentDragData = undefined;
 
             // Iterate over source sprites and check whether any connections match
             // If connections match, then add the container to be "merged"
             const containersToTransfer: PIXI.Container[] = [];
-            let containerRadians: number = 0;
             for(const _sourceSprite of sourceContainer.children) {
                 // Ignore the mask, only care about the piece sprite
                 if((_sourceSprite as any).row === undefined) { continue; }
@@ -865,7 +867,6 @@ export class JigsawInstance {
 
                     // If offset is within error range, then mark for combination - shift container and mark for transfer
                     if(offsetDiffPixels < this.pixelErrorAllowed) {
-                        containerRadians = sourceContainer.angle * Math.PI / 180 * -1;
                         connectedContainer.x += offsetDiff[0];
                         connectedContainer.y += offsetDiff[1];
                         this.application.render();
@@ -888,17 +889,10 @@ export class JigsawInstance {
                 if(destinationContainer.children.length === 0) { continue; }
                 const destinationChildren = [...destinationContainer.children]; // Mutate?
                 for(const destinationSprite of destinationChildren) {
-                    let previousLocation = new PIXI.Point(destinationSprite.worldTransform.tx, destinationSprite.worldTransform.ty);
+                    const previousLocation = new PIXI.Point(destinationSprite.worldTransform.tx, destinationSprite.worldTransform.ty);
                     sourceContainer.addChild(destinationSprite);
-                    this.application.render();
-
-                    let newLocation = new PIXI.Point(destinationSprite.worldTransform.tx, destinationSprite.worldTransform.ty);
-
-                    // Rotate according to the angle specified
-                    const distanceX = previousLocation.x - newLocation.x;
-                    const distanceY = previousLocation.y - newLocation.y;
-                    destinationSprite.x += distanceX * Math.cos(containerRadians) - distanceY * Math.sin(containerRadians);
-                    destinationSprite.y += distanceY * Math.cos(containerRadians) + distanceX * Math.sin(containerRadians);
+                    const newLocalPosition = sourceContainer.toLocal(previousLocation);
+                    destinationSprite.position.set(newLocalPosition.x, newLocalPosition.y);
                 }
                 // sourceContainer.addChild(destinationContainer) // ???
                 containersToDestroy.push(destinationContainer);

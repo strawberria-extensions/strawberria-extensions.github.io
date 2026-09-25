@@ -2,7 +2,8 @@
     import { onDestroy } from "svelte";
     import SvelteMarkdown from "svelte-markdown";
     import type { IndividualPenaltyData } from "$lib/scripts/signature-backend";
-    import { generateOutcomeEffectLabel, generateTimeStringPenalties } from "$lib/scripts/utility";
+    import { generateTimeStringPenalties } from "$lib/scripts/utility";
+    import { renderLockEffect } from "$lib/import/nunjucks";
 
     export let shouldHorizontal: boolean;
     export let lockID: string;
@@ -50,7 +51,7 @@
             {#if individualPenaltyData.penaltyConfig.effects.length > 0}
                 <ul class="flex flex-col list effect-list caption pl-[0.25em] mt-[0.125em]">
                     {#each individualPenaltyData.penaltyConfig.effects as effectData}
-                        {@const effectText = generateOutcomeEffectLabel(effectData)}
+                        {@const effectText = renderLockEffect(effectData)}
                         <li><SvelteMarkdown source={effectText} isInline /></li>
                     {/each}
                 </ul>

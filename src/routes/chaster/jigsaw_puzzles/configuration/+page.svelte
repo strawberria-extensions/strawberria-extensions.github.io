@@ -8,7 +8,7 @@
     import subPenaltyData from "$lib/resources/schemas/sub-penaltyData.json";
     import schemaConfigs from "$lib/resources/schemas/schema-configs.json";
     import InputCheckbox from "$lib/components/InputCheckbox.svelte";
-    import * as JigsawPuzzles from "$lib/import/extension-jigsaw_puzzles";
+    import type * as JigsawPuzzles from "$lib/import/extension-jigsaw_puzzles";
     import JigsawPuzzle from "$lib/components/JigsawPuzzle.svelte";
 
     const data = { slug: "jigsaw_puzzles" } as const;
@@ -63,6 +63,12 @@
             if (eventData.type === "chaster" && eventData.event === "partner_configuration_save") {
                 window.parent.postMessage(JSON.stringify({ type: "partner_configuration", event: "save_loading" }), "*");
 
+                // Always keep the thumbnail field populated, including pasted legacy configs.
+                for(const jigsawData of $configDataStore.config.jigsaws) {
+                    jigsawData.thumbnailURL = jigsawData.imageURL;
+                    jigsawData.settings.required ??= false;
+                }
+
                 // Send the configuration to your backend to save it
                 await fetch(chasterUtilitiesURL, {
                     method: "POST", headers: { 
@@ -104,6 +110,11 @@
             config: JigsawPuzzles.Config;
             custom: JigsawPuzzles.Custom;
         } = await configGetResponse.json();
+        for(const jigsawData of configData.config.config.jigsaws) {
+            // Older saved configs did not store a separate thumbnail URL.
+            jigsawData.thumbnailURL = jigsawData.imageURL;
+            jigsawData.settings.required ??= false;
+        }
         handlebarText = configData.config.handlebar ?? "";
         delete configData.config.handlebar;
         configDataStore.set(configData.config);
@@ -160,14 +171,23 @@
         $configDataStore.config.jigsaws.splice(index, 1);
         $configDataStore.config.jigsaws = $configDataStore.config.jigsaws;
     }
+    function updateImageURL(index: number, event: Event) {
+        const imageURL = (event.currentTarget as HTMLInputElement).value;
+        const jigsawData = $configDataStore.config.jigsaws[index];
+        jigsawData.imageURL = imageURL;
+        jigsawData.thumbnailURL = imageURL;
+        $configDataStore.config.jigsaws = $configDataStore.config.jigsaws;
+    }
     function addPuzzle() {
         $configDataStore.config.jigsaws.push({
             display: "",
             imageURL: "",
+            thumbnailURL: "",
             rowColsRatio: [0, 0, 0],
             targetPieces: undefined,
             settings: {
                 rotation: 0,
+                required: false,
                 allowGhost: false,
                 allowEdge: false
             }
@@ -217,11 +237,14 @@
                                 </div>
                                 <input class="form-control w-full"
                                     class:is-invalid={jigsawData.imageURL.length === 0} 
-                                    placeholder="Image URL (imgbox.com)"
-                                    bind:value={jigsawData.imageURL} />
+                                    placeholder="catbox.moe image URL (also used as thumbnail)"
+                                    value={jigsawData.imageURL}
+                                    on:input={(event) => updateImageURL(index, event)} />
                             </div>
                             <div class="grow !m-0" />
                             <div class="flex flex-col space-y-[0.45em]">
+                                <InputCheckbox display="Required to Unlock"
+                                    bind:value={jigsawData.settings.required} />
                                 <InputCheckbox display="Ghosting Allowed"
                                     bind:value={jigsawData.settings.allowGhost} />
                                 <InputCheckbox display="Show Edge Allowed" 

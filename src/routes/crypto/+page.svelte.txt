@@ -1,0 +1,212 @@
+<script lang="ts">
+    import CryptoJS from "crypto-js";
+    (window as any).CryptoJS = CryptoJS;
+
+    // Remember to update both data and token!
+    const http_token = "SzuW83tCkC8f3eb220b4cba3574f88a66db73b4fd531916";
+    // const http_token = "KGbDPMYa0c62d1379ab0f9dcaf93579f32e140197f83858";
+    const deviceData = {"code":1,"msg":"","data":{"id":20822,"create_time":1729479765,"update_time":1737420435,"mm":"E+BB1HRf1pnrjrsWtO7SkQ==","my":"GY02jqhoE844QUjpap96RtPTr3mf+9kAktLue67RSj\/yKQ8mJRmjForuxCj0PPmN","mac":"48:04:00:00:21:F2","name":"YS04","dl":"91","fen":0,"is_new":0,"is_ok":1}}
+    // const deviceData = {"code":1,"msg":"","data":{"id":16640,"create_time":1727581431,"update_time":1737422198,"mm":"E6+EMSMmwb8vf2hxZnU6PA==","my":"fRL3GUjScaXF6gqSanw2FO6jWh\/oUwnbHx8Q3ykYsS4G8iJ1DRSZcfvpCOE1gf\/x","mac":"48:04:00:00:1C:08","name":"YS04","dl":"72","fen":0,"is_new":0,"is_ok":1}}
+
+    function encrypt(data: string, key: string) {
+        const parsedData = CryptoJS.enc.Hex.parse(data);
+        const parsedKey = CryptoJS.enc.Hex.parse(key);
+        const encryptedRaw = CryptoJS.AES.encrypt(parsedData, parsedKey, {
+          mode: CryptoJS.mode.ECB,
+          padding: CryptoJS.pad.NoPadding
+        });
+        const encrypted = encryptedRaw.ciphertext.toString().toUpperCase();
+        
+        return encrypted;
+    }
+    (window as any).encrypt = encrypt;
+
+    // function decrypt(data: string, key: string) {
+    //     const parsedData = CryptoJS.enc.Hex.parse(data);
+    //     const parsedKey = CryptoJS.enc.Hex.parse(key);
+    //     const keyBase64 = CryptoJS.enc.Base64.stringify(parsedKey);
+    //     const decryptedRaw = CryptoJS.AES.decrypt(keyBase64, parsedData, {
+    //       mode: CryptoJS.mode.ECB,
+    //       padding: CryptoJS.pad.NoPadding
+    //     });
+    //     const decrypted = decryptedRaw.toString(CryptoJS.enc.Hex);
+        
+    //     return decrypted;
+    // }
+    function decrypt(t: string, e: string) {
+        const parsedKey = CryptoJS.enc.Hex.parse(e);
+        const parsedData = CryptoJS.enc.Base64.stringify(CryptoJS.enc.Hex.parse(t)) as any;
+        const a = CryptoJS.AES.decrypt(parsedData, parsedKey, { 
+            mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.NoPadding 
+        });
+        const decrypted = a.toString(CryptoJS.enc.Hex).toUpperCase();
+
+        return decrypted;
+    }
+    (window as any).decrypt = decrypt;
+
+    function decrypt_mm_my(data: string) {
+      const t = http_token + "Cb12751";
+      const n = String(data);
+      const a = CryptoJS.enc.Hex.parse(CryptoJS.SHA256(t).toString());
+      const u = CryptoJS.enc.Hex.parse(CryptoJS.MD5(a).toString());
+      const c = CryptoJS.enc.Base64.parse(n);
+      const s = CryptoJS.AES.decrypt({ ciphertext: c } as any, a, { iv: u, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 });
+      const d = s.toString(CryptoJS.enc.Hex);
+      const o = CryptoJS.enc.Utf8.stringify(CryptoJS.enc.Hex.parse(d));
+      console.log(`${data} -> ${o}`)
+
+      return o;
+    }
+    (window as any).decrypt_mm_my = decrypt_mm_my;
+
+    // function encrypt_mm_my(data: string) {
+    //     const t = http_token + "Cb12751";
+    //     const n = String(data + "w");
+    //     const a = CryptoJS.enc.Hex.parse(CryptoJS.SHA256(t).toString());
+    //     const u = CryptoJS.enc.Hex.parse(CryptoJS.MD5(a).toString());
+    //     const c = CryptoJS.enc.Hex.parse(n);
+    //     const s = CryptoJS.AES.encrypt({ ciphertext: c } as any, a, { iv: u, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.Pkcs7 });
+    //     const encrypted = s.ciphertext.toString().toUpperCase();
+    //     console.log(`${data} -> ${encrypted}`)
+
+    //     return encrypted;
+    // }
+
+    // function gen_write(data: string) {
+    //     const encodedData = (data + Array(32).join("0")).slice(0, 32);
+    //     console.log(encodedData)
+    //     const decrypted_my = decrypt_mm_my(deviceData.data.my);
+    //     const encryptedData = encrypt(encodedData, decrypted_my);
+    //     const n = encryptedData.length / 2;
+    //     const a = new ArrayBuffer(n);
+    //     const o = new DataView(a);
+    //     for(let c = 0; c < n; c++) {
+    //         o.setUint8(c, "0X" + encryptedData.substring(2 * c, 2 * c + 2) as any);
+    //     }
+    //     return Array.prototype.map.call(new Uint8Array(a), x => ('00' + x.toString(16)).slice(-2)).join('');
+    // }
+
+    function gen_write(t: string) {
+        console.log(`>> to write: ${t}`);
+        var e = (t + Array(32).join("0")).slice(0, 32);
+        var i = decrypt_mm_my(deviceData.data.my);
+        var s = encrypt(e, i);
+        for (var n = s.length / 2, a = new ArrayBuffer(n), o = new DataView(a), c = 0; c < n; c++) {
+            o.setUint8(c, "0X" + s.substring(c * 2, c * 2 + 2) as any);
+        }
+        return Array.prototype.map.call(new Uint8Array(a), x => ('00' + x.toString(16)).slice(-2)).join('');
+    }
+
+    // function gen_write_td(data: string) {
+    //     data = data.replace(/\s+/g, "");
+    //     data = (data + Array(32).join("0")).slice(0, 32);
+    //     let i = data.length / 2;
+    //     let s = new ArrayBuffer(i);
+    //     let n = new DataView(s);
+    //     for(let c = 0; c < i; c++) {
+    //         n.setUint8(c, "0X" + data.substring(2 * c, 2 * c + 2) as any);
+    //     }
+    //     return Array.prototype.map.call(new Uint8Array(s), x => ('00' + x.toString(16)).slice(-2)).join('');
+    // }
+
+    function generateBluetooth(command: string, vuex_token: string, join: boolean = false) {
+        const name = deviceData.data.name;
+        const decrypted_mm = decrypt_mm_my(deviceData.data.mm);
+        // console.log(`2001${decrypted_mm}ffffffff${vuex_token}`);
+        // console.log("2001323630303530ffffffff12CE015A")
+        let result = (command === "open" 
+            ? name === "YISKJ-SM-K"
+                ? gen_write(`AF0FC001${decrypted_mm}${vuex_token}`) : /^YS0+[1-9]$/.test(name)
+                    ? gen_write(`2001${decrypted_mm}ffffffff${vuex_token}`) 
+                    : gen_write(`050106${decrypted_mm}${vuex_token}`) 
+            : command === "token"
+                ? name === "YISKJ-SM-K"
+                    ? gen_write(`AF0FD001`) : /^YS0+[1-9]$/.test(name)
+                        ? gen_write(`0100`) 
+                        : gen_write(`06010101`)
+                : command === "inter"
+                    ? gen_write(`100200000000000000000000${vuex_token}`)
+                    : "");
+        if(join) {
+            result = result.replace(/..\B/g, '$&:');
+        }
+        return result;
+    }
+
+    /**
+     * Convert a hex string to an ArrayBuffer.
+     * 
+     * @param {string} hexString - hex representation of bytes
+     * @return {ArrayBuffer} - The bytes in an ArrayBuffer.
+     */
+    function hexStringToArrayBuffer(hexString: string) {
+        // remove the leading 0x
+        hexString = hexString.replace(/^0x/, '');
+        
+        // ensure even number of characters
+        if (hexString.length % 2 != 0) {
+            console.log('WARNING: expecting an even number of characters in the hexString');
+        }
+        
+        // check for some non-hex characters
+        var bad = hexString.match(/[G-Z\s]/i);
+        if (bad) {
+            console.log('WARNING: found non-hex characters', bad);    
+        }
+        
+        // split the string into pairs of octets
+        var pairs = hexString.match(/[\dA-F]{2}/gi);
+        
+        // convert the octets to integers
+        var integers = (pairs as any).map(function(s: any) {
+            return parseInt(s, 16);
+        });
+        
+        var array = new Uint8Array(integers);
+        
+        return array.buffer;
+    }
+
+    async function requestBluetooth() {
+        let vuex_token = "";
+
+        // Retrieve the YS04 device currently connected
+        const device = await navigator.bluetooth.requestDevice({ filters: [{ namePrefix: "YS04" }], optionalServices: ["00009000-0000-1000-8000-57616c6b697a"] });
+        if(!device.gatt) { console.log("no gatt found?"); return; }
+        const server = await device.gatt.connect();
+        console.log("pair successful!")
+
+        // Setup the characteristics and the notify characteristic
+        const service = await server.getPrimaryService("00009000-0000-1000-8000-57616c6b697a");
+        const writeCharacteristic = await service.getCharacteristic("00009001-0000-1000-8000-57616c6b697a");
+        const notifyCharacteristic = await service.getCharacteristic("00009002-0000-1000-8000-57616c6b697a");
+        await notifyCharacteristic.startNotifications();
+        notifyCharacteristic.addEventListener("characteristicvaluechanged", async (event) => {
+            const notifDataView: DataView<ArrayBuffer> = (event.target as any)?.value;
+            const notifHexEncrypted = Array.prototype.map.call(new Uint8Array(notifDataView.buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
+            console.log(`received notif encrypted: ${notifHexEncrypted}`);
+            const decryptedMy = decrypt_mm_my(deviceData.data.my);
+            const notifHex = decrypt(notifHexEncrypted, decryptedMy);
+            console.log(`decrypted notif hex: ${notifHex}`);
+            if(notifHex.startsWith("8100")) {
+                // vuex_token = notifHex.substring(4, 12);
+                vuex_token = "F4AAE164";
+                console.log(`vuex token: ${vuex_token}`);
+                const interHex = generateBluetooth("inter", vuex_token);
+                console.log(`sending inter request: ${interHex}`);
+                writeCharacteristic.writeValue(hexStringToArrayBuffer(interHex))
+                const openHex = generateBluetooth("open", vuex_token);
+                setTimeout(() => { 
+                    console.log(`sending open request: ${openHex}`);
+                    writeCharacteristic.writeValue(hexStringToArrayBuffer(openHex)) 
+                }, 5000);
+            }
+        })
+        const tokenHex = generateBluetooth("token", "");
+        console.log(`sending token request: ${tokenHex}`);
+        (await writeCharacteristic).writeValue(hexStringToArrayBuffer(tokenHex));
+    }
+</script>
+
+<button on:click={requestBluetooth}>Test</button>

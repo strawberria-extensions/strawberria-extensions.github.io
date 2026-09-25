@@ -1,5 +1,6 @@
-import * as ExtendedWheel from "$lib/import/extension-extended_wheel"
-import * as JigsawPuzzles from "$lib/import/extension-jigsaw_puzzles"
+import type * as ExtendedWheel from "$lib/import/extension-extended_wheel"
+import type * as JigsawPuzzles from "$lib/import/extension-jigsaw_puzzles"
+import type { LockEffectData } from "$lib/import/lock_effects"
 
 export interface BackendRequestSignature {
     "chaster_utilities": {
@@ -66,6 +67,23 @@ export interface BackendResponseSignature {
     //         exists: boolean;
     //     };
     // };
+}
+
+export interface IndividualPenaltyData {
+    extensionData: {
+        _id: string;
+        slug: string;
+        display: string;
+    };
+    penaltyConfig: {
+        action: string;
+        subkey: string;
+        display: string;
+        required: number;
+        interval: number;
+        effects: LockEffectData[];
+    };
+    penaltyData: { lastPenaltyMS: number; current: number };
 }
 
 // export interface IndividualPenaltyData {

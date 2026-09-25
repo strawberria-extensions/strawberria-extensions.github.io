@@ -1,15 +1,15 @@
 <script lang="ts">
     import { easeSinInOut } from 'd3-ease';
-    import { onMount } from 'svelte';
+    import { onDestroy, onMount } from 'svelte';
     import { writable, type Writable } from 'svelte/store';
     import SvelteMarkdown from "svelte-markdown";
     import chasterLogo from "$lib/resources/logo.png"
     import tickAudioFile from "$lib/resources/tick.mp3";
     import wheelBgOverlayFile from "$lib/resources/wheel-bg-overlay.svg"
-    import { Wheel } from '$lib/resources/spin-wheel.js';
+    import { Wheel } from '$lib/resources/spin-wheel-5.0.2.js';
     import WheelOutcome from "$lib/components/WheelOutcome.svelte";
     import { randomInt, sleep, truncateWords } from "$lib/scripts/utility";
-    import * as ExtendedWheel from "$lib/import/extension-extended_wheel";
+    import type * as ExtendedWheel from "$lib/import/extension-extended_wheel";
     import type { ChasterUserRole } from '$lib/scripts/signature-chaster';
     import type { BackendResponseSignature } from '$lib/scripts/signature-backend';
     import { generateTimeString } from "$lib/scripts/utility";
@@ -78,27 +78,70 @@
     });
 
     let nextSpinTimestampStore: Writable<string> = writable("");
+    function hasUsableOutcomes(wheelData: ExtendedWheel.WheelData | undefined): boolean {
+        if(wheelData === undefined || wheelData.outcomes.length === 0) { return false; }
+        const weights = wheelData.outcomes.map(outcome => Number.parseFloat(outcome.weight));
+        return weights.every(weight => Number.isFinite(weight) && weight >= 0)
+            && weights.reduce((sum, weight) => sum + weight, 0) > 0;
+    }
+
+    function getAvailableSpins(wheelID: string, nowMS: number = Date.now()): number {
+        const wheelConfigData = $extendedWheelConfigStore.wheels[wheelID];
+        if(wheelConfigData === undefined || wheelConfigData.regularity.mode === "unlimited") {
+            return Infinity;
+        }
+        const wheelCustomData = $extendedWheelCustomStore[wheelID];
+        const interval = wheelConfigData.regularity.interval;
+        if(!Number.isFinite(interval) || interval <= 0) { return 0; }
+        if(wheelConfigData.regularity.mode === "non_cumulative") {
+            return wheelCustomData === undefined
+                || nowMS - wheelCustomData.lastSpinMS >= interval ? 1 : 0;
+        }
+
+        const lastSpinMS = wheelCustomData?.lastSpinMS ?? 0;
+        const lastTrackMS = wheelCustomData?.lastTrackMS ?? (lastSpinMS || nowMS);
+        const initialSpins = wheelCustomData?.availableSpins ?? (lastSpinMS ? 0 : 1);
+        const earnedSpins = Number.isFinite(interval) && interval > 0
+            ? Math.max(0, Math.floor((nowMS - lastTrackMS) / interval))
+            : 0;
+        return initialSpins + earnedSpins;
+    }
+
     function updateNextSpinTimestamp() {
         if(selectedWheelID === undefined) {
+            $nextSpinTimestampStore = "";
+            return;
+        }
+        const wheelConfigData = $extendedWheelConfigStore.wheels[selectedWheelID];
+        if(wheelConfigData === undefined || getAvailableSpins(selectedWheelID) > 0) {
+            $nextSpinTimestampStore = "";
             return;
         }
         const wheelCustomData = $extendedWheelCustomStore[selectedWheelID];
-        if(wheelCustomData === undefined) {
-            $nextSpinTimestampStore = "";
-        } else {
-            const wheelConfigData = $extendedWheelConfigStore.wheels[selectedWheelID];
-            if(wheelConfigData.regularity.mode === "unlimited") {
-                $nextSpinTimestampStore = "";
-            } else {
-                const currentTimeMS = new Date().getTime();
-                const nextSpinMS = wheelCustomData.lastSpinMS + wheelConfigData.regularity.interval;
-                $nextSpinTimestampStore = currentTimeMS > nextSpinMS
-                    ? "" : generateTimeString(Math.floor((nextSpinMS - currentTimeMS) / 1000));
-            }
+        const currentTimeMS = Date.now();
+        const interval = wheelConfigData.regularity.interval;
+        if(!Number.isFinite(interval) || interval <= 0) {
+            $nextSpinTimestampStore = "Unavailable";
+            return;
         }
+        const checkpoint = wheelConfigData.regularity.mode === "cumulative"
+            ? (wheelCustomData?.lastTrackMS ?? (wheelCustomData?.lastSpinMS || currentTimeMS))
+            : (wheelCustomData?.lastSpinMS ?? 0);
+        const elapsedIntervals = wheelConfigData.regularity.mode === "cumulative"
+            ? Math.max(0, Math.floor((currentTimeMS - checkpoint) / interval))
+            : 0;
+        const nextSpinMS = checkpoint + (elapsedIntervals + 1) * interval;
+        $nextSpinTimestampStore = generateTimeString(Math.max(0, Math.ceil((nextSpinMS - currentTimeMS) / 1000)));
     }
 
-    setInterval(updateNextSpinTimestamp, 200);
+    let nextSpinInterval = 0;
+    onMount(() => {
+        nextSpinInterval = window.setInterval(updateNextSpinTimestamp, 200);
+    });
+    onDestroy(() => {
+        window.clearInterval(nextSpinInterval);
+        spinWheel?.remove();
+    });
     extendedWheelConfigStore.subscribe(() => { updateNextSpinTimestamp(); });
     extendedWheelCustomStore.subscribe(() => { updateNextSpinTimestamp(); });
     $: { selectedWheelID; updateNextSpinTimestamp(); }
@@ -108,52 +151,74 @@
     let resultStore: Writable<ExtendedWheel.OutcomeResult | undefined> = writable(undefined)
     let spinDisabled = false;
     let spinWheel: any;
+    let wheelOverlayImagePromise: Promise<HTMLImageElement> | undefined;
+    function loadWheelOverlayImage(): Promise<HTMLImageElement> {
+        if(wheelOverlayImagePromise !== undefined) { return wheelOverlayImagePromise; }
+        wheelOverlayImagePromise = new Promise((resolve, reject) => {
+            const image = new Image();
+            image.onload = () => resolve(image);
+            image.onerror = () => reject(new Error("Unable to load the wheel overlay image."));
+            image.src = wheelBgOverlayFile;
+        });
+        return wheelOverlayImagePromise;
+    }
     let lastRotation: [string, number] = ["", 0];
     async function spinTheWheel() {
+        if(selectedWheelID === undefined || spinWheel === undefined) { return; }
+        const wheelData = $extendedWheelConfigStore.wheels[selectedWheelID];
+        if(wheelData === undefined) { return; }
+        if(!hasUsableOutcomes(wheelData)) { return; }
+
         spinDisabled = true;
         $resultStore = undefined;
-
-        // Spin the wheel first
-        const spinResultResponse = await fetch(chasterUtilitiesURL, {
-            method: "POST", headers: { "Authorization": `Bearer ${anonKey}` },
-            body: JSON.stringify({ 
-                action: "extended_wheel-spin",
-                mainToken: mainToken,
-                wheelID: selectedWheelID,
-            })
-        });
-        if(spinResultResponse.status > 200) {
-            alert(`Error spinning wheel, please contact @strawberria: ${await spinResultResponse.text()}`);
-            return;
-        }
-        const spinResultData: BackendResponseSignature["chaster_utilities"]["extended-main-spin"] = await spinResultResponse.json();
-        // TODO handle hidden outcome missing index
-        if(spinResultData.index === undefined) { 
-            spinResultData.index = randomInt(0, 16); 
-        }
-
-        spinWheel.spinToItem(spinResultData.index, 5000, false, 5, 1, easeSinInOut);
-
-        // spinDisabled = false;
-        setTimeout(() => { 
-            $resultStore = spinResultData.result;
-
-            spinDisabled = false; 
-            lastRotation = [selectedWheelID as string, spinWheel.rotation];
-        }, 5100);
-
-        // Cache the post-spin data to update after spin
-        const extendedMainPageData = await retrieveWheelConfig();
-        while(spinDisabled) {
-            await sleep(10);
-        }
-        if(JSON.stringify($extendedWheelConfigStore) !== JSON.stringify(extendedMainPageData.config)) {
-            if(extendedMainPageData.config.config.wheels[selectedWheelID ?? ""] === undefined) {
-                selectedWheelID = Object.keys(extendedMainPageData.config.config.wheels)[0] ?? undefined;
+        try {
+            const spinningWheelID = selectedWheelID;
+            const spinResultResponse = await fetch(chasterUtilitiesURL, {
+                method: "POST", headers: { "Authorization": `Bearer ${anonKey}` },
+                body: JSON.stringify({
+                    action: "extended_wheel-spin",
+                    mainToken: mainToken,
+                    wheelID: spinningWheelID,
+                })
+            });
+            if(!spinResultResponse.ok) {
+                throw new Error(await spinResultResponse.text());
             }
-            $extendedWheelConfigStore = extendedMainPageData.config.config; // Intensive?
+            const spinResultData: BackendResponseSignature["chaster_utilities"]["extended-main-spin"] = await spinResultResponse.json();
+            if(spinResultData.index === undefined) {
+                spinResultData.index = randomInt(0, 16);
+            }
+            const itemCount = wheelData.settings.hiddenOutcomes ? unknownOutcomeData.length : wheelData.outcomes.length;
+            if(!Number.isInteger(spinResultData.index) || spinResultData.index < 0 || spinResultData.index >= itemCount) {
+                throw new Error(`The server returned an invalid wheel outcome index (${spinResultData.index}).`);
+            }
+
+            await new Promise<void>((resolve, reject) => {
+                try {
+                    spinWheel.spinToItem(spinResultData.index, 5000, false, 5, 1, easeSinInOut);
+                    window.setTimeout(resolve, 5100);
+                } catch(error) {
+                    reject(error);
+                }
+            });
+            $resultStore = spinResultData.result;
+            lastRotation = [spinningWheelID, spinWheel.rotation];
+
+            const extendedMainPageData = await retrieveWheelConfig();
+            if(JSON.stringify($extendedWheelConfigStore) !== JSON.stringify(extendedMainPageData.config.config)) {
+                if(extendedMainPageData.config.config.wheels[spinningWheelID] === undefined) {
+                    selectedWheelID = Object.keys(extendedMainPageData.config.config.wheels)
+                        .find(key => userRole === "keyholder" || !extendedMainPageData.config.config.wheels[key].settings.disabled);
+                }
+                $extendedWheelConfigStore = extendedMainPageData.config.config;
+            }
+            $extendedWheelCustomStore = extendedMainPageData.customData.custom;
+        } catch(error) {
+            console.error("Error spinning the extended wheel", error);
+            alert(`Error spinning wheel, please contact @strawberria: ${error instanceof Error ? error.message : String(error)}`);
+        } finally {
+            spinDisabled = false;
         }
-        $extendedWheelCustomStore = extendedMainPageData.customData.custom;
     }
 
     // Update wheel container with new outcomes from selected wheel
@@ -181,13 +246,25 @@
 
     async function updateWheelContainer() {
         if(selectedWheelID === undefined) { return; }
+        const wheelID = selectedWheelID;
         const wheelContainer = $wheelContainerStore;
         if(wheelContainer === undefined) { return; }
 
         // Short delay so wheel is properly sized in container
         await sleep(10);
+        if(selectedWheelID !== wheelID || $wheelContainerStore !== wheelContainer) { return; }
 
-        const wheelData = $extendedWheelConfigStore.wheels[selectedWheelID];
+        const wheelData = $extendedWheelConfigStore.wheels[wheelID];
+        if(wheelData === undefined) { return; }
+        if(!hasUsableOutcomes(wheelData)) {
+            spinWheel?.remove();
+            spinWheel = undefined;
+            wheelContainer.innerHTML = "";
+            return;
+        }
+        const wheelOverlayImage = await loadWheelOverlayImage();
+        if(selectedWheelID !== wheelID || $wheelContainerStore !== wheelContainer
+            || $extendedWheelConfigStore.wheels[wheelID] !== wheelData) { return; }
 
         let items = JSON.parse(JSON.stringify(wheelData.outcomes.map(
             (outcomeData) => {
@@ -202,7 +279,7 @@
         }
 
         let rotation: number = 0;
-        if(lastRotation[0] == selectedWheelID as string) {
+        if(lastRotation[0] == wheelID) {
             rotation = lastRotation[1];
         } else {
             lastRotation = ["", 0];
@@ -219,10 +296,11 @@
             itemLabelRotation: 180,
             // isInteractive: false,
             borderWidth: 2,
-            overlayImage: wheelBgOverlayFile,
+            overlayImage: wheelOverlayImage,
             rotation: rotation,
         }
 
+        spinWheel?.remove();
         if(wheelContainer) { wheelContainer.innerHTML = ""; }
         spinWheel = new Wheel(wheelContainer, wheelProps);
         (window as any).wheel = spinWheel;
@@ -278,10 +356,10 @@
             <img src={chasterLogo} alt="Chaster logo">
             <div class="mt-4 caption text-lg">{initialLoadMessage}</div>
         </div>
-    {:else if selectedWheelID !== undefined}
+    {:else if selectedWheelID !== undefined && $extendedWheelConfigStore.wheels[selectedWheelID] !== undefined}
         {@const wheelData = $extendedWheelConfigStore.wheels[selectedWheelID]}
-        {@const buttonDisabled = spinDisabled || (wheelData.settings.disabled === true && userRole !== "keyholder")}
-        {@const allowedSpin = ($nextSpinTimestampStore === "" || userRole === "keyholder")}
+        {@const buttonDisabled = spinDisabled || !hasUsableOutcomes(wheelData) || (wheelData.settings.disabled === true && userRole !== "keyholder")}
+        {@const allowedSpin = (wheelData.regularity.mode === "unlimited" || getAvailableSpins(selectedWheelID) > 0 || $nextSpinTimestampStore === "" || userRole === "keyholder")}
         <div class="card-content grow" class:card-wrapper-desktop={shouldHorizontal}>
             <div class="w-full h-full flex flex-row">
                 <div class="h-full flex flex-col" class:card-horizontal={shouldHorizontal}>
@@ -307,7 +385,14 @@
                                 flex align-center justify-center items-center"
                                 class:aspect-square={!shouldHorizontal}>
                                 {#if $resultStore !== undefined}
-                                    <div class="result" on:click={() => { $resultStore = undefined }}>
+                                    <div class="result" role="button" tabindex="0"
+                                        on:click={() => { $resultStore = undefined }}
+                                        on:keydown={(event) => {
+                                            if(event.key === "Enter" || event.key === " ") {
+                                                event.preventDefault();
+                                                $resultStore = undefined;
+                                            }
+                                        }}>
                                         <!-- Basically copied from WheelOutcome -->
                                         <div class="flex flex-col">
                                             <div class="mb-[0.25em]">{$resultStore.text ?? ""}</div>
@@ -332,8 +417,18 @@
                             </div>
                         </div>
                         <p class="min-h-[1em] text-center">
+                            {#if wheelData.regularity.mode === "cumulative" && userRole !== "keyholder"}
+                                Available spins: {getAvailableSpins(selectedWheelID)}
+                                {#if !allowedSpin}<br>{/if}
+                            {/if}
                             {#if !allowedSpin}
-                                Next spin available in {$nextSpinTimestampStore}
+                                {#if $nextSpinTimestampStore === "Unavailable"}
+                                    Spin cooldown is misconfigured.
+                                {:else}
+                                    Next spin available in {$nextSpinTimestampStore}
+                                {/if}
+                            {:else if !hasUsableOutcomes(wheelData)}
+                                This wheel has no valid outcomes configured.
                             {/if}
                         </p>
                         <hr>
@@ -375,7 +470,9 @@
                                                 <SvelteMarkdown source={line} isInline />   
                                             </div>
                                         {/each}
-                                        <div class="text-right">Signed, {keyholder}~</div>
+                                        {#if keyholder}
+                                            <div class="text-right">Signed, {keyholder}~</div>
+                                        {/if}
                                     </div>
                                     <hr>
                                 {/if}
@@ -507,6 +604,10 @@
                     </div>
                 {/if}
             </div>
+        </div>
+    {:else}
+        <div class="w-full h-full flex items-center justify-center text-center caption">
+            No wheels are available for this lock.
         </div>
     {/if}
 </div>

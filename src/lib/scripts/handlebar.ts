@@ -1,5 +1,7 @@
 import type { ChasterCustomConfig_ExtendedWheel_Payload, ChasterCustomData_ExtendedWheel } from "./backend";
-import { generateOutcomeEffectLabel, generateTimeString } from "./utility";
+import type { LockEffectData } from "$lib/import/lock_effects";
+import { renderLockEffect } from "$lib/import/nunjucks";
+import { generateTimeString } from "./utility";
 
 interface WheelTextData {
     displayText:    string;
@@ -69,7 +71,7 @@ export function generateExtendedWheelText(config: ChasterCustomConfig_ExtendedWh
 
             const actionsTextArr: string[] = [];
             for(const actionData of outcomeData.actions) {
-                actionsTextArr.push(generateOutcomeEffectLabel(actionData, { ...config, text: "" }));
+                actionsTextArr.push(renderLockEffect(actionData as unknown as LockEffectData, { ...config, text: "" }));
             }
             outcomeTextData.actionsText = actionsTextArr
                 .map(text => `  - ${text}`)

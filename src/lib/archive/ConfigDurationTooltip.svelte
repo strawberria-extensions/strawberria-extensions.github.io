@@ -1,7 +1,7 @@
 <script lang="ts">
     import { communicationStore } from "$lib/scripts/duration-tooltip";
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
-    import DurationSelect from "./DurationSelect.svelte";
+    import DurationSelect from "../components/DurationSelect.svelte";
 
     // Calculates tooltip location and whether it should be top > right > bottom > left
     let tooltipPlacementData: [number, number] = [0, 0];

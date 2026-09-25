@@ -2,6 +2,9 @@ export const template =
 `{# Handlebar for individual jigsaw puzzles #}
 {% for jigsawData in config.jigsaws %}
 **[{{ jigsawData.display }} - {{ jigsawData.rowColsRatio[2] }} pieces]**
+{% if jigsawData.settings.required == true %}
+- Required to unlock
+{% endif %}
 {% if jigsawData.settings.rotation != 0 %}
 - {{ jigsawData.settings.rotation }}° rotation increments
 {% endif %}

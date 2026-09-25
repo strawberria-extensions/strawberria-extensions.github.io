@@ -12,7 +12,7 @@
     let element: HTMLElement;
     let refElement: HTMLElement;
 
-    const id = generateRandomString(8, "caps-alpha");
+    const id = generateRandomString(8, "upper-alpha");
 </script>
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->

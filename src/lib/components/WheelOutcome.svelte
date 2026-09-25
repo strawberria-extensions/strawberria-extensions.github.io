@@ -1,7 +1,7 @@
 <script lang="ts">
     import bigDecimal from "js-big-decimal";
     import SvelteMarkdown from "svelte-markdown";
-    import * as ExtendedWheel from "$lib/import/extension-extended_wheel";
+    import type * as ExtendedWheel from "$lib/import/extension-extended_wheel";
     import { renderLockEffect } from "$lib/import/nunjucks";
 
     export let outcomeData: ExtendedWheel.OutcomeData;

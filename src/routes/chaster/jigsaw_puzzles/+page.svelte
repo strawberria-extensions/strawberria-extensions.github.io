@@ -7,7 +7,7 @@
     import type { BackendResponseSignature } from "$lib/scripts/signature-backend";
     import { JigsawInstance } from "$lib/scripts/puzzle";
     import { hashSHA256, sleep } from "$lib/scripts/utility";
-    import * as JigsawPuzzles from "$lib/import/extension-jigsaw_puzzles";
+    import type * as JigsawPuzzles from "$lib/import/extension-jigsaw_puzzles";
 
     // Supabase anon key has no database access due to RLS
     const anonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJwbmpsYmpwY2ZlYnFwYXFrcGh5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE2ODg1NDM0NTgsImV4cCI6MjAwNDExOTQ1OH0.CsGySz2c8bIWphE6--T51CsmSeBQajfwvBYfTkjviM4";
@@ -49,7 +49,7 @@
             }
         }
 
-        // Retrieve data for jigsaw puzzles, ensure all domains are imgbox
+        // Retrieve data for jigsaw puzzles and prepare thumbnail URLs for older configs.
         const jigsawPuzzlesMainResponse = await fetch(chasterUtilitiesURL, {
             method: "POST", headers: { "Authorization": `Bearer ${anonKey}` },
             body: JSON.stringify({ 
@@ -66,11 +66,12 @@
         $jigsawPuzzlesConfigStore = jigsawPuzzlesMainData.config.config;
         for(const jigsawConfig of $jigsawPuzzlesConfigStore.jigsaws) {
             const imageCheck = new URL(jigsawConfig.imageURL);
-            if(imageCheck.host.endsWith("imgbox.com") === false) { throw Error(`unwhitelisted url: ${jigsawConfig.imageURL}`); }
-            if(jigsawConfig.imageURL !== undefined) {
-                const thumbCheck = new URL(jigsawConfig.imageURL);
-                if(thumbCheck.host.endsWith("imgbox.com") === false) { throw Error(`unwhitelisted url: ${jigsawConfig.imageURL}`); }
+            const imageHost = imageCheck.hostname.toLowerCase();
+            if(imageCheck.protocol !== "https:" || (imageHost !== "catbox.moe" && !imageHost.endsWith(".catbox.moe"))) {
+                throw Error(`image URL must use the whitelisted catbox.moe domain: ${jigsawConfig.imageURL}`);
             }
+            const thumbnailURL = jigsawConfig.imageURL;
+            jigsawConfig.thumbnailURL = thumbnailURL;
         }
 
         // Update local storage with contents of database
@@ -153,11 +154,6 @@
         $chosenJigsawConfigStore = undefined;
     }
 
-    function getThumbnail(imageURL: string) {
-        return imageURL.replace("images2", "thumbs2")
-            .replace("_o", "_t");
-    }
-
     let refreshLayout: () => Promise<void>;
 </script>
   
@@ -181,7 +177,7 @@
                         <div class="caption">
                             Configurable jigsaw puzzles supporting rotating pieces, image 'ghosting', and other features! <br>
                             • Number of pieces is automatically optimized on config creation based on target number of pieces <br>
-                            • Currently whitelisted image hosters (hotlinking and thumbnail): <a target="_blank" href="https://imgbox.com">imgbox</a>, <a target="_blank" href="https://postimages.org">postimages</a> <br>
+                            • Whitelisted image host: <a target="_blank" href="https://catbox.moe">catbox.moe</a>. The image URL is also used as the thumbnail URL. <br>
                             • Rotation is disabled for mobile devices until a convenient solution is found...<br>
                             <b class="mt-[1em]">(If you experience any performance issues especially when moving between puzzles, please refresh the page!)</b>
                         </div>
@@ -199,7 +195,6 @@
                         <div class="card-content space-y-[0.75em] cursor-pointer card-hover"
                             class:hidden={$chosenJigsawConfigStore !== undefined}
                             on:click={() => { $chosenJigsawConfigStore = jigsawConfig }}>
-                            <!-- <img class="aspect-square" src={jigsawConfig.thumbnailURL} /> -->
                             <div class="flex flex-col items-center">
                                 <!-- aspect-video causing problems? -->
                                 <div class="relative">
@@ -208,7 +203,7 @@
                                     <img class="block h-full w-full pie"
                                         class:blur-md={!jigsawConfig.settings.allowGhost && configProgress[0] !== 1} 
                                         style={!jigsawConfig.settings.allowGhost ? "clip-path: inset(0 0 0 0);" : ""}
-                                        src={getThumbnail(jigsawConfig.imageURL)} />
+                                        src={jigsawConfig.thumbnailURL ?? jigsawConfig.imageURL} />
                                     <!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
                                     {#if configProgress[0] === 1}
                                         <div class="absolute h-full w-full top-0 left-0 flex flex-col justify-center p-[2em]">

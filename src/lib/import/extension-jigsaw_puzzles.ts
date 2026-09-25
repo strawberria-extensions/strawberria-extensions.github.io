@@ -25,11 +25,12 @@ export interface Custom extends ExtensionCustom {
 // Individual jigsaw data for the Jigsaw Puzzles extension
 export interface JigsawData {
     display:  string;
-    imageURL: string; // Note: check whitelisted URLs (imgbox.com)
-    // thumbnail URL is automatically created from image URL
+    imageURL: string; // HTTPS image used by the puzzle
+    thumbnailURL?: string; // Defaults to imageURL; retained separately for the thumbnail
     rowColsRatio: [number, number, number]; // Initialized to 0, 0, 0
     settings: {
         rotation:   number;  // 0, 15, 30, 45, 90, 180
+        required: boolean; // Must be completed before the lock can be unlocked
         allowGhost: boolean; // Allow ghosting (showing final image)
         allowEdge:  boolean; // Allow filtering for only edge pieces
     };
@@ -53,6 +54,7 @@ export interface JigsawPieceData {
     center:       PIXI.Point;
     texture:      PIXI.Texture;
     mask:         PIXI.Graphics;
+    textureOrigin: PIXI.Point;
 };
 export class JigsawSprite extends PIXI.Sprite {
     row: number = -1;
