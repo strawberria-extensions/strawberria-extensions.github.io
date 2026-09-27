@@ -4,6 +4,9 @@
             "$schema": "https://json-schema.org/draft/2020-12/schema",
             "type": "object",
             "properties": {
+                "config": {
+                    "type": "object",
+                    "properties": {
                 "wheels": {
                     "type": "object",
                     "additionalProperties": {
@@ -27,11 +30,11 @@
                                     "hiddenOutcomes": {
                                         "type": "boolean"
                                     },
-                                    "hiddenPercentages": {
+                                    "hiddenWeights": {
                                         "type": "boolean"
                                     }
                                 },
-                                "required": ["disabled", "hiddenEffects", "hiddenOutcomes", "hiddenPercentages"]
+                                "required": ["disabled", "hiddenEffects", "hiddenOutcomes", "hiddenWeights"]
                             },
                             "regularity": {
                                 "type": "object",
@@ -43,6 +46,14 @@
                                     "mode": {
                                         "type": "string",
                                         "enum": ["cumulative", "non_cumulative", "unlimited"]
+                                    },
+                                    "spinsPerPeriod": {
+                                        "type": "integer",
+                                        "minimum": 1
+                                    },
+                                    "maximum": {
+                                        "type": "integer",
+                                        "minimum": 1
                                     }
                                 },
                                 "required": ["interval", "mode"]
@@ -52,7 +63,7 @@
                                 "items": {
                                     "type": "object",
                                     "properties": {
-                                        "percentage": {
+                                        "weight": {
                                             "type": "string",
                                             "pattern": "^\\d+(\\.\\d+)?$"
                                         },
@@ -63,34 +74,45 @@
                                             "$ref": "/lockEffects"
                                         }
                                     },
-                                    "required": ["percentage", "text", "effects"]
+                                    "required": ["weight", "text", "effects"]
                                 }
                             }
                         },
                         "required": ["display", "settings", "regularity", "outcomes"]
                     }
                 }
+                    },
+                    "required": ["wheels"]
+                }
             },
-            "required": ["wheels"]
+            "required": ["config"]
         },
         "custom": {
             "type": "object",
             "properties": {
-                "wheels": {
+                "custom": {
                     "type": "object",
                     "additionalProperties": {
                         "type": "object",
                         "properties": {
-                            "lastActionTimeMS": {
+                            "lastSpinMS": {
                                 "type": "integer",
-                                "exclusiveMinimum": 0
+                                "minimum": 0
+                            },
+                            "availableSpins": { "type": "integer", "minimum": 0 },
+                            "bonusSpins": { "type": "integer", "minimum": 0 },
+                            "periodStartedAtMS": { "type": ["integer", "null"], "minimum": 0 },
+                            "lastTrackMS": { "type": "integer", "minimum": 0 },
+                            "count": {
+                                "type": "object",
+                                "additionalProperties": { "type": "integer", "minimum": 0 }
                             }
                         },
-                        "required": ["lastActionTimeMS"]
+                        "required": ["lastSpinMS"]
                     }
                 }
             },
-            "required": ["wheels"]
+            "required": ["custom"]
         }
     },
     "strawberria_penalties": {

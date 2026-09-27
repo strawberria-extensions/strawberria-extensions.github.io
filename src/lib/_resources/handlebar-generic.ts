@@ -11,11 +11,20 @@ export const template = `{# Skip actions, will be handled by individual handleba
 {% endfor %}
 {% if events | length > 0 %}
 {% endif %}
-{# Skip penalties, will be handled by individual handlebars themselves #}
-{% if periodic | length > 0 %}
+{% if penalties | length > 0 %}
+**[ Penalties ]**
+{% for ruleKey, penaltyData in penalties %}
+- Complete {{ penaltyData.required }} "{{ ruleKey }}" actions every {{ penaltyData.interval | generateTimeString(true) }}{% if penaltyData.block == true %}; required to unlock{% endif %}. Otherwise:
+{% for lockEffect in penaltyData.effects %}
+  - {{ lockEffect | generateLockEffect }}
+{% endfor %}
+{% endfor %}
+{% endif %}
+{% set scheduled = periodics or periodic %}
+{% if scheduled | length > 0 %}
 **[ Periodic ]**
-{% for periodicData in periodic %}
-- Every {{ generateTimeString(periodicData.interval / 1000) }}:
+{% for ruleKey, periodicData in scheduled %}
+- "{{ ruleKey }}" every {{ periodicData.interval | generateTimeString(true) }}:
 {% for lockEffect in periodicData.effects %}
   - {{ lockEffect | generateLockEffect }}
 {% endfor %}

@@ -11,6 +11,9 @@
             "minimum": 300000,
             "maximum": 604800000
         },
+        "block": {
+            "type": "boolean"
+        },
         "effects": {
             "$ref": "/lockEffects"
         }

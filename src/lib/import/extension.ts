@@ -6,7 +6,8 @@ export interface ExtensionConfig {
         actions:   ExtensionActionsConfig;
         events:    ExtensionEventsConfig;
         penalties: ExtensionPenaltiesConfig; 
-        periodic:  ExtensionPeriodicsConfig;  
+        periodics: ExtensionPeriodicsConfig;
+        periodic?: ExtensionPeriodicsConfig;
     };
     handlebar?: string;           // Generated server-side during config update
     // config: any;
@@ -56,12 +57,14 @@ export interface ExtensionPenaltiesConfig {
 export interface ExtensionPenaltyConfig {
     interval: number;           // Penalty interval in milliseconds
     required: number;           // Number required per penalty interval
-    block:    boolean;          // Whether to block unlocking before completed
+    block?:   boolean;          // Whether to block unlocking before completed
     effects:  LockEffectData[]; // Lock effects to be executed
 }
 
 // Regularity information for extensions
 export interface RegularityConfig {
-    interval: number; // Seconds, or remaining spins
+    interval: number; // Milliseconds between spins for timed modes
     mode:     "unlimited" | "cumulative" | "non_cumulative";
+    spinsPerPeriod?: number;
+    maximum?: number;
 }

@@ -1,5 +1,7 @@
 import * as ExtendedWheel from "./extension-extended_wheel.ts";
 
+export type WheelNumberExpression = number | `{{${string}}}`;
+
 export type LockEffectDataBase = {
     "key": "customText",
     "params": [string];
@@ -14,7 +16,7 @@ export type LockEffectDataBase = {
     "params": [boolean | undefined]
 } | {
     "key": "pillory",
-    "params": [number, string]
+    "params": [WheelNumberExpression, string]
 } | {
     "key": "hygieneUnlock",
     "params": []
@@ -32,7 +34,7 @@ export type LockEffectDataBase = {
     "params": [{ task: string; points: number }[], boolean]
 } | {
     "key": "updateLockDuration",
-    "params": ["set" | "modify" | "multiply", number, number | undefined]
+    "params": ["set" | "modify" | "multiply", WheelNumberExpression, WheelNumberExpression | undefined]
 } | {
     "key": "updateLockDisplay",
     "params": [boolean | undefined]
@@ -50,28 +52,28 @@ export type LockEffectDataBase = {
     "params": []
 } | {
     "key": "shareLinkModifyKey",
-    "params": ["nbVisits" | "timeToAdd" | "timeToRemove", "set" | "modify" | "multiply", number, number | undefined]
+    "params": ["nbVisits" | "timeToAdd" | "timeToRemove", "set" | "modify" | "multiply", WheelNumberExpression, WheelNumberExpression | undefined]
 } | {
     "key": "shareLinkSetLoggedIn",
     "params": [boolean | undefined]
 } | {
     "key": "pilloryUpdateDuration",
-    "params": ["set" | "modify" | "multiply", number, number | undefined]
+    "params": ["set" | "modify" | "multiply", WheelNumberExpression, WheelNumberExpression | undefined]
 } | {
     "key": "diceUpdateDuration",
-    "params": ["set" | "modify" | "multiply", number, number | undefined]
+    "params": ["set" | "modify" | "multiply", WheelNumberExpression, WheelNumberExpression | undefined]
 } | {
     "key": "tasksUpdateRequiredPoints",
-    "params": ["set" | "modify" | "multiply", number, number | undefined]
+    "params": ["set" | "modify" | "multiply", WheelNumberExpression, WheelNumberExpression | undefined]
 } | {
     "key": "randomEventsModifyDifficulty",
     "params": ["easy" | "normal" | "hard" | "expert"]
 } | {
     "key": "guessTimerUpdateKey",
-    "params": ["minRandomTime" | "maxRandomTime", "set" | "modify" | "multiply", number, number | undefined]
+    "params": ["minRandomTime" | "maxRandomTime", "set" | "modify" | "multiply", WheelNumberExpression, WheelNumberExpression | undefined]
 } | {
     "key": "delayLockEffect",
-    "params": [LockEffectData, number];
+    "params": [LockEffectData, WheelNumberExpression];
 } | {
     "key": "randomLockEffect",
     "params": [LockEffectData[], number[]];
@@ -93,7 +95,11 @@ export type LockEffectDataBase = {
 } | {
     "key": "resetCooldown",
     "params": [string, string]
+} | {
+    "key": "extendedAddBonusSpins",
+    "params": [string, number]
 };
 export type LockEffectData = LockEffectDataBase & {
     hidden?: boolean;
+    unit?: "seconds";
 }

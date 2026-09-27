@@ -26,7 +26,8 @@ function configureNunjucks(): nunjucks.Environment {
     // deno-lint-ignore no-explicit-any
     environment.addFilter("generateLockEffect", (lockEffect: any) => 
         nunjucks.renderString(TemplateLockEffect as string, { topLockEffect: lockEffect }).trim());
-    environment.addFilter("generateTimeString", (value: number, milliseconds: true) => {
+    environment.addFilter("generateTimeString", (value: number | string, milliseconds: true) => {
+        if(typeof value === "string") { return `${value} ${milliseconds ? "milliseconds" : "seconds"}`; }
         let inputValue = value;
         if(milliseconds) { inputValue = Math.floor(inputValue / 1000); }
         return generateTimeString(inputValue);

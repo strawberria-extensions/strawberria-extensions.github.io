@@ -85,17 +85,31 @@
             && weights.reduce((sum, weight) => sum + weight, 0) > 0;
     }
 
-    function getAvailableSpins(wheelID: string, nowMS: number = Date.now()): number {
+    function getSpinBalances(wheelID: string, nowMS: number = Date.now()): { regular: number; bonus: number; total: number } {
         const wheelConfigData = $extendedWheelConfigStore.wheels[wheelID];
         if(wheelConfigData === undefined || wheelConfigData.regularity.mode === "unlimited") {
-            return Infinity;
+            return { regular: Infinity, bonus: 0, total: Infinity };
         }
         const wheelCustomData = $extendedWheelCustomStore[wheelID];
         const interval = wheelConfigData.regularity.interval;
-        if(!Number.isFinite(interval) || interval <= 0) { return 0; }
+        if(!Number.isFinite(interval) || interval <= 0) { return { regular: 0, bonus: 0, total: 0 }; }
+        const bonus = wheelCustomData?.bonusSpins ?? 0;
+        let regular: number;
         if(wheelConfigData.regularity.mode === "non_cumulative") {
-            return wheelCustomData === undefined
-                || nowMS - wheelCustomData.lastSpinMS >= interval ? 1 : 0;
+            const capacity = wheelConfigData.regularity.spinsPerPeriod ?? 1;
+            const lastSpinMS = wheelCustomData?.lastSpinMS ?? 0;
+            const coolingDown = lastSpinMS > 0 && nowMS - lastSpinMS < interval;
+            regular = wheelCustomData?.availableSpins ?? (coolingDown ? capacity - 1 : capacity);
+            const periodStartedAtMS = wheelCustomData?.periodStartedAtMS === undefined && coolingDown
+                ? wheelCustomData?.lastSpinMS ?? null : wheelCustomData?.periodStartedAtMS ?? null;
+            if(wheelCustomData?.periodStartedAtMS === undefined && !coolingDown && regular === 0) {
+                regular = capacity;
+            }
+            if(periodStartedAtMS !== null && nowMS - periodStartedAtMS >= interval) {
+                regular = capacity;
+            }
+            regular = Math.min(capacity, Math.max(0, regular));
+            return { regular, bonus, total: regular + bonus };
         }
 
         const lastSpinMS = wheelCustomData?.lastSpinMS ?? 0;
@@ -104,7 +118,12 @@
         const earnedSpins = Number.isFinite(interval) && interval > 0
             ? Math.max(0, Math.floor((nowMS - lastTrackMS) / interval))
             : 0;
-        return initialSpins + earnedSpins;
+        regular = Math.min(wheelConfigData.regularity.maximum ?? Infinity, initialSpins + earnedSpins);
+        return { regular, bonus, total: regular + bonus };
+    }
+
+    function getAvailableSpins(wheelID: string, nowMS: number = Date.now()): number {
+        return getSpinBalances(wheelID, nowMS).total;
     }
 
     function updateNextSpinTimestamp() {
@@ -126,11 +145,13 @@
         }
         const checkpoint = wheelConfigData.regularity.mode === "cumulative"
             ? (wheelCustomData?.lastTrackMS ?? (wheelCustomData?.lastSpinMS || currentTimeMS))
-            : (wheelCustomData?.lastSpinMS ?? 0);
+            : (wheelCustomData?.periodStartedAtMS ?? wheelCustomData?.lastSpinMS ?? currentTimeMS);
         const elapsedIntervals = wheelConfigData.regularity.mode === "cumulative"
             ? Math.max(0, Math.floor((currentTimeMS - checkpoint) / interval))
             : 0;
-        const nextSpinMS = checkpoint + (elapsedIntervals + 1) * interval;
+        const nextSpinMS = wheelConfigData.regularity.mode === "cumulative"
+            ? checkpoint + (elapsedIntervals + 1) * interval
+            : checkpoint + interval;
         $nextSpinTimestampStore = generateTimeString(Math.max(0, Math.ceil((nextSpinMS - currentTimeMS) / 1000)));
     }
 
@@ -359,7 +380,7 @@
     {:else if selectedWheelID !== undefined && $extendedWheelConfigStore.wheels[selectedWheelID] !== undefined}
         {@const wheelData = $extendedWheelConfigStore.wheels[selectedWheelID]}
         {@const buttonDisabled = spinDisabled || !hasUsableOutcomes(wheelData) || (wheelData.settings.disabled === true && userRole !== "keyholder")}
-        {@const allowedSpin = (wheelData.regularity.mode === "unlimited" || getAvailableSpins(selectedWheelID) > 0 || $nextSpinTimestampStore === "" || userRole === "keyholder")}
+        {@const allowedSpin = (wheelData.regularity.mode === "unlimited" || getAvailableSpins(selectedWheelID) > 0 || userRole === "keyholder")}
         <div class="card-content grow" class:card-wrapper-desktop={shouldHorizontal}>
             <div class="w-full h-full flex flex-row">
                 <div class="h-full flex flex-col" class:card-horizontal={shouldHorizontal}>
@@ -417,8 +438,11 @@
                             </div>
                         </div>
                         <p class="min-h-[1em] text-center">
-                            {#if wheelData.regularity.mode === "cumulative" && userRole !== "keyholder"}
+                            {#if wheelData.regularity.mode !== "unlimited" && userRole !== "keyholder"}
                                 Available spins: {getAvailableSpins(selectedWheelID)}
+                                {#if getSpinBalances(selectedWheelID).bonus > 0}
+                                    ({getSpinBalances(selectedWheelID).bonus} bonus)
+                                {/if}
                                 {#if !allowedSpin}<br>{/if}
                             {/if}
                             {#if !allowedSpin}

@@ -51,12 +51,15 @@
                             ]
                         },
                         {
-                            "type": "number"
+                            "oneOf": [
+                                { "type": "number" },
+                                { "type": "string", "pattern": "^\\{\\{[^{}]+\\}\\}$" }
+                            ]
                         },
                         {
-                            "type": [
-                                "number",
-                                "null"
+                            "oneOf": [
+                                { "type": ["number", "null"] },
+                                { "type": "string", "pattern": "^\\{\\{[^{}]+\\}\\}$" }
                             ]
                         }
                     ]
@@ -113,7 +116,10 @@
                     "type": "array",
                     "prefixItems": [
                         {
-                            "type": "number"
+                            "oneOf": [
+                                { "type": "number" },
+                                { "type": "string", "pattern": "^\\{\\{[^{}]+\\}\\}$" }
+                            ]
                         },
                         {
                             "type": "string"
@@ -341,7 +347,8 @@
                 "key": {
                     "type": "string",
                     "enum": [
-                        "shareLinkUpdateKey"
+                        "shareLinkUpdateKey",
+                        "shareLinkModifyKey"
                     ]
                 },
                 "params": {
@@ -364,12 +371,15 @@
                             ]
                         },
                         {
-                            "type": "number"
+                            "oneOf": [
+                                { "type": "number" },
+                                { "type": "string", "pattern": "^\\{\\{[^{}]+\\}\\}$" }
+                            ]
                         },
                         {
-                            "type": [
-                                "number",
-                                "null"
+                            "oneOf": [
+                                { "type": ["number", "null"] },
+                                { "type": "string", "pattern": "^\\{\\{[^{}]+\\}\\}$" }
                             ]
                         }
                     ]
@@ -411,12 +421,15 @@
                             ]
                         },
                         {
-                            "type": "number"
+                            "oneOf": [
+                                { "type": "number" },
+                                { "type": "string", "pattern": "^\\{\\{[^{}]+\\}\\}$" }
+                            ]
                         },
                         {
-                            "type": [
-                                "number",
-                                "null"
+                            "oneOf": [
+                                { "type": ["number", "null"] },
+                                { "type": "string", "pattern": "^\\{\\{[^{}]+\\}\\}$" }
                             ]
                         }
                     ]
@@ -469,13 +482,19 @@
                     "type": "array",
                     "prefixItems": [
                         {
-                            "$ref": "/lockEffects"
+                            "$ref": "/lockEffect"
                         },
                         {
-                            "type": "number",
-                            "exclusiveMinimum": 60000
+                            "oneOf": [
+                                { "type": "number", "minimum": 0 },
+                                { "type": "string", "pattern": "^\\{\\{[^{}]+\\}\\}$" }
+                            ]
                         }
                     ]
+                },
+                "unit": {
+                    "type": "string",
+                    "enum": ["seconds"]
                 },
                 "hidden": {
                     "type": "boolean"
@@ -483,7 +502,8 @@
             },
             "required": [
                 "key",
-                "params"
+                "params",
+                "unit"
             ]
         },
         {
@@ -735,6 +755,23 @@
                 "key",
                 "params"
             ]
+        },
+        {
+            "type": "object",
+            "properties": {
+                "key": { "type": "string", "enum": ["extendedAddBonusSpins"] },
+                "params": {
+                    "type": "array",
+                    "prefixItems": [
+                        { "type": "string" },
+                        { "type": "integer", "minimum": 1 }
+                    ],
+                    "minItems": 2,
+                    "maxItems": 2
+                },
+                "hidden": { "type": "boolean" }
+            },
+            "required": ["key", "params"]
         }
     ]
 }

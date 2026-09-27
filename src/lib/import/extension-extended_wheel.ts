@@ -45,8 +45,11 @@ export interface OutcomeData extends OutcomeResult {
 // Custom data for each wheel, mainly just spins left and last spun
 export interface WheelCustom {
     lastSpinMS:  number; // Last action time, in unix milliseconds
-    availableSpins?: number; // Earned spins remaining in cumulative mode
+    availableSpins?: number; // Regular spins remaining
+    bonusSpins?: number;
+    periodStartedAtMS?: number | null;
     lastTrackMS?: number; // Last cumulative accrual checkpoint, in unix milliseconds
+    count?: { [outcome: string]: number };
 }
 
 export function generateHandlebar(config: ExtensionConfig) {
