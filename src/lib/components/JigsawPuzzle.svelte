@@ -118,7 +118,7 @@
         </button>
         <button class="flex flex-col justify-center cursor-pointer hover:bg-gray-600 text-slate-300"
             on:click={() => { confirmRestart = true }}>
-            <i class="fas fa-power-off text-center px-2" />
+            <i class="fas fa-refresh text-center px-2" />
         </button>
         <!-- <button class="flex flex-col justify-center cursor-pointer hover:bg-gray-600 text-slate-300"
             on:click={() => { instance.onRotate(true) }}>

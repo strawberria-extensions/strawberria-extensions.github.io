@@ -344,6 +344,10 @@ export const template = `{# Templating for lock effect, including support for re
     {%- endif %}
 {%- elif lockEffect.key == "delayLockEffect" -%}
     Delay by {{ lockEffect.params[1] | generateTimeString }} ➜ {{ generate(lockEffect.params[0]) }}
+{%- elif lockEffect.key == "randomLockEffect" -%}
+    Randomly choose: {% for effect in lockEffect.params[0] -%}
+        {{ lockEffect.params[1][loop.index0] }}% ➜ {{ generate(effect) }}{% if not loop.last %}; {% endif %}
+    {%- endfor %}
 {# TODO reason preventing unlocking? #}
 {%- elif lockEffect.key == "extendedSetDisabled" -%}
     {%- set wheel = lookup["extended-wheel-of-fortune"][lockEffect.params[0]] -%}

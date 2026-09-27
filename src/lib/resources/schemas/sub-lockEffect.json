@@ -492,6 +492,39 @@
                 "key": {
                     "type": "string",
                     "enum": [
+                        "randomLockEffect"
+                    ]
+                },
+                "params": {
+                    "type": "array",
+                    "prefixItems": [
+                        {
+                            "$ref": "/lockEffects"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "number",
+                                "minimum": 0
+                            }
+                        }
+                    ]
+                },
+                "hidden": {
+                    "type": "boolean"
+                }
+            },
+            "required": [
+                "key",
+                "params"
+            ]
+        },
+        {
+            "type": "object",
+            "properties": {
+                "key": {
+                    "type": "string",
+                    "enum": [
                         "partnerAddRemoveReason"
                     ]
                 },

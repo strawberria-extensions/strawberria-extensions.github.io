@@ -73,6 +73,9 @@ export type LockEffectDataBase = {
     "key": "delayLockEffect",
     "params": [LockEffectData, number];
 } | {
+    "key": "randomLockEffect",
+    "params": [LockEffectData[], number[]];
+} | {
     "key": "partnerAddRemoveReason",
     "params": [string, "add" | "remove", string];
 } | {
