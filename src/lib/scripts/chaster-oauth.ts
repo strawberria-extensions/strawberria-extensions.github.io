@@ -70,14 +70,6 @@ export function getChasterAuthorizationPageURL(redirect?: string): string {
 
 export function openChasterAuthorization(redirect?: string): void {
     const url = getChasterAuthorizationPageURL(redirect);
-    if (window.self !== window.top) {
-        try {
-            window.top!.location.href = url;
-            return;
-        } catch {
-            // Browsers may require a user click before leaving an embedded page.
-        }
-    }
     window.location.assign(url);
 }
 

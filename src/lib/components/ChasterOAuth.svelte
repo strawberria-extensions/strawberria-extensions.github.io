@@ -77,7 +77,7 @@
             {#if token}
                 <button type="button" class="btn btn-secondary btn-sm" disabled={checking} on:click={checkConnection}>Check connection</button>
             {/if}
-            <a class="text-sm self-center" href={authorizationURL} target="_top">Open connection page</a>
+            <a class="text-sm self-center" href={authorizationURL} target="_self">Open connection page</a>
         </div>
     </div>
     {#if error}<p class="text-sm text-red-400 mt-2 mb-0" role="alert">{error}</p>{/if}

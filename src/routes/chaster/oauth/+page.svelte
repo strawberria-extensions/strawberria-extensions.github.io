@@ -3,7 +3,7 @@
     import { onMount } from 'svelte';
     import chasterLogo from '$lib/resources/logo.png';
     import {
-        beginChasterAuthorization, consumeOAuthState, getChasterAuthorizationPageURL, getOAuthReturnURL,
+        beginChasterAuthorization, consumeOAuthState, getOAuthReturnURL,
         invokeChasterOAuth, returnFromChasterAuthorization,
     } from '$lib/scripts/chaster-oauth';
 
@@ -12,8 +12,6 @@
     let busy = false;
     let complete = false;
     let redirect: string | undefined;
-    let embedded = false;
-    let authorizationURL = '';
 
     async function connect() {
         if (busy) return;
@@ -47,11 +45,9 @@
     }
 
     onMount(() => {
-        embedded = window.self !== window.top;
         const url = new URL(window.location.href);
         try {
             redirect = getOAuthReturnURL(url.searchParams.get('redirect'));
-            authorizationURL = getChasterAuthorizationPageURL(redirect);
         }
         catch (failure) {
             message = '';
@@ -66,7 +62,7 @@
                 message = '';
                 error = 'The authorization response is incomplete. Please connect again.';
             } else { void finishAuthorization(state, code, denied); }
-        } else if (url.searchParams.get('connect') === '1' && !embedded) { void connect(); }
+        } else if (url.searchParams.get('connect') === '1') { void connect(); }
     });
 </script>
 
@@ -82,11 +78,7 @@
         {#if message}<p role="status">{message}</p>{/if}
         {#if error}<p class="text-red-400" role="alert">{error}</p>{/if}
     </div>
-    {#if embedded}
-        <a class="btn btn-primary mt-3" href={authorizationURL} target="_top">Connect Chaster</a>
-    {:else}
-        <button type="button" class="btn btn-primary mt-3" disabled={busy} on:click={connect}>
-            {complete ? 'Connect another account' : 'Connect Chaster'}
-        </button>
-    {/if}
+    <button type="button" class="btn btn-primary mt-3" disabled={busy} on:click={connect}>
+        {complete ? 'Connect another account' : 'Connect Chaster'}
+    </button>
 </main>
