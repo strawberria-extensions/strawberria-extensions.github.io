@@ -1,4 +1,6 @@
 <script lang="ts">
+    import ChasterOAuth from '$lib/components/ChasterOAuth.svelte';
+    import { readChasterSessionToken } from '$lib/scripts/chaster-oauth';
     import { writable, type Writable } from "svelte/store";
     import { onMount } from "svelte";
     import { Validator } from "jsonschema";
@@ -25,23 +27,8 @@
     let configurationToken = "";
     let initialLoadMessage: string = "Loading extension data...";
 
-    let hash: string = "";
     onMount(async () => {
-        // Retrieve configuration token from page URL
-        hash = window.location.hash.substring(1).split("?")[0];
-        const queryString = window.location.search;
-        const urlParams = new URLSearchParams(queryString);
-        if(hash !== "") {
-            const params = JSON.parse(decodeURIComponent(hash));
-            configurationToken = params.partnerConfigurationToken;
-        } else {
-            // Check whether main token was moved to query params after OAuth
-            const stateTokenData = urlParams.get("state");
-            if(stateTokenData !== null && stateTokenData !== "") {
-                const stateParams = JSON.parse(decodeURIComponent(stateTokenData));
-                configurationToken = stateParams.partnerConfigurationToken;
-            }
-        }
+        configurationToken = readChasterSessionToken('configuration');
 
         // Communicate to Chaster that save capability is supported
         if(window.parent) {
@@ -189,6 +176,7 @@
 </script>
 
 <div class="container-bg w-full h-screen pl-3 pr-3 mt-2 overflow-y-auto">
+    <ChasterOAuth token={configurationToken} kind="configuration" />
     {#if initialLoadMessage !== ""}
         <!-- While extension data is loading, show Chaster logo -->
         <div class="w-full h-screen flex flex-col items-center justify-center">

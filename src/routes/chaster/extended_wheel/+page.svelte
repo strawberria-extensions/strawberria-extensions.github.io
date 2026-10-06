@@ -1,4 +1,6 @@
 <script lang="ts">
+    import ChasterOAuth from '$lib/components/ChasterOAuth.svelte';
+    import { readChasterSessionToken } from '$lib/scripts/chaster-oauth';
     import { easeSinInOut } from 'd3-ease';
     import { onDestroy, onMount } from 'svelte';
     import { writable, type Writable } from 'svelte/store';
@@ -45,23 +47,8 @@
     let extendedWheelConfigStore: Writable<ExtendedWheel.Config["config"]> = writable({ "wheels": {} });
     let extendedWheelCustomStore: Writable<ExtendedWheel.Custom["custom"]> = writable({});
 
-    let hash: string = "";
     onMount(async () => {
-        // Retrieve main token from page URL
-        hash = window.location.hash.substring(1).split("?")[0];
-        const queryString = window.location.search;
-        const urlParams = new URLSearchParams(queryString);
-        if(hash !== "") {
-            const params = JSON.parse(decodeURIComponent(hash));
-            mainToken = params.mainToken;
-        } else {
-            // Check whether main token was moved to query params after OAuth
-            const stateTokenData = urlParams.get("state");
-            if(stateTokenData !== null) {
-                const stateParams = JSON.parse(decodeURIComponent(stateTokenData));
-                mainToken = stateParams.mainToken;
-            }
-        }
+        mainToken = readChasterSessionToken('main');
 
         initialLoadMessage = "Retrieving extended wheel data...";
 
@@ -371,6 +358,7 @@
 
 <svelte:window />
 <div class="container-bg min-w-0 min-h-0 p-4 space-y-2 grow">
+    <ChasterOAuth token={mainToken} />
     {#if initialLoadMessage !== ""}
         <!-- While extension data is loading, show Chaster logo -->
         <div class="w-full h-screen flex flex-col items-center justify-center">

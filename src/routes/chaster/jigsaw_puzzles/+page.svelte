@@ -1,4 +1,6 @@
 <script lang="ts">
+    import ChasterOAuth from '$lib/components/ChasterOAuth.svelte';
+    import { readChasterSessionToken } from '$lib/scripts/chaster-oauth';
     import { onMount } from "svelte";
     import { writable, type Writable } from "svelte/store";
     import Masonry from '$lib/components/Masonry.svelte';
@@ -31,23 +33,8 @@
     });
 
     let mainToken = "";
-    let hash: string = "";
     onMount(async () => {
-        // Retrieve main token from page URL
-        hash = window.location.hash.substring(1).split("?")[0];
-        const queryString = window.location.search;
-        const urlParams = new URLSearchParams(queryString);
-        if(hash !== "") {
-            const params = JSON.parse(decodeURIComponent(hash));
-            mainToken = params.mainToken;
-        } else {
-            // Check whether main token was moved to query params after OAuth
-            const stateTokenData = urlParams.get("state");
-            if(stateTokenData !== null) {
-                const stateParams = JSON.parse(decodeURIComponent(stateTokenData));
-                mainToken = stateParams.mainToken;
-            }
-        }
+        mainToken = readChasterSessionToken('main');
 
         // Retrieve data for jigsaw puzzles and prepare thumbnail URLs for older configs.
         const jigsawPuzzlesMainResponse = await fetch(chasterUtilitiesURL, {
@@ -158,6 +145,7 @@
 </script>
   
 <div class="container-bg w-full flex flex-col items-stretch margin-0 min-h-full p-4">
+    <ChasterOAuth token={mainToken} />
     {#if initialLoadMessage !== ""}
         <!-- While extension data is loading, show Chaster logo -->
         <div class="w-full h-screen flex flex-col items-center justify-center">

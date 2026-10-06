@@ -1,4 +1,7 @@
 <script lang="ts">
+    import ChasterOAuth from '$lib/components/ChasterOAuth.svelte';
+    import { readChasterSessionToken, requireConfigAuthorization } from '$lib/scripts/chaster-oauth';
+    import type { ChasterOAuthConnection } from '$lib/scripts/signature-backend';
     import { writable, type Writable } from "svelte/store";
     import { onMount } from "svelte";
     import { Validator } from "jsonschema";
@@ -42,22 +45,23 @@
 
     let configurationToken = "";
     let initialLoadMessage: string = "Loading extension data...";
+    let initializationError = "";
+    let oauthConnection: ChasterOAuthConnection | null = null;
 
-    let hash: string = "";
     onMount(async () => {
-        // Retrieve configuration token from page URL
-        hash = window.location.hash.substring(1).split("?")[0];
-        const queryString = window.location.search;
-        const urlParams = new URLSearchParams(queryString);
-        if(hash !== "") {
-            const params = JSON.parse(decodeURIComponent(hash));
-            configurationToken = params.partnerConfigurationToken;
-        } else {
-            // Check whether main token was moved to query params after OAuth
-            const stateTokenData = urlParams.get("state");
-            if(stateTokenData !== null && stateTokenData !== "") {
-                const stateParams = JSON.parse(decodeURIComponent(stateTokenData));
-                configurationToken = stateParams.partnerConfigurationToken;
+        configurationToken = readChasterSessionToken('configuration');
+        if (data.slug === 'extended_wheel') {
+            initialLoadMessage = 'Checking Chaster authorization...';
+            try {
+                oauthConnection = await requireConfigAuthorization(configurationToken);
+                if (!oauthConnection) {
+                    initialLoadMessage = 'Opening Chaster authorization...';
+                    return;
+                }
+            } catch (failure) {
+                initializationError = (failure as Error).message;
+                initialLoadMessage = 'Unable to load the configuration';
+                return;
             }
         }
 
@@ -167,11 +171,17 @@
 </script>
 
 <div class="container-bg w-full h-screen pl-3 pr-3 mt-2">
+    <ChasterOAuth token={configurationToken} kind="configuration"
+        autoCheck={data.slug !== 'extended_wheel'} bind:connection={oauthConnection} />
     {#if initialLoadMessage !== ""}
         <!-- While extension data is loading, show Chaster logo -->
         <div class="w-full h-screen flex flex-col items-center justify-center">
             <img src={chasterLogo} alt="Chaster logo">
             <div class="mt-4 mb-3 caption text-lg">{initialLoadMessage}</div>
+            {#if initializationError}
+                <p class="text-red-400 text-center max-w-xl" role="alert">{initializationError}</p>
+                <button type="button" class="btn btn-secondary" on:click={() => window.location.reload()}>Retry loading</button>
+            {/if}
         </div>
     {:else}
         {#if data.slug === "extended_wheel" && wheelEntries.length > 0}

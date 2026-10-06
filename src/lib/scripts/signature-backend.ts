@@ -2,6 +2,18 @@ import type * as ExtendedWheel from "$lib/import/extension-extended_wheel"
 import type * as JigsawPuzzles from "$lib/import/extension-jigsaw_puzzles"
 import type { LockEffectData } from "$lib/import/lock_effects"
 
+export type ChasterOAuthCredentials =
+    | { mainToken: string; configToken?: never }
+    | { configToken: string; mainToken?: never };
+
+export interface ChasterOAuthConnection {
+    status: "connected" | "reauthorization_required" | "not_connected";
+    chasterUserID: string;
+    scopes: string;
+    accessExpire: string | null;
+    refreshExpire: string | null;
+}
+
 export interface BackendRequestSignature {
     "chaster_utilities": {
         "extended-config-page": {
@@ -15,11 +27,11 @@ export interface BackendRequestSignature {
             wheelID:   string;
         };
     };
-    // "database_utilities": {
-    //     "chaster_access-check": {
-    //         chasterUserID: string;
-    //     };
-    // };
+    "database_utilities": {
+        "chaster_access-start": { redirect?: string };
+        "chaster_access-set": { authorizationCode: string; state: string };
+        "chaster_access-check": ChasterOAuthCredentials;
+    };
 }
 
 export interface BackendResponseSignature {
@@ -62,11 +74,11 @@ export interface BackendResponseSignature {
         //     count?:            number;                   
         // }
     };
-    // "database_utilities": {
-    //     "chaster_custom-get": {
-    //         exists: boolean;
-    //     };
-    // };
+    "database_utilities": {
+        "chaster_access-start": { authorizationURL: string; state: string; expiresAt: string };
+        "chaster_access-set": ChasterOAuthConnection & { redirect: string | null };
+        "chaster_access-check": ChasterOAuthConnection;
+    };
 }
 
 export interface IndividualPenaltyData {
