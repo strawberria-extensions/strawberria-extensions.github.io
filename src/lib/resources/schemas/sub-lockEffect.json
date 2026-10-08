@@ -755,23 +755,6 @@
                 "key",
                 "params"
             ]
-        },
-        {
-            "type": "object",
-            "properties": {
-                "key": { "type": "string", "enum": ["extendedAddBonusSpins"] },
-                "params": {
-                    "type": "array",
-                    "prefixItems": [
-                        { "type": "string" },
-                        { "type": "integer", "minimum": 1 }
-                    ],
-                    "minItems": 2,
-                    "maxItems": 2
-                },
-                "hidden": { "type": "boolean" }
-            },
-            "required": ["key", "params"]
         }
     ]
 }

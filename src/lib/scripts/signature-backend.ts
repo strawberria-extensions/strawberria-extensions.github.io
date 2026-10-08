@@ -1,5 +1,6 @@
 import type * as ExtendedWheel from "$lib/import/extension-extended_wheel"
 import type * as JigsawPuzzles from "$lib/import/extension-jigsaw_puzzles"
+import type * as TTLockOwnership from "$lib/import/extension-ttlock_ownership"
 import type { LockEffectData } from "$lib/import/lock_effects"
 
 export type ChasterOAuthCredentials =
@@ -16,6 +17,13 @@ export interface ChasterOAuthConnection {
 
 export interface BackendRequestSignature {
     "chaster_utilities": {
+        "ttlock_ownership-page": { mainToken: string };
+        "ttlock_ownership-update-account": { mainToken: string; username: string };
+        "ttlock_ownership-transfer-status": { mainToken: string; username: string; identifier: string };
+        "ttlock_ownership-username": { mainToken: string; username: string };
+        "ttlock_ownership-locks": { mainToken: string; username: string };
+        "ttlock_ownership-bind": { mainToken: string; lockId: number; username?: string };
+        "ttlock_ownership-passcode": { mainToken: string; refresh: boolean };
         "extended-config-page": {
             configToken: string;
         };
@@ -36,6 +44,13 @@ export interface BackendRequestSignature {
 
 export interface BackendResponseSignature {
     "chaster_utilities": {
+        "ttlock_ownership-page": TTLockOwnership.Page;
+        "ttlock_ownership-update-account": { boundAccount: string };
+        "ttlock_ownership-transfer-status": { transferred: boolean; page: TTLockOwnership.Page | null };
+        "ttlock_ownership-username": { username: string };
+        "ttlock_ownership-locks": { locks: TTLockOwnership.Device[] };
+        "ttlock_ownership-bind": TTLockOwnership.Page;
+        "ttlock_ownership-passcode": { passcode: TTLockOwnership.Passcode };
         "extended-config-page": {
             config: ExtendedWheel.Config;
         };

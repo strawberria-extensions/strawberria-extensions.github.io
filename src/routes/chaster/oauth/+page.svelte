@@ -71,14 +71,44 @@
     <meta name="referrer" content="no-referrer">
 </svelte:head>
 
-<main class="container-bg min-h-screen p-6 flex flex-col items-center justify-center">
-    <img src={chasterLogo} alt="Chaster logo">
-    <h1 class="text-xl mt-4">Chaster connection</h1>
-    <div class="max-w-xl text-center" aria-live="polite">
-        {#if message}<p role="status">{message}</p>{/if}
-        {#if error}<p class="text-red-400" role="alert">{error}</p>{/if}
-    </div>
-    <button type="button" class="btn btn-primary mt-3" disabled={busy} on:click={connect}>
-        {complete ? 'Connect another account' : 'Connect Chaster'}
-    </button>
+<main class="oauth-page">
+    <section class="oauth-content" aria-label="Chaster authorization">
+        <img class="oauth-logo" src={chasterLogo} alt="Chaster logo">
+        <h1 class="text-xl mt-4">Chaster connection</h1>
+        <div aria-live="polite">
+            {#if message}<p role="status">{message}</p>{/if}
+            {#if error}<p class="text-red-400" role="alert">{error}</p>{/if}
+        </div>
+        <button type="button" class="btn btn-primary mt-3" disabled={busy} on:click={connect}>
+            {complete ? 'Connect another account' : 'Connect Chaster'}
+        </button>
+    </section>
 </main>
+
+<style>
+    .oauth-page {
+        box-sizing: border-box;
+        display: grid;
+        place-items: center;
+        width: 100%;
+        min-height: 100vh;
+        min-height: 100dvh;
+        padding: 1.5rem;
+    }
+
+    .oauth-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        max-width: 36rem;
+        text-align: center;
+        overflow-wrap: anywhere;
+    }
+
+    .oauth-logo {
+        width: 8rem;
+        max-width: 100%;
+        height: auto;
+    }
+</style>

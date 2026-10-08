@@ -1,5 +1,4 @@
 <script lang="ts">
-    import ChasterOAuth from '$lib/components/ChasterOAuth.svelte';
     import { readChasterSessionToken } from '$lib/scripts/chaster-oauth';
     import { easeSinInOut } from 'd3-ease';
     import { onDestroy, onMount } from 'svelte';
@@ -358,7 +357,6 @@
 
 <svelte:window />
 <div class="container-bg min-w-0 min-h-0 p-4 space-y-2 grow">
-    <ChasterOAuth token={mainToken} />
     {#if initialLoadMessage !== ""}
         <!-- While extension data is loading, show Chaster logo -->
         <div class="w-full h-screen flex flex-col items-center justify-center">

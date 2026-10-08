@@ -39,9 +39,6 @@ export const template = `{# Templating for lock effect, including support for re
     **[{{ extensionDisplayName(lockEffect.params[0]) }}]** Reset the cooldown {% if lockEffect.params[0] == "extended-wheel-of-fortune" -%}
         {%- set wheel = lookup["extended-wheel-of-fortune"][lockEffect.params[1]] -%} of the wheel "{{ wheel.display }}"
     {%- endif %}
-{%- elif lockEffect.key == "extendedAddBonusSpins" -%}
-    {%- set wheel = lookup["extended-wheel-of-fortune"][lockEffect.params[0]] -%}
-    **[🍓/Extended Wheel of Fortune]** Add {{ lockEffect.params[1] }} bonus spin{% if lockEffect.params[1] != 1 %}s{% endif %} to the wheel "{{ wheel.display }}"
 {%- elif lockEffect.key == "customText" -%}
     {{ lockEffect.params[0] }}
 {%- elif lockEffect.key == "resetLock" -%}

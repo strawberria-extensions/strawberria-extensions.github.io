@@ -95,9 +95,6 @@ export type LockEffectDataBase = {
 } | {
     "key": "resetCooldown",
     "params": [string, string]
-} | {
-    "key": "extendedAddBonusSpins",
-    "params": [string, number]
 };
 export type LockEffectData = LockEffectDataBase & {
     hidden?: boolean;

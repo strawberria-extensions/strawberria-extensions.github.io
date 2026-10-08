@@ -73,14 +73,16 @@ export function openChasterAuthorization(redirect?: string): void {
     window.location.assign(url);
 }
 
-export async function requireConfigAuthorization(configToken: string): Promise<ChasterOAuthConnection | null> {
-    if (!configToken) throw new Error('Open this configuration from Chaster to load its settings.');
-    const connection = await invokeChasterOAuth('chaster_access-check', { configToken });
+export async function requireChasterAuthorization(token: string, kind: SessionTokenKind): Promise<ChasterOAuthConnection | null> {
+    if (!token) throw new Error(kind === 'configuration'
+        ? 'Open this configuration from Chaster to load its settings.'
+        : 'Open this extension from Chaster to load its session.');
+    const connection = await invokeChasterOAuth('chaster_access-check', statusCredentials(token, kind));
     if (connection.status === 'connected') return connection;
     const returnURL = new URL(window.location.href);
     const returnedAt = Number(returnURL.searchParams.get('oauth_returned'));
     if (returnedAt > 0 && Math.abs(Date.now() - returnedAt) < 60_000) {
-        throw new Error('This configuration still needs authorization. Connect the Chaster account that owns this configuration, then reload.');
+        throw new Error('This page still needs authorization. Connect the Chaster account that owns this session, then reload.');
     }
     returnURL.searchParams.delete('oauth_returned');
     openChasterAuthorization(returnURL.toString());
